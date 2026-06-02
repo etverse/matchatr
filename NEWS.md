@@ -17,6 +17,11 @@ input-validation gaps before the estimation layers depend on them.
   `[[` resolves a duplicated name to its first match, so a duplicated outcome /
   exposure / strata column would otherwise be silently chosen and the
   existence check could even blame the wrong column.
+- `matcha()` rejects a column assigned to two incompatible roles
+  (`matchatr_bad_input`): the outcome or exposure also appearing as a confounder
+  or a design column (e.g. the exposure double-entered in `confounders`, or the
+  outcome used as the matched-set id). Confounders and design columns may still
+  overlap, so frequency-matching on a variable and adjusting for it remains valid.
 
 ## 2026-06-02 — Design taxonomy, data model, and two-step API
 

@@ -194,6 +194,50 @@ test_that("structural argument misuse is rejected with classed errors", {
   )
 })
 
+test_that("a column cannot serve two incompatible roles", {
+  # Review 2026-06-02 Issues R4/S5: outcome/exposure reused as a confounder or
+  # design column. /tmp/matchatr_repro_role_collision.R
+  df <- make_cc_data(n_sets = 8L)
+
+  # exposure listed as a confounder (double-entered term of interest)
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc(), confounders = ~ x + age),
+    class = "matchatr_bad_input"
+  )
+  # outcome listed as a confounder (regressing the outcome on itself)
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc(), confounders = ~ case + age),
+    class = "matchatr_bad_input"
+  )
+  # outcome used as the matched-set id
+  expect_error(
+    matcha(df, "case", "x", matched_cc(strata = "case"), estimator = "clogit"),
+    class = "matchatr_bad_input"
+  )
+  # exposure used as the matched-set id (collapses the contrast)
+  expect_error(
+    matcha(df, "case", "x", matched_cc(strata = "x"), estimator = "clogit"),
+    class = "matchatr_bad_input"
+  )
+})
+
+test_that("a confounder may legitimately overlap a design (matching) column", {
+  # Frequency-matching on a variable AND adjusting for residual confounding by
+  # it is standard and must not be rejected.
+  df <- make_cc_data(n_sets = 8L)
+  expect_no_error(
+    matcha(
+      df,
+      "case",
+      "x",
+      matched_cc(strata = "smoke"),
+      confounders = ~ smoke + age,
+      estimator = "clogit"
+    ) |>
+      suppressWarnings()
+  )
+})
+
 test_that("duplicated column names in data are rejected", {
   # Review 2026-06-02 Issue R3: `[[` resolves a duplicated name to its first
   # match, so a duplicated role column would be silently chosen.

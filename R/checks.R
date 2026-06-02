@@ -210,6 +210,64 @@ check_ratio <- function(ratio, call = rlang::caller_env()) {
   invisible(NULL)
 }
 
+#' Reject a column assigned to two incompatible analysis roles
+#'
+#' The outcome and the exposure each play a single, fixed role and must be
+#' distinct from the adjustment covariates and from the columns that define the
+#' sampling design. Reusing the outcome as a confounder regresses / standardises
+#' the outcome on itself; reusing it as a matched-set id makes every set
+#' single-class; entering the exposure as a confounder double-enters the term of
+#' interest; matching or stratifying on the exposure collapses the contrast the
+#' design exists to estimate.
+#'
+#' Confounders and design columns are deliberately allowed to overlap: matching
+#' (or frequency-matching) on a variable and additionally adjusting for residual
+#' confounding by it is a standard, valid combination.
+#'
+#' @param outcome Character scalar outcome column name.
+#' @param exposure Character scalar exposure column name.
+#' @param confounder_vars Character vector of confounder column names (possibly
+#'   length 0).
+#' @param design_cols Character vector of design-referenced column names
+#'   (possibly length 0).
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` when the
+#'   outcome or exposure also appears as a confounder or a design column.
+#' @family validators
+#' @noRd
+check_role_collisions <- function(
+  outcome,
+  exposure,
+  confounder_vars,
+  design_cols,
+  call = rlang::caller_env()
+) {
+  covariates <- unique(c(confounder_vars, design_cols))
+  collide <- function(role, col) {
+    rlang::abort(
+      c(
+        paste0(
+          "`",
+          role,
+          "` column `",
+          col,
+          "` also appears as a confounder or a design column."
+        ),
+        i = "The outcome and exposure must each be a distinct column from the covariates and design."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  if (outcome %in% covariates) {
+    collide("outcome", outcome)
+  }
+  if (exposure %in% covariates) {
+    collide("exposure", exposure)
+  }
+  invisible(NULL)
+}
+
 #' Coerce a case-status column to a 0/1 integer vector
 #'
 #' Case-control, nested case-control, and case-cohort designs all have a

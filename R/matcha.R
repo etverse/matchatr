@@ -122,6 +122,15 @@ matcha <- function(
     check_cols_exist(dt, design_cols, arg = "design")
   }
 
+  # No column may serve two incompatible roles (outcome / exposure vs covariate
+  # / design). Confounders and design columns are allowed to overlap.
+  confounder_vars <- if (is.null(confounders)) {
+    character(0)
+  } else {
+    all.vars(confounders)
+  }
+  check_role_collisions(outcome, exposure, confounder_vars, design_cols)
+
   # Resolve the analysis: design default when unspecified, then map the
   # (design, estimator) pair to an engine (rejects unknown estimators).
   if (is.null(estimator)) {
