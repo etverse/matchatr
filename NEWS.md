@@ -1,5 +1,15 @@
 # matchatr (development version)
 
+## 2026-06-02 — PHASE_2 Chunk 1 critical-review fixes
+
+Follow-up fixes from an adversarial review of the unmatched case-control
+logistic engine.
+
+- A constant or collinear exposure aliases to `NA` in `glm`; `contrast(type =
+  "or")` previously returned an `NA` odds ratio silently. It now aborts with the
+  classed `matchatr_unestimable_exposure`, mirroring the degenerate-outcome
+  rejection (review Issue #4).
+
 ## 2026-06-02 — Unmatched case-control logistic conditional OR (PHASE_2 Chunk 1)
 
 First estimator engine: the classical unmatched case-control analysis. `matcha()`

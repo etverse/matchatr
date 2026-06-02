@@ -258,6 +258,22 @@ test_that("RD / RR are rejected as unidentified from unmatched CC", {
   )
 })
 
+test_that("a constant (non-estimable) exposure is rejected", {
+  # Critical review 2026-06-02 Issue #4: a constant exposure aliases to NA in
+  # glm; contrast() must abort, not return an NA odds ratio.
+  # /tmp/matchatr_repro_aliasing.R
+  df_const <- data.frame(
+    case = rep(c(1L, 0L), each = 100),
+    x = rep(1L, 200),
+    age = stats::rnorm(200)
+  )
+  fit_const <- matcha(df_const, "case", "x", unmatched_cc(), confounders = ~age)
+  expect_error(
+    contrast(fit_const, type = "or"),
+    class = "matchatr_unestimable_exposure"
+  )
+})
+
 test_that("bootstrap CI is rejected for the conditional OR", {
   df <- make_cohort_cc()
   fit <- matcha(df, "case", "x", unmatched_cc())

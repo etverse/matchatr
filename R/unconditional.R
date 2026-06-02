@@ -130,6 +130,23 @@ contrast_logistic <- function(
   idx <- exposure_coef_index(model, fit$exposure, call = call)
   term_labels <- names(beta)[idx]
   b <- unname(beta[idx])
+  # A constant or collinear exposure is aliased to NA by glm: it has no
+  # estimable coefficient, so its odds ratio is not identified. Refuse rather
+  # than return a silent NA (mirrors the degenerate-outcome rejection in
+  # resolve_binary_outcome()).
+  if (anyNA(b)) {
+    rlang::abort(
+      c(
+        paste0("Exposure `", fit$exposure, "` has no estimable effect."),
+        i = paste0(
+          "It is constant or collinear with the confounders / intercept, so ",
+          "its odds ratio is not identified."
+        )
+      ),
+      class = c("matchatr_unestimable_exposure", "matchatr_error"),
+      call = call
+    )
+  }
   s <- unname(se[idx])
   log_lower <- b - z * s
   log_upper <- b + z * s
