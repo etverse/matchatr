@@ -19,6 +19,10 @@ Displays a compact summary of a \link[=unmatched_cc]{matchatr_design} object: th
 sampling structure, the columns it references, the matching ratio and
 prevalence when present, and the weighting scheme it will use.
 }
+\examples{
+print(matched_cc(strata = "set", ratio = 2))
+print(unmatched_cc(prevalence = 0.02))
+}
 \seealso{
 \code{\link[=unmatched_cc]{unmatched_cc()}}, \code{\link[=matched_cc]{matched_cc()}}, \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=case_cohort]{case_cohort()}}
 }

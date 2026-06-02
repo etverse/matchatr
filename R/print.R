@@ -8,6 +8,9 @@
 #' @param x A `matchatr_design` object.
 #' @param ... Unused; present for S3 consistency.
 #' @returns Invisibly returns `x`.
+#' @examples
+#' print(matched_cc(strata = "set", ratio = 2))
+#' print(unmatched_cc(prevalence = 0.02))
 #' @seealso [unmatched_cc()], [matched_cc()], [nested_cc()], [case_cohort()]
 #' @export
 print.matchatr_design <- function(x, ...) {
@@ -48,6 +51,9 @@ print.matchatr_design <- function(x, ...) {
 #' @param x A `matchatr_fit` object.
 #' @param ... Unused; present for S3 consistency.
 #' @returns Invisibly returns `x`.
+#' @examples
+#' df <- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))
+#' print(matcha(df, outcome = "case", exposure = "x", design = unmatched_cc()))
 #' @seealso [matcha()]
 #' @export
 print.matchatr_fit <- function(x, ...) {

@@ -19,6 +19,10 @@ Displays a compact summary of a \link[=matcha]{matchatr_fit} object: the samplin
 design, the resolved estimator and engine, the outcome / exposure /
 confounder roles, and the case / control counts.
 }
+\examples{
+df <- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))
+print(matcha(df, outcome = "case", exposure = "x", design = unmatched_cc()))
+}
 \seealso{
 \code{\link[=matcha]{matcha()}}
 }
