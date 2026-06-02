@@ -10,13 +10,16 @@ weighting** (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and
 (g-comp / IPW / AIPW + sandwich/bootstrap variance) and `survatr` (causal survival
 on person-period data) wherever possible.
 
-> **Status: bootstrap.** Package scaffold + full `PHASE_*.md` design roadmap are in
-> place. NO estimator code is implemented yet — every phase is `Status: DESIGN`.
+> **Status: foundation landed (PHASE_1).** The design taxonomy, the unified
+> `matchatr_design` S3 object + six constructors, the `matcha()` fit verb, and the
+> `(design, estimator)` dispatch + validation layer are implemented and tested.
+> NO *estimator* code runs yet — PHASE_2+ remain `Status: DESIGN`.
 
 ## Guide files
 
 - `FEATURE_COVERAGE_MATRIX.md` — **single source of truth for "what works".** Every
-  PR that changes a feature MUST update this file. Currently all-empty (no code).
+  PR that changes a feature MUST update this file. Records the PHASE_1 design/API
+  layer; estimator cells stay pending until PHASE_2+.
 - `PHASE_*.md` — per-phase design docs in the project root (see roadmap below). They
   follow the `implement-feature` Step-1b 10-point structure.
 
@@ -27,12 +30,18 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
 `vignettes/` (long-form docs). The website is built with `altdoc` + Quarto
 (`altdoc/quarto_website.yml`, `lumen` theme) to match the other etverse packages.
 
-### Planned R/ layout (created as phases land)
+### R/ layout (created as phases land)
 
-- **Design layer (owned by matchatr):** `cc_design.R` (design constructors +
-  `matchatr_design` S3), `weights_cc.R` (case-control / q₀ weights), `weights_design.R`
-  (Samuelsen / Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC
-  control sampling + counter-matching), `checks.R`, `constructors.R`.
+- **Design + API layer (PHASE_1, implemented):** `cc_design.R` (six design
+  constructors + `new_matchatr_design()`), `matcha.R` (the `matcha()` fit verb),
+  `dispatch.R` (the `(design, estimator)` → engine table + `resolve_engine()`),
+  `contrast.R` (the second-step `contrast()` verb — a validated skeleton until
+  estimation lands), `constructors.R` (`new_matchatr_fit()` /
+  `new_matchatr_result()`), `checks.R` (shared validators + classed-error
+  helpers), `print.R`. Still to come:
+  `weights_cc.R` (case-control / q₀ weights), `weights_design.R` (Samuelsen /
+  Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC control
+  sampling + counter-matching).
 - **Classical estimators:** `clogit.R` (matched CC / NCC conditional likelihood),
   `unconditional.R` (logistic OR + Mantel-Haenszel), `polytomous.R` (multiple groups),
   `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
@@ -45,7 +54,7 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
 - **S3 + support:** `print.R`, `summary.R`, `tidy.R`, `plot.R`, `coef.R`, `confint.R`,
   `data.R`, `matchatr-package.R`, `zzz.R`.
 
-## Two-step API (proposed — fixed in PHASE_1)
+## Two-step API (implemented in PHASE_1; `contrast()` is a skeleton until the causal phases)
 
 The verb mirrors the siblings (`causatr::causat()`, `survatr::surv_fit()`):
 
