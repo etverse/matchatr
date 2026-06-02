@@ -52,6 +52,11 @@ with the classed \code{matchatr_unidentified_estimand} condition.
 A fit whose engine has no wired estimator carries no estimates — its \code{model}
 slot is \code{NULL} — so \code{contrast()} validates its arguments and then aborts with
 \code{matchatr_not_estimated}.
+
+For an odds-ratio result the confidence interval is Wald on the log scale and
+exponentiated, so it is asymmetric on the OR scale: \verb{estimate +/- z * se}
+does not reproduce the reported \code{ci_lower} / \code{ci_upper} (the \code{se} is the
+delta-method OR-scale SE, kept for reference). Use the reported bounds.
 }
 \examples{
 set.seed(1)

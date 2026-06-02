@@ -75,9 +75,15 @@ fit_logistic_cc <- function(fit) {
 #' The interval is Wald on the log-odds scale, exponentiated to the OR scale:
 #' OR = exp(b), CI = exp(b +/- z * SE(b)), with the standard error from the
 #' model information matrix (`ci_method = "model"`) or the Huber-White sandwich
-#' (`ci_method = "sandwich"`). The reported OR-scale SE is the delta-method
-#' value OR * SE(b). The intercept is excluded — it is not an interpretable
-#' baseline risk in a case-control sample.
+#' (`ci_method = "sandwich"`). The intercept is excluded — it is not an
+#' interpretable baseline risk in a case-control sample.
+#'
+#' The reported OR-scale SE is the delta-method value OR * SE(b) (matching the
+#' `causatr` result convention). Because the interval is symmetric on the log
+#' scale, it is asymmetric on the OR scale, so `estimate +/- z * se` does NOT
+#' reproduce `ci_lower` / `ci_upper`; use the reported bounds directly. The SE
+#' is provided for reference and downstream composition, not for reconstructing
+#' the interval.
 #'
 #' @param fit A `matchatr_fit` whose `model` is a fitted binomial `glm`.
 #' @param type Character contrast scale; `"or"` is computed, while

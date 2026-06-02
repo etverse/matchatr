@@ -20,6 +20,11 @@
 #' slot is `NULL` — so `contrast()` validates its arguments and then aborts with
 #' `matchatr_not_estimated`.
 #'
+#' For an odds-ratio result the confidence interval is Wald on the log scale and
+#' exponentiated, so it is asymmetric on the OR scale: `estimate +/- z * se`
+#' does not reproduce the reported `ci_lower` / `ci_upper` (the `se` is the
+#' delta-method OR-scale SE, kept for reference). Use the reported bounds.
+#'
 #' @param fit A `matchatr_fit` object returned by [matcha()].
 #' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"or"`
 #'   (odds ratio). When omitted, it defaults to the estimand the design
