@@ -24,6 +24,10 @@ logistic engine.
   reports how many rows were dropped. Actual missing-data handling (multiple
   imputation) stays delegated to `causatr::causat_mice` / the future imputation
   phase, not reimplemented here.
+- `contrast()` now defaults `type` to the estimand the design identifies: `"or"`
+  for the classical odds-ratio engines, `"difference"` otherwise. `contrast(fit)`
+  on an unmatched case-control logistic fit therefore returns the conditional OR
+  instead of erroring on the previously hard-coded risk-difference default.
 
 ## 2026-06-02 — Unmatched case-control logistic conditional OR (PHASE_2 Chunk 1)
 

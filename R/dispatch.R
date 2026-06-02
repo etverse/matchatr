@@ -63,6 +63,26 @@ default_estimator <- function(design_type) {
   )
 }
 
+#' Default contrast scale for an engine
+#'
+#' The estimand an engine identifies, used by [contrast()] when the caller does
+#' not name a `type`. The classical odds-ratio engines identify only the
+#' conditional OR, so they default to `"or"`; engines that target a marginal
+#' effect default to the risk difference (the etverse convention).
+#'
+#' @param engine Character scalar engine key.
+#' @returns A character scalar contrast type (`"or"` or `"difference"`).
+#' @family dispatch
+#' @noRd
+default_contrast_type <- function(engine) {
+  switch(
+    engine,
+    glm_logistic = "or",
+    mantel_haenszel = "or",
+    "difference"
+  )
+}
+
 #' Resolve a (design, estimator) pair to an engine
 #'
 #' Implements the two orthogonal axes: the `design_type` selects the sampling

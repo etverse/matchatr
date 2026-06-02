@@ -21,8 +21,10 @@
 #' `matchatr_not_estimated`.
 #'
 #' @param fit A `matchatr_fit` object returned by [matcha()].
-#' @param type Character contrast scale: `"difference"` (default), `"ratio"`,
-#'   or `"or"` (odds ratio).
+#' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"or"`
+#'   (odds ratio). When omitted, it defaults to the estimand the design
+#'   identifies — `"or"` for the classical odds-ratio engines (unmatched
+#'   case-control logistic), `"difference"` otherwise.
 #' @param ci_method Character variance source for the interval: `"model"`
 #'   (information-matrix Wald, the default), `"sandwich"` (Huber-White robust),
 #'   or `"bootstrap"`.
@@ -64,7 +66,14 @@ contrast <- function(
   }
   # Validate the contrast scale / CI method / confidence level up front so the
   # public signature is fixed regardless of which engine fills in the body.
-  type <- match.arg(type)
+  # When the caller does not name a `type`, default to the estimand the design
+  # identifies (the OR for an odds-ratio-only engine) rather than the generic
+  # risk difference, which such an engine would have to reject.
+  if (missing(type)) {
+    type <- default_contrast_type(fit$engine)
+  } else {
+    type <- match.arg(type)
+  }
   ci_method <- match.arg(ci_method)
   check_conf_level(conf_level)
 

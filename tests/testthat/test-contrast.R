@@ -56,6 +56,21 @@ test_that("the three ci_method choices all resolve for the logistic OR", {
   )
 })
 
+test_that("contrast() defaults to the estimand the engine identifies", {
+  df <- make_cc_data(n_sets = 20L)
+  fit <- matcha(df, "case", "x", unmatched_cc())
+  # No `type` given: the logistic engine identifies the OR, so the default
+  # resolves to it rather than the risk difference it would have to reject.
+  res <- contrast(fit)
+  expect_s3_class(res, "matchatr_result")
+  expect_identical(res$type, "or")
+  # An explicitly requested unidentified estimand is still rejected.
+  expect_error(
+    contrast(fit, type = "difference"),
+    class = "matchatr_unidentified_estimand"
+  )
+})
+
 test_that("the not-estimated message reads clearly", {
   df <- make_cc_data(n_sets = 6L)
   fit <- suppressWarnings(matcha(df, "case", "x", matched_cc(strata = "set")))

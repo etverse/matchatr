@@ -15,8 +15,10 @@ contrast(
 \arguments{
 \item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}.}
 
-\item{type}{Character contrast scale: \code{"difference"} (default), \code{"ratio"},
-or \code{"or"} (odds ratio).}
+\item{type}{Character contrast scale: \code{"difference"}, \code{"ratio"}, or \code{"or"}
+(odds ratio). When omitted, it defaults to the estimand the design
+identifies — \code{"or"} for the classical odds-ratio engines (unmatched
+case-control logistic), \code{"difference"} otherwise.}
 
 \item{ci_method}{Character variance source for the interval: \code{"model"}
 (information-matrix Wald, the default), \code{"sandwich"} (Huber-White robust),
