@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>news – matchatr</title>
+<title>print.matchatr_fit – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,26 +23,61 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -81,7 +116,7 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">matchatr</span>
     </a>
   </div>
@@ -107,7 +142,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./NEWS.html">News</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_fit.html">print.matchatr_fit</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -121,76 +156,76 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link">
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Home</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
  <span class="menu-text">Reference</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/case_cohort.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/case_cohort.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">case_cohort</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/contrast.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/contrast.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">contrast</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/counter_matched.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/counter_matched.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">counter_matched</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/matcha.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/matcha.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">matcha</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/matched_cc.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/matched_cc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">matched_cc</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/nested_cc.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/nested_cc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">nested_cc</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/print.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/print.matchatr_fit.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">print.matchatr_fit</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/two_phase.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/two_phase.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">two_phase</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./man/unmatched_cc.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/unmatched_cc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">unmatched_cc</span></a>
   </div>
 </li>
@@ -198,19 +233,19 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./NEWS.html" class="sidebar-item-text sidebar-link active">
+  <a href="../NEWS.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">News</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./LICENSE.html" class="sidebar-item-text sidebar-link">
+  <a href="../LICENSE.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">License</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./CITATION.html" class="sidebar-item-text sidebar-link">
+  <a href="../CITATION.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Citation</span></a>
   </div>
 </li>
@@ -224,53 +259,82 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
+  <li><a href="#print-a-matchatr-fit" id="toc-print-a-matchatr-fit" class="nav-link active" data-scroll-target="#print-a-matchatr-fit">Print a matchatr fit</a>
   <ul class="collapse">
-  <li><a href="#phase_1-validation-hardening-critical-review" id="toc-phase_1-validation-hardening-critical-review" class="nav-link" data-scroll-target="#phase_1-validation-hardening-critical-review">2026-06-02 — PHASE_1 validation hardening (critical review)</a></li>
-  <li><a href="#design-taxonomy-data-model-and-two-step-api" id="toc-design-taxonomy-data-model-and-two-step-api" class="nav-link" data-scroll-target="#design-taxonomy-data-model-and-two-step-api">2026-06-02 — Design taxonomy, data model, and two-step API</a></li>
-  <li><a href="#package-scaffold-and-design-roadmap" id="toc-package-scaffold-and-design-roadmap" class="nav-link" data-scroll-target="#package-scaffold-and-design-roadmap">2026-06-02 — Package scaffold and design roadmap</a></li>
+  <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
+  <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
+  <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
   </ul>
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_fit.html">print.matchatr_fit</a></li></ol></nav></header>
 
 
 
 
-<section id="matchatr-development-version" class="level1">
-<h1>matchatr (development version)</h1>
-<section id="phase_1-validation-hardening-critical-review" class="level2">
-<h2 class="anchored" data-anchor-id="phase_1-validation-hardening-critical-review">2026-06-02 — PHASE_1 validation hardening (critical review)</h2>
-<p>Follow-up fixes from an adversarial review of the PHASE_1 foundation, closing input-validation gaps before the estimation layers depend on them.</p>
-<ul>
-<li><code>ratio = Inf</code> (or <code>-Inf</code>) now raises the classed <code>matchatr_bad_ratio</code> instead of an unclassed base-R error. <code>Inf %% 1</code> is <code>NaN</code> and <code>NaN != 0</code> is <code>NA</code>, so the old guard reached <code>if (NA)</code>; a finiteness check now runs before the modulo.</li>
-<li>A degenerate single-class outcome (all cases, all controls, or all <code>NA</code>) is now rejected with <code>matchatr_bad_outcome</code> for every encoding. The contrast check previously fired only for numeric columns, so an all-controls logical or two-level factor slipped through with <code>n_cases = 0</code>; <code>resolve_binary_outcome()</code> now coerces to 0/1 first and applies one uniform both-classes-present check.</li>
-<li><code>matcha()</code> rejects <code>data</code> with duplicated column names (<code>matchatr_bad_input</code>). <code>[[</code> resolves a duplicated name to its first match, so a duplicated outcome / exposure / strata column would otherwise be silently chosen and the existence check could even blame the wrong column.</li>
-<li><code>matcha()</code> rejects a column assigned to two incompatible roles (<code>matchatr_bad_input</code>): the outcome or exposure also appearing as a confounder or a design column (e.g.&nbsp;the exposure double-entered in <code>confounders</code>, or the outcome used as the matched-set id). Confounders and design columns may still overlap, so frequency-matching on a variable and adjusting for it remains valid.</li>
-</ul>
+<section id="print-a-matchatr-fit" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr-fit">Print a matchatr fit</h2>
+<section id="description" class="level3">
+<h3 class="anchored" data-anchor-id="description">Description</h3>
+<p>Displays a compact summary of a matchatr_fit object: the sampling design, the resolved estimator and engine, the outcome / exposure / confounder roles, and the case / control counts.</p>
 </section>
-<section id="design-taxonomy-data-model-and-two-step-api" class="level2">
-<h2 class="anchored" data-anchor-id="design-taxonomy-data-model-and-two-step-api">2026-06-02 — Design taxonomy, data model, and two-step API</h2>
-<p>First implemented layer: the sampling-design objects and the <code>matcha()</code> fit verb that the rest of the package builds on. No estimator runs yet — this phase is plumbing, validation, and dispatch.</p>
-<ul>
-<li>Six design constructors returning a unified <code>matchatr_design</code> S3 object: <code>unmatched_cc()</code>, <code>matched_cc()</code>, <code>nested_cc()</code>, <code>case_cohort()</code>, <code>two_phase()</code>, and <code>counter_matched()</code>. Each carries its sampling structure (strata, time, matching ratio, prevalence q0, subcohort / phase columns) and a <code>weight_spec</code> declaring the intended weighting scheme. Structural arguments are validated at construction (q0 strictly in (0, 1); ratio a whole number &gt;= 1; strata a non-empty character vector) with classed <code>matchatr_*</code> errors.</li>
-<li><code>matcha(data, outcome, exposure, design, confounders, estimator)</code> validates the request, resolves the orthogonal <code>(design, estimator)</code> axes to an estimation engine via an internal dispatch table, and returns a <code>matchatr_fit</code>. The case-control-weighted family (<code>"ccw_gformula"</code>, <code>"ccw_ipw"</code>, <code>"ccw_aipw"</code>, <code>"ccw_tmle"</code>) routes on any design but requires a prevalence q0; the classical estimators are design-specific (<code>"logistic"</code> / <code>"mh"</code>, <code>"clogit"</code>, <code>"cch"</code>, …). The <code>model</code> slot is <code>NULL</code> until an estimation engine is run.</li>
-<li>Weights are never a data column: the fit reserves distinct <code>details$cc_weights</code> and <code>details$design_weights</code> slots (case-control weights and inclusion-probability weights have different variance consequences) plus a <code>details$variance_kind</code> slot for the eventual sampling-variance correction.</li>
-<li>Classed rejection paths, all matching on a <code>matchatr_error</code> parent: <code>matchatr_bad_estimator</code> (unknown / design-incompatible estimator), <code>matchatr_bad_outcome</code> (non-binary case indicator), <code>matchatr_missing_prevalence</code> (CCW without q0), <code>matchatr_bad_prevalence</code> / <code>matchatr_bad_ratio</code> / <code>matchatr_bad_strata</code> (malformed construction), <code>matchatr_bad_design</code> (missing columns / wrong object), and a <code>matchatr_uninformative_stratum</code> warning when a conditional likelihood would drop a matched set with no case or no control.</li>
-<li><code>print</code> methods for <code>matchatr_design</code> and <code>matchatr_fit</code>.</li>
-<li><code>contrast()</code>, the second-step verb, is defined as a validated skeleton: it fixes the public signature (<code>type</code>, <code>ci_method</code>) and the <code>matchatr_result</code> return contract, and aborts with <code>matchatr_not_estimated</code> on a fit whose estimation engine has not run (<code>model = NULL</code>). The estimation body is filled in by the causal-contrast phases.</li>
-</ul>
+<section id="usage" class="level3">
+<h3 class="anchored" data-anchor-id="usage">Usage</h3>
+<pre><code class="language-R">## S3 method for class 'matchatr_fit'
+print(x, ...)
+</code></pre>
 </section>
-<section id="package-scaffold-and-design-roadmap" class="level2">
-<h2 class="anchored" data-anchor-id="package-scaffold-and-design-roadmap">2026-06-02 — Package scaffold and design roadmap</h2>
-<p>Initial bootstrap of matchatr: causal inference for (matched) case-control, nested case-control, and case-cohort study designs, as part of the etverse ecosystem.</p>
-<ul>
-<li>Package scaffold: DESCRIPTION (Imports <code>causatr</code>, <code>survatr</code>, <code>survival</code>), MIT license, testthat 3 edition, Air formatting, <code>altdoc</code> + Quarto website (matching the other etverse packages), GitHub Actions (R-CMD-check, test-coverage / Codecov, format-check, altdoc), Makefile, and Claude Code configuration (<code>CLAUDE.md</code>, <code>.claude/hard-rules.md</code>, symlinked etverse skills, posit-dev skills bundle).</li>
-<li>Full design roadmap in <code>PHASE_1</code>–<code>PHASE_20</code> at the repository root, mapping the <em>Handbook of Statistical Methods for Case-Control Studies</em> (Borgan et al., 2018) to an implementation plan: design taxonomy and two-step API (PHASE_1); classical estimators (unmatched / matched / multiple-group, PHASE_2–4); time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC, PHASE_5–7); the causal layer (strategy + case-control weighting g-formula / IPW / AIPW / TMLE + design-weighted causal survival, PHASE_8–10); and efficiency / advanced / extension phases (PHASE_11–20).</li>
-</ul>
-<p>No estimator code is implemented yet — every phase is at <code>Status: DESIGN</code>.</p>
+<section id="arguments" class="level3">
+<h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
+<table role="presentation">
+<tbody><tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="x">x</code>
+</td>
+<td>
+A <code>matchatr_fit</code> object.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="...">…</code>
+</td>
+<td>
+Unused; present for S3 consistency.
+</td>
+</tr>
+</tbody></table>
+</section>
+<section id="value" class="level3">
+<h3 class="anchored" data-anchor-id="value">Value</h3>
+<p>Invisibly returns <code>x</code>.</p>
+</section>
+<section id="see-also" class="level3">
+<h3 class="anchored" data-anchor-id="see-also">See Also</h3>
+<p><code>matcha()</code></p>
+</section>
+<section id="examples" class="level3">
+<h3 class="anchored" data-anchor-id="examples">Examples</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>), <span class="at">x =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">matcha</span>(df, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>, <span class="at">design =</span> <span class="fu">unmatched_cc</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_fit&gt;
+ Design:     Unmatched case-control
+ Estimator:  logistic  (engine: glm_logistic)
+ Outcome:    case
+ Exposure:   x
+ Confounders: none
+ N:          4  (cases: 2, controls: 2)</code></pre>
+</div>
+</div>
 
 
 </section>

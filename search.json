@@ -4,7 +4,27 @@
     "href": "NEWS.html",
     "title": "matchatr (development version)",
     "section": "",
-    "text": "Initial bootstrap of matchatr: causal inference for (matched) case-control, nested case-control, and case-cohort study designs, as part of the etverse ecosystem.\n\nPackage scaffold: DESCRIPTION (Imports causatr, survatr, survival), MIT license, testthat 3 edition, Air formatting, altdoc + Quarto website (matching the other etverse packages), GitHub Actions (R-CMD-check, test-coverage / Codecov, format-check, altdoc), Makefile, and Claude Code configuration (CLAUDE.md, .claude/hard-rules.md, symlinked etverse skills, posit-dev skills bundle).\nFull design roadmap in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan: design taxonomy and two-step API (PHASE_1); classical estimators (unmatched / matched / multiple-group, PHASE_2–4); time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC, PHASE_5–7); the causal layer (strategy + case-control weighting g-formula / IPW / AIPW / TMLE + design-weighted causal survival, PHASE_8–10); and efficiency / advanced / extension phases (PHASE_11–20).\n\nNo estimator code is implemented yet — every phase is at Status: DESIGN.",
+    "text": "Follow-up fixes from an adversarial review of the PHASE_1 foundation, closing input-validation gaps before the estimation layers depend on them.\n\nratio = Inf (or -Inf) now raises the classed matchatr_bad_ratio instead of an unclassed base-R error. Inf %% 1 is NaN and NaN != 0 is NA, so the old guard reached if (NA); a finiteness check now runs before the modulo.\nA degenerate single-class outcome (all cases, all controls, or all NA) is now rejected with matchatr_bad_outcome for every encoding. The contrast check previously fired only for numeric columns, so an all-controls logical or two-level factor slipped through with n_cases = 0; resolve_binary_outcome() now coerces to 0/1 first and applies one uniform both-classes-present check.\nmatcha() rejects data with duplicated column names (matchatr_bad_input). [[ resolves a duplicated name to its first match, so a duplicated outcome / exposure / strata column would otherwise be silently chosen and the existence check could even blame the wrong column.\nmatcha() rejects a column assigned to two incompatible roles (matchatr_bad_input): the outcome or exposure also appearing as a confounder or a design column (e.g. the exposure double-entered in confounders, or the outcome used as the matched-set id). Confounders and design columns may still overlap, so frequency-matching on a variable and adjusting for it remains valid.\n\n\n\n\nFirst implemented layer: the sampling-design objects and the matcha() fit verb that the rest of the package builds on. No estimator runs yet — this phase is plumbing, validation, and dispatch.\n\nSix design constructors returning a unified matchatr_design S3 object: unmatched_cc(), matched_cc(), nested_cc(), case_cohort(), two_phase(), and counter_matched(). Each carries its sampling structure (strata, time, matching ratio, prevalence q0, subcohort / phase columns) and a weight_spec declaring the intended weighting scheme. Structural arguments are validated at construction (q0 strictly in (0, 1); ratio a whole number &gt;= 1; strata a non-empty character vector) with classed matchatr_* errors.\nmatcha(data, outcome, exposure, design, confounders, estimator) validates the request, resolves the orthogonal (design, estimator) axes to an estimation engine via an internal dispatch table, and returns a matchatr_fit. The case-control-weighted family (\"ccw_gformula\", \"ccw_ipw\", \"ccw_aipw\", \"ccw_tmle\") routes on any design but requires a prevalence q0; the classical estimators are design-specific (\"logistic\" / \"mh\", \"clogit\", \"cch\", …). The model slot is NULL until an estimation engine is run.\nWeights are never a data column: the fit reserves distinct details$cc_weights and details$design_weights slots (case-control weights and inclusion-probability weights have different variance consequences) plus a details$variance_kind slot for the eventual sampling-variance correction.\nClassed rejection paths, all matching on a matchatr_error parent: matchatr_bad_estimator (unknown / design-incompatible estimator), matchatr_bad_outcome (non-binary case indicator), matchatr_missing_prevalence (CCW without q0), matchatr_bad_prevalence / matchatr_bad_ratio / matchatr_bad_strata (malformed construction), matchatr_bad_design (missing columns / wrong object), and a matchatr_uninformative_stratum warning when a conditional likelihood would drop a matched set with no case or no control.\nprint methods for matchatr_design and matchatr_fit.\ncontrast(), the second-step verb, is defined as a validated skeleton: it fixes the public signature (type, ci_method) and the matchatr_result return contract, and aborts with matchatr_not_estimated on a fit whose estimation engine has not run (model = NULL). The estimation body is filled in by the causal-contrast phases.\n\n\n\n\nInitial bootstrap of matchatr: causal inference for (matched) case-control, nested case-control, and case-cohort study designs, as part of the etverse ecosystem.\n\nPackage scaffold: DESCRIPTION (Imports causatr, survatr, survival), MIT license, testthat 3 edition, Air formatting, altdoc + Quarto website (matching the other etverse packages), GitHub Actions (R-CMD-check, test-coverage / Codecov, format-check, altdoc), Makefile, and Claude Code configuration (CLAUDE.md, .claude/hard-rules.md, symlinked etverse skills, posit-dev skills bundle).\nFull design roadmap in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan: design taxonomy and two-step API (PHASE_1); classical estimators (unmatched / matched / multiple-group, PHASE_2–4); time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC, PHASE_5–7); the causal layer (strategy + case-control weighting g-formula / IPW / AIPW / TMLE + design-weighted causal survival, PHASE_8–10); and efficiency / advanced / extension phases (PHASE_11–20).\n\nNo estimator code is implemented yet — every phase is at Status: DESIGN.",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#phase_1-validation-hardening-critical-review",
+    "href": "NEWS.html#phase_1-validation-hardening-critical-review",
+    "title": "matchatr (development version)",
+    "section": "",
+    "text": "Follow-up fixes from an adversarial review of the PHASE_1 foundation, closing input-validation gaps before the estimation layers depend on them.\n\nratio = Inf (or -Inf) now raises the classed matchatr_bad_ratio instead of an unclassed base-R error. Inf %% 1 is NaN and NaN != 0 is NA, so the old guard reached if (NA); a finiteness check now runs before the modulo.\nA degenerate single-class outcome (all cases, all controls, or all NA) is now rejected with matchatr_bad_outcome for every encoding. The contrast check previously fired only for numeric columns, so an all-controls logical or two-level factor slipped through with n_cases = 0; resolve_binary_outcome() now coerces to 0/1 first and applies one uniform both-classes-present check.\nmatcha() rejects data with duplicated column names (matchatr_bad_input). [[ resolves a duplicated name to its first match, so a duplicated outcome / exposure / strata column would otherwise be silently chosen and the existence check could even blame the wrong column.\nmatcha() rejects a column assigned to two incompatible roles (matchatr_bad_input): the outcome or exposure also appearing as a confounder or a design column (e.g. the exposure double-entered in confounders, or the outcome used as the matched-set id). Confounders and design columns may still overlap, so frequency-matching on a variable and adjusting for it remains valid.",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#design-taxonomy-data-model-and-two-step-api",
+    "href": "NEWS.html#design-taxonomy-data-model-and-two-step-api",
+    "title": "matchatr (development version)",
+    "section": "",
+    "text": "First implemented layer: the sampling-design objects and the matcha() fit verb that the rest of the package builds on. No estimator runs yet — this phase is plumbing, validation, and dispatch.\n\nSix design constructors returning a unified matchatr_design S3 object: unmatched_cc(), matched_cc(), nested_cc(), case_cohort(), two_phase(), and counter_matched(). Each carries its sampling structure (strata, time, matching ratio, prevalence q0, subcohort / phase columns) and a weight_spec declaring the intended weighting scheme. Structural arguments are validated at construction (q0 strictly in (0, 1); ratio a whole number &gt;= 1; strata a non-empty character vector) with classed matchatr_* errors.\nmatcha(data, outcome, exposure, design, confounders, estimator) validates the request, resolves the orthogonal (design, estimator) axes to an estimation engine via an internal dispatch table, and returns a matchatr_fit. The case-control-weighted family (\"ccw_gformula\", \"ccw_ipw\", \"ccw_aipw\", \"ccw_tmle\") routes on any design but requires a prevalence q0; the classical estimators are design-specific (\"logistic\" / \"mh\", \"clogit\", \"cch\", …). The model slot is NULL until an estimation engine is run.\nWeights are never a data column: the fit reserves distinct details$cc_weights and details$design_weights slots (case-control weights and inclusion-probability weights have different variance consequences) plus a details$variance_kind slot for the eventual sampling-variance correction.\nClassed rejection paths, all matching on a matchatr_error parent: matchatr_bad_estimator (unknown / design-incompatible estimator), matchatr_bad_outcome (non-binary case indicator), matchatr_missing_prevalence (CCW without q0), matchatr_bad_prevalence / matchatr_bad_ratio / matchatr_bad_strata (malformed construction), matchatr_bad_design (missing columns / wrong object), and a matchatr_uninformative_stratum warning when a conditional likelihood would drop a matched set with no case or no control.\nprint methods for matchatr_design and matchatr_fit.\ncontrast(), the second-step verb, is defined as a validated skeleton: it fixes the public signature (type, ci_method) and the matchatr_result return contract, and aborts with matchatr_not_estimated on a fit whose estimation engine has not run (model = NULL). The estimation body is filled in by the causal-contrast phases.",
     "crumbs": [
       "News"
     ]
@@ -17,6 +37,116 @@
     "text": "Initial bootstrap of matchatr: causal inference for (matched) case-control, nested case-control, and case-cohort study designs, as part of the etverse ecosystem.\n\nPackage scaffold: DESCRIPTION (Imports causatr, survatr, survival), MIT license, testthat 3 edition, Air formatting, altdoc + Quarto website (matching the other etverse packages), GitHub Actions (R-CMD-check, test-coverage / Codecov, format-check, altdoc), Makefile, and Claude Code configuration (CLAUDE.md, .claude/hard-rules.md, symlinked etverse skills, posit-dev skills bundle).\nFull design roadmap in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan: design taxonomy and two-step API (PHASE_1); classical estimators (unmatched / matched / multiple-group, PHASE_2–4); time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC, PHASE_5–7); the causal layer (strategy + case-control weighting g-formula / IPW / AIPW / TMLE + design-weighted causal survival, PHASE_8–10); and efficiency / advanced / extension phases (PHASE_11–20).\n\nNo estimator code is implemented yet — every phase is at Status: DESIGN.",
     "crumbs": [
       "News"
+    ]
+  },
+  {
+    "objectID": "man/print.matchatr_design.html",
+    "href": "man/print.matchatr_design.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Displays a compact summary of a matchatr_design object: the sampling structure, the columns it references, the matching ratio and prevalence when present, and the weighting scheme it will use.\n\n\n\n## S3 method for class 'matchatr_design'\nprint(x, ...)\n\n\n\n\n\n\n\nx\n\n\nA matchatr_design object.\n\n\n\n\n…\n\n\nUnused; present for S3 consistency.\n\n\n\n\n\n\nInvisibly returns x.\n\n\n\nunmatched_cc(), matched_cc(), nested_cc(), case_cohort()\n\n\n\n\nlibrary(\"matchatr\")\n\nprint(matched_cc(strata = \"set\", ratio = 2))\n\n&lt;matchatr_design&gt;\n Type:       Matched case-control\n Strata:     set\n Ratio:      2:1\n Weights:    none\n\nprint(unmatched_cc(prevalence = 0.02))\n\n&lt;matchatr_design&gt;\n Type:       Unmatched case-control\n Prevalence: 0.02 (q0)\n Weights:    case-control (q0)",
+    "crumbs": [
+      "Reference",
+      "print.matchatr_design"
+    ]
+  },
+  {
+    "objectID": "man/print.matchatr_design.html#print-a-matchatr-design",
+    "href": "man/print.matchatr_design.html#print-a-matchatr-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Displays a compact summary of a matchatr_design object: the sampling structure, the columns it references, the matching ratio and prevalence when present, and the weighting scheme it will use.\n\n\n\n## S3 method for class 'matchatr_design'\nprint(x, ...)\n\n\n\n\n\n\n\nx\n\n\nA matchatr_design object.\n\n\n\n\n…\n\n\nUnused; present for S3 consistency.\n\n\n\n\n\n\nInvisibly returns x.\n\n\n\nunmatched_cc(), matched_cc(), nested_cc(), case_cohort()\n\n\n\n\nlibrary(\"matchatr\")\n\nprint(matched_cc(strata = \"set\", ratio = 2))\n\n&lt;matchatr_design&gt;\n Type:       Matched case-control\n Strata:     set\n Ratio:      2:1\n Weights:    none\n\nprint(unmatched_cc(prevalence = 0.02))\n\n&lt;matchatr_design&gt;\n Type:       Unmatched case-control\n Prevalence: 0.02 (q0)\n Weights:    case-control (q0)",
+    "crumbs": [
+      "Reference",
+      "print.matchatr_design"
+    ]
+  },
+  {
+    "objectID": "man/two_phase.html",
+    "href": "man/two_phase.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a two-phase (double) sampling design: phase-1 variables are measured on the whole cohort and used to stratify a phase-2 subsample on which the expensive covariate is then measured. The analysis weights phase-2 records by the inverse of their phase-2 selection probability (survey / calibration estimators).\n\n\n\ntwo_phase(phase1, phase2)\n\n\n\n\n\n\n\nphase1\n\n\nA non-empty character vector naming the phase-1 stratification column(s) measured on the full cohort.\n\n\n\n\nphase2\n\n\nA single character string naming the 0/1 (or logical) column flagging phase-2 selection.\n\n\n\n\n\n\nA matchatr_design object of type “two_phase” carrying the phase-1 strata and phase-2 selection columns.\n\n\n\nmatcha()\nOther design constructors: case_cohort(), counter_matched(), matched_cc(), nested_cc(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\ntwo_phase(phase1 = \"stratum\", phase2 = \"in_phase2\")\n\n&lt;matchatr_design&gt;\n Type:       Two-phase\n Phase 1:    stratum\n Phase 2:    in_phase2\n Weights:    design (two-phase)",
+    "crumbs": [
+      "Reference",
+      "two_phase"
+    ]
+  },
+  {
+    "objectID": "man/two_phase.html#two-phase-sampling-design",
+    "href": "man/two_phase.html#two-phase-sampling-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a two-phase (double) sampling design: phase-1 variables are measured on the whole cohort and used to stratify a phase-2 subsample on which the expensive covariate is then measured. The analysis weights phase-2 records by the inverse of their phase-2 selection probability (survey / calibration estimators).\n\n\n\ntwo_phase(phase1, phase2)\n\n\n\n\n\n\n\nphase1\n\n\nA non-empty character vector naming the phase-1 stratification column(s) measured on the full cohort.\n\n\n\n\nphase2\n\n\nA single character string naming the 0/1 (or logical) column flagging phase-2 selection.\n\n\n\n\n\n\nA matchatr_design object of type “two_phase” carrying the phase-1 strata and phase-2 selection columns.\n\n\n\nmatcha()\nOther design constructors: case_cohort(), counter_matched(), matched_cc(), nested_cc(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\ntwo_phase(phase1 = \"stratum\", phase2 = \"in_phase2\")\n\n&lt;matchatr_design&gt;\n Type:       Two-phase\n Phase 1:    stratum\n Phase 2:    in_phase2\n Weights:    design (two-phase)",
+    "crumbs": [
+      "Reference",
+      "two_phase"
+    ]
+  },
+  {
+    "objectID": "man/matched_cc.html",
+    "href": "man/matched_cc.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares an individually or frequency matched case-control sample: each case is matched to one or more controls sharing the values of the matching variable(s). The design-faithful analysis is conditional logistic regression (conditional maximum likelihood), which conditions on the matched-set totals and so removes the matching-variable nuisance parameters; fitting matched-set indicators by ordinary logistic regression biases the odds ratio and is never used.\n\n\n\nmatched_cc(strata, ratio = NULL)\n\n\n\n\n\n\n\nstrata\n\n\nA non-empty character vector naming the column(s) that identify the matched sets (e.g. “set”, or c(“age_grp”, “sex”) for frequency matching).\n\n\n\n\nratio\n\n\nNULL or a single whole number &gt;= 1. The number of controls matched per case (m:1). Optional metadata; the conditional likelihood does not require a fixed ratio.\n\n\n\n\n\n\nA matchatr_design object of type “matched_cc” carrying the strata and ratio.\n\n\n\nunmatched_cc(), nested_cc(), matcha()\nOther design constructors: case_cohort(), counter_matched(), nested_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\nmatched_cc(strata = \"set\")\n\n&lt;matchatr_design&gt;\n Type:       Matched case-control\n Strata:     set\n Weights:    none\n\nmatched_cc(strata = c(\"age_grp\", \"sex\"), ratio = 2)\n\n&lt;matchatr_design&gt;\n Type:       Matched case-control\n Strata:     age_grp, sex\n Ratio:      2:1\n Weights:    none",
+    "crumbs": [
+      "Reference",
+      "matched_cc"
+    ]
+  },
+  {
+    "objectID": "man/matched_cc.html#matched-case-control-design",
+    "href": "man/matched_cc.html#matched-case-control-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares an individually or frequency matched case-control sample: each case is matched to one or more controls sharing the values of the matching variable(s). The design-faithful analysis is conditional logistic regression (conditional maximum likelihood), which conditions on the matched-set totals and so removes the matching-variable nuisance parameters; fitting matched-set indicators by ordinary logistic regression biases the odds ratio and is never used.\n\n\n\nmatched_cc(strata, ratio = NULL)\n\n\n\n\n\n\n\nstrata\n\n\nA non-empty character vector naming the column(s) that identify the matched sets (e.g. “set”, or c(“age_grp”, “sex”) for frequency matching).\n\n\n\n\nratio\n\n\nNULL or a single whole number &gt;= 1. The number of controls matched per case (m:1). Optional metadata; the conditional likelihood does not require a fixed ratio.\n\n\n\n\n\n\nA matchatr_design object of type “matched_cc” carrying the strata and ratio.\n\n\n\nunmatched_cc(), nested_cc(), matcha()\nOther design constructors: case_cohort(), counter_matched(), nested_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\nmatched_cc(strata = \"set\")\n\n&lt;matchatr_design&gt;\n Type:       Matched case-control\n Strata:     set\n Weights:    none\n\nmatched_cc(strata = c(\"age_grp\", \"sex\"), ratio = 2)\n\n&lt;matchatr_design&gt;\n Type:       Matched case-control\n Strata:     age_grp, sex\n Ratio:      2:1\n Weights:    none",
+    "crumbs": [
+      "Reference",
+      "matched_cc"
+    ]
+  },
+  {
+    "objectID": "man/case_cohort.html",
+    "href": "man/case_cohort.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a case-cohort sample: a random subcohort drawn from the full cohort at baseline, augmented by every case occurring in the cohort (including cases outside the subcohort). The design-faithful analyses are the Prentice, Self-Prentice, and Borgan pseudo-likelihood Cox estimators (survival::cch), whose controls are reused across failure times so the variance comes from a robust / asymptotic correction, not the information matrix.\n\n\n\ncase_cohort(subcohort, time)\n\n\n\n\n\n\n\nsubcohort\n\n\nA single character string naming the 0/1 (or logical) column flagging subcohort membership.\n\n\n\n\ntime\n\n\nA single character string naming the event/follow-up time column.\n\n\n\n\n\n\nA matchatr_design object of type “case_cohort” carrying the subcohort and time columns, with a weight_spec flagged for inclusion-probability weighting.\n\n\n\nnested_cc(), matcha()\nOther design constructors: counter_matched(), matched_cc(), nested_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\ncase_cohort(subcohort = \"in_subcohort\", time = \"t\")\n\n&lt;matchatr_design&gt;\n Type:       Case-cohort\n Time:       t\n Subcohort:  in_subcohort\n Weights:    inclusion-probability",
+    "crumbs": [
+      "Reference",
+      "case_cohort"
+    ]
+  },
+  {
+    "objectID": "man/case_cohort.html#case-cohort-design",
+    "href": "man/case_cohort.html#case-cohort-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a case-cohort sample: a random subcohort drawn from the full cohort at baseline, augmented by every case occurring in the cohort (including cases outside the subcohort). The design-faithful analyses are the Prentice, Self-Prentice, and Borgan pseudo-likelihood Cox estimators (survival::cch), whose controls are reused across failure times so the variance comes from a robust / asymptotic correction, not the information matrix.\n\n\n\ncase_cohort(subcohort, time)\n\n\n\n\n\n\n\nsubcohort\n\n\nA single character string naming the 0/1 (or logical) column flagging subcohort membership.\n\n\n\n\ntime\n\n\nA single character string naming the event/follow-up time column.\n\n\n\n\n\n\nA matchatr_design object of type “case_cohort” carrying the subcohort and time columns, with a weight_spec flagged for inclusion-probability weighting.\n\n\n\nnested_cc(), matcha()\nOther design constructors: counter_matched(), matched_cc(), nested_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\ncase_cohort(subcohort = \"in_subcohort\", time = \"t\")\n\n&lt;matchatr_design&gt;\n Type:       Case-cohort\n Time:       t\n Subcohort:  in_subcohort\n Weights:    inclusion-probability",
+    "crumbs": [
+      "Reference",
+      "case_cohort"
+    ]
+  },
+  {
+    "objectID": "man/unmatched_cc.html",
+    "href": "man/unmatched_cc.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares an independent (unmatched) case-control sample: cases and controls are drawn separately from the source population with no individual or frequency matching. This is the design behind the classical logistic / Mantel-Haenszel odds ratio and, when the marginal outcome prevalence q0 is supplied, the case-control-weighted marginal causal contrasts of Rose & van der Laan (2009).\n\n\n\nunmatched_cc(prevalence = NULL)\n\n\n\n\n\n\n\nprevalence\n\n\nNULL or a single number in (0, 1). The marginal outcome prevalence q0 in the source population. Required for case-control-weighted (“ccw_*“) estimators, which reweight the sample back to the population; optional for the conditional / classical odds-ratio estimators, which do not need it.\n\n\n\n\n\n\nWeights are never stored as a data column. The weight_spec records the intended scheme (case-control weighting when q0 is present, otherwise none); the weighting layer realises it as observation weights into the estimation engine.\n\n\n\nA matchatr_design object of type “unmatched_cc” carrying the prevalence and a weight_spec describing the case-control weighting scheme.\n\n\n\nmatched_cc(), nested_cc(), case_cohort(), matcha()\nOther design constructors: case_cohort(), counter_matched(), matched_cc(), nested_cc(), two_phase()\n\n\n\n\nlibrary(\"matchatr\")\n\nunmatched_cc()\n\n&lt;matchatr_design&gt;\n Type:       Unmatched case-control\n Weights:    none\n\nunmatched_cc(prevalence = 0.02)\n\n&lt;matchatr_design&gt;\n Type:       Unmatched case-control\n Prevalence: 0.02 (q0)\n Weights:    case-control (q0)",
+    "crumbs": [
+      "Reference",
+      "unmatched_cc"
+    ]
+  },
+  {
+    "objectID": "man/unmatched_cc.html#unmatched-case-control-design",
+    "href": "man/unmatched_cc.html#unmatched-case-control-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares an independent (unmatched) case-control sample: cases and controls are drawn separately from the source population with no individual or frequency matching. This is the design behind the classical logistic / Mantel-Haenszel odds ratio and, when the marginal outcome prevalence q0 is supplied, the case-control-weighted marginal causal contrasts of Rose & van der Laan (2009).\n\n\n\nunmatched_cc(prevalence = NULL)\n\n\n\n\n\n\n\nprevalence\n\n\nNULL or a single number in (0, 1). The marginal outcome prevalence q0 in the source population. Required for case-control-weighted (“ccw_*“) estimators, which reweight the sample back to the population; optional for the conditional / classical odds-ratio estimators, which do not need it.\n\n\n\n\n\n\nWeights are never stored as a data column. The weight_spec records the intended scheme (case-control weighting when q0 is present, otherwise none); the weighting layer realises it as observation weights into the estimation engine.\n\n\n\nA matchatr_design object of type “unmatched_cc” carrying the prevalence and a weight_spec describing the case-control weighting scheme.\n\n\n\nmatched_cc(), nested_cc(), case_cohort(), matcha()\nOther design constructors: case_cohort(), counter_matched(), matched_cc(), nested_cc(), two_phase()\n\n\n\n\nlibrary(\"matchatr\")\n\nunmatched_cc()\n\n&lt;matchatr_design&gt;\n Type:       Unmatched case-control\n Weights:    none\n\nunmatched_cc(prevalence = 0.02)\n\n&lt;matchatr_design&gt;\n Type:       Unmatched case-control\n Prevalence: 0.02 (q0)\n Weights:    case-control (q0)",
+    "crumbs": [
+      "Reference",
+      "unmatched_cc"
     ]
   },
   {
@@ -97,6 +227,116 @@
     "text": "Citation\nTo cite package ‘matchatr’ in publications use:\n\nFabbri L (????). matchatr: Causal Inference for Case-Control, Nested Case-Control, and Case-Cohort Studies. R package version 0.0.0.9000, https://github.com/etverse/matchatr.",
     "crumbs": [
       "Citation"
+    ]
+  },
+  {
+    "objectID": "man/matcha.html",
+    "href": "man/matcha.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "The fit verb for matchatr (mirroring causatr::causat() and survatr::surv_fit()). matcha() takes the analysis data, the outcome/exposure roles, a sampling design object, and an estimator, then validates the request and resolves it to an estimation engine. The two arguments are orthogonal: design selects the sampling structure (strata, time, prevalence q0, inclusion weights) and estimator selects the analysis (conditional vs marginal; odds ratio vs hazard ratio vs risk difference).\n\n\n\nmatcha(data, outcome, exposure, design, confounders = NULL, estimator = NULL)\n\n\n\n\n\n\n\ndata\n\n\nA data.frame or data.table. Not mutated; a data.table copy is stored on the fit.\n\n\n\n\noutcome\n\n\nCharacter scalar naming the binary case-status column (a logical, two-level factor, or numeric 0/1 column).\n\n\n\n\nexposure\n\n\nCharacter scalar naming the exposure column.\n\n\n\n\ndesign\n\n\nA matchatr_design object from one of the design constructors (unmatched_cc(), matched_cc(), nested_cc(), case_cohort(), two_phase(), counter_matched()).\n\n\n\n\nconfounders\n\n\nA one-sided formula of confounders (e.g. ~ age + smoke), or NULL for an unadjusted analysis.\n\n\n\n\nestimator\n\n\nCharacter scalar naming the analysis, or NULL to use the design’s canonical default. Classical choices are design-specific (“logistic” / “mh” for unmatched CC, “clogit” for matched CC / NCC, “cch” for case-cohort); the case-control-weighted causal estimators “ccw_gformula”, “ccw_ipw”, “ccw_aipw”, “ccw_tmle” apply to any design but require a prevalence q0 on the design.\n\n\n\n\n\n\nWeights are never read from or written to data. The design’s weight_spec records the intended scheme; the case-control weights (q0-based, Rose & van der Laan) and design / inclusion-probability weights (Samuelsen, Borgan) are kept in distinct slots on the fit (details$cc_weights, details$design_weights) because their variance consequences differ.\nThe returned matchatr_fit carries model = NULL until an estimation engine is run on it; details$engine records the engine the (design, estimator) pair resolved to.\n\n\n\nA matchatr_fit object: a list with the validated specification (data, outcome, exposure, confounders, design, estimator, engine), a details list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating call. The model slot is NULL.\n\n\n\nunmatched_cc(), matched_cc(), nested_cc(), case_cohort()\n\n\n\n\nlibrary(\"matchatr\")\n\nset.seed(1)\ndf &lt;- data.frame(\n  case  = rep(c(1, 0), each = 50),\n  x     = rbinom(100, 1, 0.4),\n  age   = rnorm(100, 50, 10),\n  smoke = rbinom(100, 1, 0.3),\n  set   = rep(1:50, times = 2)\n)\n\n# Unmatched case-control -&gt; conditional odds ratio (logistic)\nmatcha(df, outcome = \"case\", exposure = \"x\",\n       design = unmatched_cc(), confounders = ~ age + smoke)\n\n&lt;matchatr_fit&gt;\n Design:     Unmatched case-control\n Estimator:  logistic  (engine: glm_logistic)\n Outcome:    case\n Exposure:   x\n Confounders: ~age + smoke\n N:          100  (cases: 50, controls: 50)\n\n# Matched case-control -&gt; conditional logistic regression\nmatcha(df, outcome = \"case\", exposure = \"x\",\n       design = matched_cc(strata = \"set\"), estimator = \"clogit\")\n\n&lt;matchatr_fit&gt;\n Design:     Matched case-control\n Estimator:  clogit  (engine: clogit)\n Outcome:    case\n Exposure:   x\n Confounders: none\n N:          100  (cases: 50, controls: 50)",
+    "crumbs": [
+      "Reference",
+      "matcha"
+    ]
+  },
+  {
+    "objectID": "man/matcha.html#fit-a-case-control-type-design",
+    "href": "man/matcha.html#fit-a-case-control-type-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "The fit verb for matchatr (mirroring causatr::causat() and survatr::surv_fit()). matcha() takes the analysis data, the outcome/exposure roles, a sampling design object, and an estimator, then validates the request and resolves it to an estimation engine. The two arguments are orthogonal: design selects the sampling structure (strata, time, prevalence q0, inclusion weights) and estimator selects the analysis (conditional vs marginal; odds ratio vs hazard ratio vs risk difference).\n\n\n\nmatcha(data, outcome, exposure, design, confounders = NULL, estimator = NULL)\n\n\n\n\n\n\n\ndata\n\n\nA data.frame or data.table. Not mutated; a data.table copy is stored on the fit.\n\n\n\n\noutcome\n\n\nCharacter scalar naming the binary case-status column (a logical, two-level factor, or numeric 0/1 column).\n\n\n\n\nexposure\n\n\nCharacter scalar naming the exposure column.\n\n\n\n\ndesign\n\n\nA matchatr_design object from one of the design constructors (unmatched_cc(), matched_cc(), nested_cc(), case_cohort(), two_phase(), counter_matched()).\n\n\n\n\nconfounders\n\n\nA one-sided formula of confounders (e.g. ~ age + smoke), or NULL for an unadjusted analysis.\n\n\n\n\nestimator\n\n\nCharacter scalar naming the analysis, or NULL to use the design’s canonical default. Classical choices are design-specific (“logistic” / “mh” for unmatched CC, “clogit” for matched CC / NCC, “cch” for case-cohort); the case-control-weighted causal estimators “ccw_gformula”, “ccw_ipw”, “ccw_aipw”, “ccw_tmle” apply to any design but require a prevalence q0 on the design.\n\n\n\n\n\n\nWeights are never read from or written to data. The design’s weight_spec records the intended scheme; the case-control weights (q0-based, Rose & van der Laan) and design / inclusion-probability weights (Samuelsen, Borgan) are kept in distinct slots on the fit (details$cc_weights, details$design_weights) because their variance consequences differ.\nThe returned matchatr_fit carries model = NULL until an estimation engine is run on it; details$engine records the engine the (design, estimator) pair resolved to.\n\n\n\nA matchatr_fit object: a list with the validated specification (data, outcome, exposure, confounders, design, estimator, engine), a details list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating call. The model slot is NULL.\n\n\n\nunmatched_cc(), matched_cc(), nested_cc(), case_cohort()\n\n\n\n\nlibrary(\"matchatr\")\n\nset.seed(1)\ndf &lt;- data.frame(\n  case  = rep(c(1, 0), each = 50),\n  x     = rbinom(100, 1, 0.4),\n  age   = rnorm(100, 50, 10),\n  smoke = rbinom(100, 1, 0.3),\n  set   = rep(1:50, times = 2)\n)\n\n# Unmatched case-control -&gt; conditional odds ratio (logistic)\nmatcha(df, outcome = \"case\", exposure = \"x\",\n       design = unmatched_cc(), confounders = ~ age + smoke)\n\n&lt;matchatr_fit&gt;\n Design:     Unmatched case-control\n Estimator:  logistic  (engine: glm_logistic)\n Outcome:    case\n Exposure:   x\n Confounders: ~age + smoke\n N:          100  (cases: 50, controls: 50)\n\n# Matched case-control -&gt; conditional logistic regression\nmatcha(df, outcome = \"case\", exposure = \"x\",\n       design = matched_cc(strata = \"set\"), estimator = \"clogit\")\n\n&lt;matchatr_fit&gt;\n Design:     Matched case-control\n Estimator:  clogit  (engine: clogit)\n Outcome:    case\n Exposure:   x\n Confounders: none\n N:          100  (cases: 50, controls: 50)",
+    "crumbs": [
+      "Reference",
+      "matcha"
+    ]
+  },
+  {
+    "objectID": "man/counter_matched.html",
+    "href": "man/counter_matched.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a counter-matched nested case-control sample: a stratified risk-set design in which controls are sampled to differ from the case on a surrogate of exposure, balancing each sampled risk set across exposure strata. The analysis is a weighted Cox partial likelihood that carries the counter-matching inclusion weights.\n\n\n\ncounter_matched(strata, time, ratio = NULL)\n\n\n\n\n\n\n\nstrata\n\n\nA non-empty character vector naming the counter-matching surrogate stratum column(s).\n\n\n\n\ntime\n\n\nA single character string naming the event/entry time column that defines the risk sets.\n\n\n\n\nratio\n\n\nNULL or a single whole number &gt;= 1. Controls sampled per case within the counter-matched strata.\n\n\n\n\n\n\nA matchatr_design object of type “counter_matched” carrying the strata, time, and ratio, with a weight_spec flagged for counter-matching weights.\n\n\n\nnested_cc(), matcha()\nOther design constructors: case_cohort(), matched_cc(), nested_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\ncounter_matched(strata = \"exposure_surrogate\", time = \"t\")\n\n&lt;matchatr_design&gt;\n Type:       Counter-matched\n Strata:     exposure_surrogate\n Time:       t\n Weights:    counter-matching",
+    "crumbs": [
+      "Reference",
+      "counter_matched"
+    ]
+  },
+  {
+    "objectID": "man/counter_matched.html#counter-matched-design",
+    "href": "man/counter_matched.html#counter-matched-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a counter-matched nested case-control sample: a stratified risk-set design in which controls are sampled to differ from the case on a surrogate of exposure, balancing each sampled risk set across exposure strata. The analysis is a weighted Cox partial likelihood that carries the counter-matching inclusion weights.\n\n\n\ncounter_matched(strata, time, ratio = NULL)\n\n\n\n\n\n\n\nstrata\n\n\nA non-empty character vector naming the counter-matching surrogate stratum column(s).\n\n\n\n\ntime\n\n\nA single character string naming the event/entry time column that defines the risk sets.\n\n\n\n\nratio\n\n\nNULL or a single whole number &gt;= 1. Controls sampled per case within the counter-matched strata.\n\n\n\n\n\n\nA matchatr_design object of type “counter_matched” carrying the strata, time, and ratio, with a weight_spec flagged for counter-matching weights.\n\n\n\nnested_cc(), matcha()\nOther design constructors: case_cohort(), matched_cc(), nested_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\ncounter_matched(strata = \"exposure_surrogate\", time = \"t\")\n\n&lt;matchatr_design&gt;\n Type:       Counter-matched\n Strata:     exposure_surrogate\n Time:       t\n Weights:    counter-matching",
+    "crumbs": [
+      "Reference",
+      "counter_matched"
+    ]
+  },
+  {
+    "objectID": "man/contrast.html",
+    "href": "man/contrast.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "The second step of the two-step API (mirroring causatr::contrast() and the etverse convention): given a matcha() fit, compute the requested causal contrast on the chosen scale and return a matchatr_result. matcha() resolves the sampling design and analysis; contrast() turns the fitted estimates into a reported effect with uncertainty.\n\n\n\ncontrast(\n  fit,\n  type = c(\"difference\", \"ratio\", \"or\"),\n  ci_method = c(\"sandwich\", \"bootstrap\"),\n  ...\n)\n\n\n\n\n\n\n\nfit\n\n\nA matchatr_fit object returned by matcha().\n\n\n\n\ntype\n\n\nCharacter contrast scale: “difference” (default), “ratio”, or “or” (odds ratio).\n\n\n\n\nci_method\n\n\nCharacter confidence-interval method: “sandwich” (default) or “bootstrap”.\n\n\n\n\n…\n\n\nReserved for estimator-specific contrast arguments.\n\n\n\n\n\n\nProducing a contrast requires fitted estimates. A fit whose estimation engine has not run carries none — its model slot is NULL — so contrast() validates its arguments and then aborts with a classed matchatr_not_estimated error rather than returning an empty result.\n\n\n\nA matchatr_result object carrying the estimates, the pairwise contrasts, and their variance-covariance matrix.\n\n\n\nmatcha()\n\n\n\n\nlibrary(\"matchatr\")\n\ndf &lt;- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))\nfit &lt;- matcha(df, outcome = \"case\", exposure = \"x\", design = unmatched_cc())\n# A design / dispatch fit carries no estimates yet, so contrast() errors:\ntry(contrast(fit))\n\nError in contrast(fit) : \n  This `matchatr_fit` carries no estimates to contrast.\nℹ Its `glm_logistic` estimation engine has not produced a fitted model.",
+    "crumbs": [
+      "Reference",
+      "contrast"
+    ]
+  },
+  {
+    "objectID": "man/contrast.html#contrast-estimates-from-a-fitted-design",
+    "href": "man/contrast.html#contrast-estimates-from-a-fitted-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "The second step of the two-step API (mirroring causatr::contrast() and the etverse convention): given a matcha() fit, compute the requested causal contrast on the chosen scale and return a matchatr_result. matcha() resolves the sampling design and analysis; contrast() turns the fitted estimates into a reported effect with uncertainty.\n\n\n\ncontrast(\n  fit,\n  type = c(\"difference\", \"ratio\", \"or\"),\n  ci_method = c(\"sandwich\", \"bootstrap\"),\n  ...\n)\n\n\n\n\n\n\n\nfit\n\n\nA matchatr_fit object returned by matcha().\n\n\n\n\ntype\n\n\nCharacter contrast scale: “difference” (default), “ratio”, or “or” (odds ratio).\n\n\n\n\nci_method\n\n\nCharacter confidence-interval method: “sandwich” (default) or “bootstrap”.\n\n\n\n\n…\n\n\nReserved for estimator-specific contrast arguments.\n\n\n\n\n\n\nProducing a contrast requires fitted estimates. A fit whose estimation engine has not run carries none — its model slot is NULL — so contrast() validates its arguments and then aborts with a classed matchatr_not_estimated error rather than returning an empty result.\n\n\n\nA matchatr_result object carrying the estimates, the pairwise contrasts, and their variance-covariance matrix.\n\n\n\nmatcha()\n\n\n\n\nlibrary(\"matchatr\")\n\ndf &lt;- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))\nfit &lt;- matcha(df, outcome = \"case\", exposure = \"x\", design = unmatched_cc())\n# A design / dispatch fit carries no estimates yet, so contrast() errors:\ntry(contrast(fit))\n\nError in contrast(fit) : \n  This `matchatr_fit` carries no estimates to contrast.\nℹ Its `glm_logistic` estimation engine has not produced a fitted model.",
+    "crumbs": [
+      "Reference",
+      "contrast"
+    ]
+  },
+  {
+    "objectID": "man/nested_cc.html",
+    "href": "man/nested_cc.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a nested case-control (NCC) sample drawn from a cohort by risk-set (incidence-density) sampling: at each event time, the case is matched to ratio controls sampled from those still at risk. The classical analysis treats each sampled risk set as a stratum in a conditional partial likelihood (survival::clogit/coxph); because the controls are sampled from the risk set, the conditional odds ratio equals the hazard ratio with no rare-disease assumption.\n\n\n\nnested_cc(strata, time, ratio = NULL)\n\n\n\n\n\n\n\nstrata\n\n\nA non-empty character vector naming the column(s) that identify the sampled risk sets (the matched-set id).\n\n\n\n\ntime\n\n\nA single character string naming the event/entry time column that defines the risk sets. Carried for the inclusion-probability weight and weighted-Cox estimators built on this design.\n\n\n\n\nratio\n\n\nNULL or a single whole number &gt;= 1. Controls sampled per case.\n\n\n\n\n\n\nA matchatr_design object of type “nested_cc” carrying the strata, time, and ratio, with a weight_spec flagged for inclusion-probability weighting.\n\n\n\ncase_cohort(), counter_matched(), matcha()\nOther design constructors: case_cohort(), counter_matched(), matched_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\nnested_cc(strata = \"set\", time = \"t\")\n\n&lt;matchatr_design&gt;\n Type:       Nested case-control\n Strata:     set\n Time:       t\n Weights:    inclusion-probability\n\nnested_cc(strata = \"set\", time = \"t\", ratio = 3)\n\n&lt;matchatr_design&gt;\n Type:       Nested case-control\n Strata:     set\n Time:       t\n Ratio:      3:1\n Weights:    inclusion-probability",
+    "crumbs": [
+      "Reference",
+      "nested_cc"
+    ]
+  },
+  {
+    "objectID": "man/nested_cc.html#nested-case-control-design",
+    "href": "man/nested_cc.html#nested-case-control-design",
+    "title": "matchatr",
+    "section": "",
+    "text": "Declares a nested case-control (NCC) sample drawn from a cohort by risk-set (incidence-density) sampling: at each event time, the case is matched to ratio controls sampled from those still at risk. The classical analysis treats each sampled risk set as a stratum in a conditional partial likelihood (survival::clogit/coxph); because the controls are sampled from the risk set, the conditional odds ratio equals the hazard ratio with no rare-disease assumption.\n\n\n\nnested_cc(strata, time, ratio = NULL)\n\n\n\n\n\n\n\nstrata\n\n\nA non-empty character vector naming the column(s) that identify the sampled risk sets (the matched-set id).\n\n\n\n\ntime\n\n\nA single character string naming the event/entry time column that defines the risk sets. Carried for the inclusion-probability weight and weighted-Cox estimators built on this design.\n\n\n\n\nratio\n\n\nNULL or a single whole number &gt;= 1. Controls sampled per case.\n\n\n\n\n\n\nA matchatr_design object of type “nested_cc” carrying the strata, time, and ratio, with a weight_spec flagged for inclusion-probability weighting.\n\n\n\ncase_cohort(), counter_matched(), matcha()\nOther design constructors: case_cohort(), counter_matched(), matched_cc(), two_phase(), unmatched_cc()\n\n\n\n\nlibrary(\"matchatr\")\n\nnested_cc(strata = \"set\", time = \"t\")\n\n&lt;matchatr_design&gt;\n Type:       Nested case-control\n Strata:     set\n Time:       t\n Weights:    inclusion-probability\n\nnested_cc(strata = \"set\", time = \"t\", ratio = 3)\n\n&lt;matchatr_design&gt;\n Type:       Nested case-control\n Strata:     set\n Time:       t\n Ratio:      3:1\n Weights:    inclusion-probability",
+    "crumbs": [
+      "Reference",
+      "nested_cc"
+    ]
+  },
+  {
+    "objectID": "man/print.matchatr_fit.html",
+    "href": "man/print.matchatr_fit.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "Displays a compact summary of a matchatr_fit object: the sampling design, the resolved estimator and engine, the outcome / exposure / confounder roles, and the case / control counts.\n\n\n\n## S3 method for class 'matchatr_fit'\nprint(x, ...)\n\n\n\n\n\n\n\nx\n\n\nA matchatr_fit object.\n\n\n\n\n…\n\n\nUnused; present for S3 consistency.\n\n\n\n\n\n\nInvisibly returns x.\n\n\n\nmatcha()\n\n\n\n\nlibrary(\"matchatr\")\n\ndf &lt;- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))\nprint(matcha(df, outcome = \"case\", exposure = \"x\", design = unmatched_cc()))\n\n&lt;matchatr_fit&gt;\n Design:     Unmatched case-control\n Estimator:  logistic  (engine: glm_logistic)\n Outcome:    case\n Exposure:   x\n Confounders: none\n N:          4  (cases: 2, controls: 2)",
+    "crumbs": [
+      "Reference",
+      "print.matchatr_fit"
+    ]
+  },
+  {
+    "objectID": "man/print.matchatr_fit.html#print-a-matchatr-fit",
+    "href": "man/print.matchatr_fit.html#print-a-matchatr-fit",
+    "title": "matchatr",
+    "section": "",
+    "text": "Displays a compact summary of a matchatr_fit object: the sampling design, the resolved estimator and engine, the outcome / exposure / confounder roles, and the case / control counts.\n\n\n\n## S3 method for class 'matchatr_fit'\nprint(x, ...)\n\n\n\n\n\n\n\nx\n\n\nA matchatr_fit object.\n\n\n\n\n…\n\n\nUnused; present for S3 consistency.\n\n\n\n\n\n\nInvisibly returns x.\n\n\n\nmatcha()\n\n\n\n\nlibrary(\"matchatr\")\n\ndf &lt;- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))\nprint(matcha(df, outcome = \"case\", exposure = \"x\", design = unmatched_cc()))\n\n&lt;matchatr_fit&gt;\n Design:     Unmatched case-control\n Estimator:  logistic  (engine: glm_logistic)\n Outcome:    case\n Exposure:   x\n Confounders: none\n N:          4  (cases: 2, controls: 2)",
+    "crumbs": [
+      "Reference",
+      "print.matchatr_fit"
     ]
   }
 ]
