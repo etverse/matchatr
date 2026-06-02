@@ -13,6 +13,10 @@ input-validation gaps before the estimation layers depend on them.
   check previously fired only for numeric columns, so an all-controls logical or
   two-level factor slipped through with `n_cases = 0`; `resolve_binary_outcome()`
   now coerces to 0/1 first and applies one uniform both-classes-present check.
+- `matcha()` rejects `data` with duplicated column names (`matchatr_bad_input`).
+  `[[` resolves a duplicated name to its first match, so a duplicated outcome /
+  exposure / strata column would otherwise be silently chosen and the
+  existence check could even blame the wrong column.
 
 ## 2026-06-02 — Design taxonomy, data model, and two-step API
 

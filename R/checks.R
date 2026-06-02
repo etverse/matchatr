@@ -117,6 +117,37 @@ check_cols_exist <- function(
   invisible(NULL)
 }
 
+#' Reject a data frame with duplicated column names
+#'
+#' `data.table::as.data.table()` preserves duplicate column names, and `[[` then
+#' silently resolves a name to its *first* match — so a duplicated outcome /
+#' exposure / strata name would feed a silently-chosen column into the analysis,
+#' and `setdiff()`-based existence checks would even report the wrong column as
+#' missing. Reject duplicates up front so every role maps to exactly one column.
+#'
+#' @param data A data.frame or data.table.
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` when any
+#'   column name occurs more than once.
+#' @family validators
+#' @noRd
+check_unique_colnames <- function(data, call = rlang::caller_env()) {
+  nms <- names(data)
+  dup <- unique(nms[duplicated(nms)])
+  if (length(dup) > 0L) {
+    rlang::abort(
+      paste0(
+        "`data` has duplicated column name(s): ",
+        paste0("`", dup, "`", collapse = ", "),
+        ". Rename them so each outcome / exposure / design role maps to one column."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Validate a prevalence (q0) argument
 #'
 #' The marginal outcome prevalence q0 anchors case-control weighting (Rose &

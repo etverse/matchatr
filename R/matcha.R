@@ -106,6 +106,10 @@ matcha <- function(
   # caller's frame must never be mutated.
   dt <- data.table::as.data.table(data)
 
+  # Duplicated column names make `[[` ambiguous (it returns the first match), so
+  # reject them before any column is looked up by name.
+  check_unique_colnames(dt)
+
   # Every named column must exist before we touch its values.
   check_cols_exist(dt, outcome, arg = "outcome")
   check_cols_exist(dt, exposure, arg = "exposure")

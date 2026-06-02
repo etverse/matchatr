@@ -194,6 +194,19 @@ test_that("structural argument misuse is rejected with classed errors", {
   )
 })
 
+test_that("duplicated column names in data are rejected", {
+  # Review 2026-06-02 Issue R3: `[[` resolves a duplicated name to its first
+  # match, so a duplicated role column would be silently chosen.
+  # /tmp/matchatr_repro_dup_colnames.R
+  df <- make_cc_data(n_sets = 5L)
+  df$dup <- df$x
+  names(df)[names(df) == "dup"] <- "x" # now two columns named "x"
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc()),
+    class = "matchatr_bad_input"
+  )
+})
+
 # --- CCW prevalence requirement -----------------------------------------
 
 test_that("CCW estimators require a prevalence on the design", {
