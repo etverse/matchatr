@@ -221,6 +221,56 @@ test_that("tidy.matchatr_fit returns a broom-style coefficient table", {
   )))
 })
 
+test_that("aliased terms get NA (not recycled) SEs, even under robust", {
+  # An aliased term placed BEFORE an estimable one is the failing case: the
+  # sandwich drops the aliased column, so a positional index shifted every SE
+  # after it. SEs are now aligned by coefficient name.
+  set.seed(11)
+  n <- 300
+  d <- data.frame(
+    case = rep(c(1L, 0L), each = n / 2),
+    x = stats::rbinom(n, 1, 0.4),
+    z1 = stats::rnorm(n),
+    z3 = stats::rnorm(n)
+  )
+  d$z2 <- d$z1 # exact collinearity -> z2 aliased and dropped by glm
+  fit <- matcha(d, "case", "x", unmatched_cc(), confounders = ~ z1 + z2 + z3)
+  oracle <- stats::glm(case ~ x + z1 + z2 + z3, stats::binomial(), d)
+  get <- function(td, term, col) td[[col]][td$term == term]
+
+  # No recycling warning under either variance source.
+  expect_no_warning(tidy(fit))
+  expect_no_warning(tidy(fit, robust = TRUE))
+  td_m <- tidy(fit)
+  td_r <- tidy(fit, robust = TRUE)
+
+  # The aliased term carries an NA SE, not a borrowed one.
+  expect_true(is.na(get(td_m, "z2", "std.error")))
+  expect_true(is.na(get(td_r, "z2", "std.error")))
+
+  # z3 comes after the aliased z2: its SE must be its own under both sources.
+  expect_equal(
+    get(td_m, "z3", "std.error"),
+    unname(sqrt(diag(stats::vcov(oracle)))["z3"]),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    get(td_r, "z3", "std.error"),
+    unname(sqrt(diag(sandwich::sandwich(oracle)))["z3"]),
+    tolerance = 1e-10
+  )
+
+  # contrast() indexes the exposure SE by name too: a 1x1 vcov named "x".
+  res <- contrast(fit, type = "or", ci_method = "sandwich")
+  se_x <- sqrt(diag(sandwich::sandwich(oracle)))["x"]
+  expect_equal(
+    res$contrasts$se,
+    unname(exp(stats::coef(oracle)["x"]) * se_x),
+    tolerance = 1e-10
+  )
+  expect_identical(rownames(res$vcov), "x")
+})
+
 test_that("tidy.matchatr_result tidies the contrasts", {
   df <- make_cohort_cc()
   res <- contrast(matcha(df, "case", "x", unmatched_cc()), type = "or")
@@ -259,9 +309,8 @@ test_that("RD / RR are rejected as unidentified from unmatched CC", {
 })
 
 test_that("a constant (non-estimable) exposure is rejected", {
-  # Critical review 2026-06-02 Issue #4: a constant exposure aliases to NA in
-  # glm; contrast() must abort, not return an NA odds ratio.
-  # /tmp/matchatr_repro_aliasing.R
+  # A constant exposure aliases to NA in glm; contrast() must abort, not return
+  # an NA odds ratio.
   df_const <- data.frame(
     case = rep(c(1L, 0L), each = 100),
     x = rep(1L, 200),

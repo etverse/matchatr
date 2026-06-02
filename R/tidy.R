@@ -50,14 +50,17 @@ tidy.matchatr_fit <- function(
 
   model <- x$model
   beta <- stats::coef(model)
-  vcov_mat <- if (isTRUE(robust)) {
-    sandwich::sandwich(model)
-  } else {
-    stats::vcov(model)
-  }
-  se <- sqrt(diag(vcov_mat))
+  # Align the SEs to the full coefficient vector by NAME so an aliased term
+  # (NA coef) gets an NA SE rather than a silently recycled value. The model
+  # vcov keeps aliased rows while the sandwich drops them, so estimable_vcov()
+  # first reduces both to the estimable set.
+  se <- rep(NA_real_, length(beta))
+  names(se) <- names(beta)
+  se_est <- sqrt(diag(estimable_vcov(model, robust = robust)))
+  se[names(se_est)] <- se_est
+  se <- unname(se)
   # Wald z-statistic and two-sided p-value on the log-odds scale.
-  z_stat <- unname(beta / se)
+  z_stat <- unname(beta) / se
   z <- stats::qnorm(1 - (1 - conf.level) / 2)
 
   estimate <- unname(beta)

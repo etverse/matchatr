@@ -118,12 +118,6 @@ contrast_logistic <- function(
 
   model <- fit$model
   beta <- stats::coef(model)
-  vcov_mat <- if (identical(ci_method, "sandwich")) {
-    sandwich::sandwich(model)
-  } else {
-    stats::vcov(model)
-  }
-  se <- sqrt(diag(vcov_mat))
   # Two-sided Wald critical value for the requested confidence level.
   z <- stats::qnorm(1 - (1 - conf_level) / 2)
 
@@ -147,7 +141,17 @@ contrast_logistic <- function(
       call = call
     )
   }
-  s <- unname(se[idx])
+
+  # Index the variance by coefficient NAME, not position: the model vcov keeps
+  # aliased rows while the sandwich drops them, so a positional index into
+  # `diag(vcov)` would misalign once any earlier term is aliased.
+  # `estimable_vcov()` reduces both sources to the estimable set, and the
+  # (non-aliased) exposure terms are guaranteed present after the guard above.
+  vcov_exp <- estimable_vcov(
+    model,
+    robust = identical(ci_method, "sandwich")
+  )[term_labels, term_labels, drop = FALSE]
+  s <- unname(sqrt(diag(vcov_exp)))
   log_lower <- b - z * s
   log_upper <- b + z * s
 
@@ -176,9 +180,36 @@ contrast_logistic <- function(
     n = nrow(fit$data),
     estimator = fit$estimator,
     engine = fit$engine,
-    vcov = vcov_mat[idx, idx, drop = FALSE],
+    vcov = vcov_exp,
     call = call
   )
+}
+
+#' Variance-covariance of the estimable coefficients
+#'
+#' Returns the model information-matrix or Huber-White sandwich
+#' variance-covariance matrix restricted to the *estimable* coefficients — those
+#' [stats::coef()] does not set to `NA` for a rank-deficient / aliased fit —
+#' indexed by coefficient name. `stats::vcov()` keeps aliased rows (carrying
+#' `NA`) while `sandwich::sandwich()` drops them, so a positional index into one
+#' would misalign against the other; reducing both to the same estimable set and
+#' indexing by name avoids that.
+#'
+#' @param model A fitted model (e.g. `glm`).
+#' @param robust Logical; use the Huber-White sandwich
+#'   ([sandwich::sandwich()]) instead of the model information matrix.
+#' @returns A named numeric matrix over the estimable coefficients.
+#' @family estimators
+#' @noRd
+estimable_vcov <- function(model, robust = FALSE) {
+  beta <- stats::coef(model)
+  estimable <- names(beta)[!is.na(beta)]
+  v <- if (isTRUE(robust)) {
+    sandwich::sandwich(model)
+  } else {
+    stats::vcov(model)
+  }
+  v[estimable, estimable, drop = FALSE]
 }
 
 #' Locate the coefficient(s) belonging to the exposure term

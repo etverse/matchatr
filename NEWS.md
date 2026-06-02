@@ -5,6 +5,15 @@
 Follow-up fixes from an adversarial review of the unmatched case-control
 logistic engine.
 
+- `tidy()` / `summary()` with `robust = TRUE`, and `contrast(type = "or",
+  ci_method = "sandwich")`, returned misaligned standard errors when the fitted
+  model had an aliased (rank-deficient / collinear) term. `sandwich::sandwich()`
+  drops aliased columns while `stats::coef()` keeps them, so the shorter SE
+  vector was recycled against the coefficient vector and every term at or after
+  the first aliased one got the wrong SE / CI / p-value. Standard errors are now
+  aligned to the coefficient vector by name — aliased terms get `NA` — via a
+  shared `estimable_vcov()` helper that reduces both variance sources to the
+  estimable coefficient set.
 - A constant or collinear exposure aliases to `NA` in `glm`; `contrast(type =
   "or")` previously returned an `NA` odds ratio silently. It now aborts with the
   classed `matchatr_unestimable_exposure`, mirroring the degenerate-outcome
