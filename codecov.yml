@@ -1,0 +1,38 @@
+## Codecov configuration for matchatr.
+##
+## matchatr layers sampling-design weighting (case-control weights, design /
+## inclusion-probability weights) on top of the causatr and survatr engines.
+## Much of the surface is defensive validation of design objects and
+## rarely-exercised design x estimator x weight combinations that are
+## validated by truth-based simulation and external oracles (multipleNCC,
+## survival::cch, causatr/survatr on the reweighted pseudo-cohort) rather
+## than line-by-line execution.
+##
+## We therefore set realistic targets with a small threshold and mark the
+## statuses informational: Codecov still reports the per-PR delta as a
+## comment, but a coverage dip on a single PR does not produce a failing
+## check. Branch protection is not enabled, so these statuses are advisory
+## either way; informational mode makes that explicit.
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        # Allow a small dip without flagging the project status red.
+        threshold: 1%
+        informational: true
+    patch:
+      default:
+        # Aim for most new lines covered, but don't hard-fail a PR that
+        # adds defensive branches or design combinations covered by
+        # truth-based simulation rather than direct line execution.
+        target: 80%
+        threshold: 5%
+        informational: true
+
+## Keep the per-PR comment (the coverage delta table is useful signal) but
+## only post when there is something to report.
+comment:
+  layout: "reach, diff, files"
+  require_changes: true

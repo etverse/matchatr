@@ -1,0 +1,63 @@
+Package: matchatr
+Title: Causal Inference for Case-Control, Nested Case-Control, and
+    Case-Cohort Studies
+Version: 0.0.0.9000
+Authors@R:
+    person("Lorenzo", "Fabbri", , "lorenzo.fabbri92sm@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-3031-322X"))
+Description: Classical and causal estimation for (matched) case-control,
+    nested case-control, and case-cohort study designs. Provides
+    conditional logistic regression and risk-set-sampled / weighted Cox
+    models for design-faithful odds-ratio and hazard-ratio estimation,
+    plus marginal causal effects via case-control weighting (the Rose and
+    van der Laan g-formula, inverse-probability weighting, augmented IPW,
+    and targeted maximum likelihood family) and design-based inclusion
+    weighting (Samuelsen and Borgan). Integrates with the etverse engine
+    (causatr for g-computation / IPW / AIPW with sandwich and bootstrap
+    variance, survatr for causal survival on person-period data) so that
+    case-control and design weights compose directly with existing
+    estimators. Part of the etverse ecosystem.
+License: MIT + file LICENSE
+Depends:
+    R (>= 4.1.0)
+Imports:
+    boot,
+    causatr,
+    data.table (>= 1.14.0),
+    generics,
+    numDeriv,
+    rlang (>= 1.0.0),
+    sandwich,
+    stats,
+    survatr,
+    survival
+Suggests:
+    Epi,
+    knitr,
+    logistf,
+    marginaleffects,
+    mgcv,
+    mice,
+    multipleNCC,
+    NestedCohort,
+    quarto,
+    survey,
+    testthat (>= 3.0.0),
+    tinyplot,
+    tinytable,
+    WeightIt,
+    withr
+Remotes:
+    github::etverse/causatr,
+    github::etverse/survatr
+VignetteBuilder:
+    quarto
+Config/testthat/edition: 3
+Config/testthat/parallel: true
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+URL: https://github.com/etverse/matchatr,
+    https://etverse.github.io/matchatr/
+BugReports: https://github.com/etverse/matchatr/issues
+LazyData: true
