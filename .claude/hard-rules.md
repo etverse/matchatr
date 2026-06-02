@@ -99,6 +99,18 @@ Project-specific rules that override / extend the etverse-wide rules at
   (strata/time/subcohort/phase) — `matchatr_bad_input`. BUT confounders and
   design columns MAY overlap: frequency-matching on a variable while also
   adjusting for residual confounding by it is valid — do NOT flag that overlap.
+- **Never positionally index an SE vector against `coef()`.** `stats::vcov()`
+  keeps aliased (rank-deficient) coefficients as `NA` rows, but
+  `sandwich::sandwich()` *drops* them, so `sqrt(diag(.))` lengths differ between
+  the two variance sources and recycling silently corrupts SEs. Always reduce
+  variance to the estimable coefficients and align by NAME (see
+  `estimable_vcov()`); aliased terms get `NA` SEs. A non-estimable exposure
+  (constant / collinear) is `matchatr_unestimable_exposure`.
+- **The odds-ratio interval is Wald on the log scale, exponentiated** (asymmetric
+  on the OR scale) — this is correct, not a bug. The OR-scale `se` in a result's
+  `contrasts` is the delta-method `OR * SE(log OR)`; it does NOT reconstruct the
+  CI. The reconstructable log-scale SE lives in the result's `estimates`. Do not
+  "fix" the asymmetry or flag the se↔CI mismatch.
 
 ### Review-time heuristics
 
