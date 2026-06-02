@@ -308,6 +308,27 @@ test_that("RD / RR are rejected as unidentified from unmatched CC", {
   )
 })
 
+test_that("rows with missing values are dropped and reported as the analysis n", {
+  set.seed(42)
+  n <- 300
+  d <- data.frame(
+    case = rep(c(1L, 0L), each = n / 2),
+    x = stats::rbinom(n, 1, 0.4),
+    age = stats::rnorm(n)
+  )
+  d$age[1:37] <- NA
+  # The listwise deletion is surfaced at fit time.
+  expect_warning(
+    fit <- matcha(d, "case", "x", unmatched_cc(), confounders = ~age),
+    class = "matchatr_dropped_rows"
+  )
+  res <- contrast(fit, type = "or")
+  # The reported n is the complete-case count glm used, not the full sample.
+  expect_equal(res$n, stats::nobs(fit$model))
+  expect_equal(res$n, nrow(d) - 37L)
+  expect_lt(res$n, nrow(d))
+})
+
 test_that("a constant (non-estimable) exposure is rejected", {
   # A constant exposure aliases to NA in glm; contrast() must abort, not return
   # an NA odds ratio.

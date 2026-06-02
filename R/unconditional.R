@@ -13,7 +13,9 @@
 #' 1979), so it is never a baseline risk. The outcome is modelled on its native
 #' encoding — a numeric 0/1 column, a logical (`TRUE` = case), or a two-level
 #' factor (second level = case) all reproduce the 0/1 coding of
-#' `resolve_binary_outcome()`.
+#' `resolve_binary_outcome()`. Rows with a missing outcome, exposure, or
+#' confounder are dropped by `glm`'s default `na.action`; a
+#' `matchatr_dropped_rows` warning reports how many.
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"glm_logistic"`,
 #'   carrying the analysis `data`, the `outcome` / `exposure` column names, and
@@ -35,7 +37,28 @@ fit_logistic_cc <- function(fit) {
     termlabels = c(fit$exposure, conf_terms),
     response = fit$outcome
   )
-  stats::glm(model_formula, family = stats::binomial(), data = fit$data)
+  model <- stats::glm(
+    model_formula,
+    family = stats::binomial(),
+    data = fit$data
+  )
+  # glm's default na.action silently drops rows with a missing outcome,
+  # exposure, or confounder. Surface that listwise deletion so a missing-data
+  # problem is not mistaken for the full sample.
+  n_dropped <- nrow(fit$data) - stats::nobs(model)
+  if (n_dropped > 0L) {
+    rlang::warn(
+      c(
+        paste0(
+          n_dropped,
+          " row(s) with missing values were dropped from the fit."
+        ),
+        i = "The odds ratio is estimated on the complete cases only."
+      ),
+      class = c("matchatr_dropped_rows", "matchatr_warning")
+    )
+  }
+  model
 }
 
 #' Assemble the conditional odds-ratio contrast from a logistic fit
@@ -177,7 +200,9 @@ contrast_logistic <- function(
     estimand = "conditional OR",
     ci_method = ci_method,
     reference = NULL,
-    n = nrow(fit$data),
+    # The analysis n is the number of rows glm actually used (complete cases),
+    # not the full sample, which may differ when confounders carry NAs.
+    n = stats::nobs(model),
     estimator = fit$estimator,
     engine = fit$engine,
     vcov = vcov_exp,

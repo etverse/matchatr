@@ -17,7 +17,13 @@ logistic engine.
 - A constant or collinear exposure aliases to `NA` in `glm`; `contrast(type =
   "or")` previously returned an `NA` odds ratio silently. It now aborts with the
   classed `matchatr_unestimable_exposure`, mirroring the degenerate-outcome
-  rejection (review Issue #4).
+  rejection.
+- `matchatr_result$n` reported `nrow(data)`, overcounting when `glm` dropped rows
+  with missing covariates. It now reports `stats::nobs(model)` — the complete-case
+  count actually used, matching `causatr` — and a `matchatr_dropped_rows` warning
+  reports how many rows were dropped. Actual missing-data handling (multiple
+  imputation) stays delegated to `causatr::causat_mice` / the future imputation
+  phase, not reimplemented here.
 
 ## 2026-06-02 — Unmatched case-control logistic conditional OR (PHASE_2 Chunk 1)
 
