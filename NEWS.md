@@ -57,6 +57,11 @@ is plumbing, validation, and dispatch.
   object), and a `matchatr_uninformative_stratum` warning when a conditional
   likelihood would drop a matched set with no case or no control.
 - `print` methods for `matchatr_design` and `matchatr_fit`.
+- `contrast()`, the second-step verb, is defined as a validated skeleton: it
+  fixes the public signature (`type`, `ci_method`) and the `matchatr_result`
+  return contract, and aborts with `matchatr_not_estimated` on a fit whose
+  estimation engine has not run (`model = NULL`). The estimation body is filled
+  in by the causal-contrast phases.
 
 ## 2026-06-02 — Package scaffold and design roadmap
 

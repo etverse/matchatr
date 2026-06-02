@@ -35,8 +35,10 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
 - **Design + API layer (PHASE_1, implemented):** `cc_design.R` (six design
   constructors + `new_matchatr_design()`), `matcha.R` (the `matcha()` fit verb),
   `dispatch.R` (the `(design, estimator)` → engine table + `resolve_engine()`),
-  `constructors.R` (`new_matchatr_fit()` / `new_matchatr_result()`), `checks.R`
-  (shared validators + classed-error helpers), `print.R`. Still to come:
+  `contrast.R` (the second-step `contrast()` verb — a validated skeleton until
+  estimation lands), `constructors.R` (`new_matchatr_fit()` /
+  `new_matchatr_result()`), `checks.R` (shared validators + classed-error
+  helpers), `print.R`. Still to come:
   `weights_cc.R` (case-control / q₀ weights), `weights_design.R` (Samuelsen /
   Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC control
   sampling + counter-matching).
@@ -52,7 +54,7 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
 - **S3 + support:** `print.R`, `summary.R`, `tidy.R`, `plot.R`, `coef.R`, `confint.R`,
   `data.R`, `matchatr-package.R`, `zzz.R`.
 
-## Two-step API (implemented in PHASE_1; `contrast()` arrives with the causal phases)
+## Two-step API (implemented in PHASE_1; `contrast()` is a skeleton until the causal phases)
 
 The verb mirrors the siblings (`causatr::causat()`, `survatr::surv_fit()`):
 

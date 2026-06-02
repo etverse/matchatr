@@ -3,6 +3,7 @@
 S3method(print,matchatr_design)
 S3method(print,matchatr_fit)
 export(case_cohort)
+export(contrast)
 export(counter_matched)
 export(matcha)
 export(matched_cc)

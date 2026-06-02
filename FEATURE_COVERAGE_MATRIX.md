@@ -42,6 +42,9 @@ do not apply, so this section reports structural coverage instead.
 | Reject CCW without q0 (`matchatr_missing_prevalence`) | ⛔ | `test-matcha.R`, `test-rejections.R` |
 | Reject missing columns / wrong design object (`matchatr_bad_design`) | ⛔ | `test-matcha.R`, `test-rejections.R` |
 | Warn on uninformative conditional-likelihood strata (`matchatr_uninformative_stratum`) | ⚠️ warn tested | `test-matcha.R`, `test-rejections.R` |
+| Reject column with two roles (outcome/exposure vs covariate/design; `matchatr_bad_input`) | ⛔ | `test-matcha.R` |
+| Reject duplicated `data` column names (`matchatr_bad_input`) | ⛔ | `test-matcha.R` |
+| `contrast()` verb skeleton: signature + `matchatr_result` contract; `matchatr_not_estimated` until estimation | ⛔ | `test-contrast.R` |
 | `print.matchatr_design`, `print.matchatr_fit` | ✅ snapshot | `test-print.R` |
 
 No estimator engine runs yet; no numeric oracle applies (per PHASE_1 design).

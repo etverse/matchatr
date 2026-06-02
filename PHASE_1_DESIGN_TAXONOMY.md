@@ -3,9 +3,10 @@
 > **Status: IMPLEMENTED** (2026-06-02)
 > Book chapters: 2 (Design Issues), with the sampling structures of 4, 16.
 > Foundation phase — fixes the data model and API every later phase depends on.
-> Code: `R/cc_design.R`, `R/matcha.R`, `R/dispatch.R`, `R/constructors.R`,
-> `R/checks.R`, `R/print.R`. Tests: `test-cc_design.R`, `test-matcha.R`,
-> `test-dispatch.R`, `test-constructors.R`, `test-print.R`, `test-rejections.R`.
+> Code: `R/cc_design.R`, `R/matcha.R`, `R/dispatch.R`, `R/contrast.R`,
+> `R/constructors.R`, `R/checks.R`, `R/print.R`. Tests: `test-cc_design.R`,
+> `test-matcha.R`, `test-dispatch.R`, `test-contrast.R`, `test-constructors.R`,
+> `test-print.R`, `test-rejections.R`.
 
 ## Scope
 
@@ -110,12 +111,22 @@ fires its classed error (`expect_snapshot(error = TRUE)`).
 1. ✅ Design constructors + validators + print.
 2. ✅ `matcha()` skeleton + dispatch table + fit constructor.
 3. ✅ Rejection paths + tests.
+4. ✅ `contrast()` skeleton (signature + `matchatr_result` contract; aborts
+   `matchatr_not_estimated` until estimation lands).
 
-## Deferred items
+## Deferred items (each owned by a planned phase)
 
-All estimation (Phases 2+). Weight computation (the `weight_spec` is declared here,
-realised in Phases 7/8/9). Counter-matching weights (Phase 5/7). The reused
-`contrast()` verb (arrives with the causal-contrast phases that produce a
-`matchatr_result`). Supplying a prevalence q₀ on non-`unmatched_cc` designs — in
-this phase only `unmatched_cc(prevalence=)` carries q₀, so CCW on other designs is
-correctly gated by `matchatr_missing_prevalence`.
+- **All estimation** → Phases 2–6 (logistic/MH → P2; conditional logistic → P3;
+  polytomous → P4; risk-set / weighted Cox → P5; case-cohort `cch` → P6).
+- **Weight computation** (the `weight_spec` is declared here, realised later):
+  inclusion-probability (Samuelsen/Borgan) → P7; case-control q₀ weights → P8/P9;
+  counter-matching weights → P5/P7; survey / calibration design weights → P11/P12.
+- **`contrast()` estimation body** (the skeleton lands here) → the causal-contrast
+  phases P9 (CCW g-formula/IPW/AIPW/TMLE) and P10 (design-weighted survival).
+- **Two-phase / counter-matched engines** (`survey_twophase`, `weighted_cox`) →
+  P11/P12 and P5/P7 respectively.
+- **Not planned (intentional non-feature):** supplying a prevalence q₀ on
+  non-`unmatched_cc` designs. CCW (Rose & van der Laan) is an unmatched-CC
+  technique; matched/nested/case-cohort designs use design-based inclusion
+  weighting instead. Only `unmatched_cc(prevalence=)` carries q₀, so CCW on other
+  designs is correctly gated by `matchatr_missing_prevalence`.
