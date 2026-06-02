@@ -1,0 +1,102 @@
+[
+  {
+    "objectID": "NEWS.html",
+    "href": "NEWS.html",
+    "title": "matchatr (development version)",
+    "section": "",
+    "text": "Initial bootstrap of matchatr: causal inference for (matched) case-control, nested case-control, and case-cohort study designs, as part of the etverse ecosystem.\n\nPackage scaffold: DESCRIPTION (Imports causatr, survatr, survival), MIT license, testthat 3 edition, Air formatting, altdoc + Quarto website (matching the other etverse packages), GitHub Actions (R-CMD-check, test-coverage / Codecov, format-check, altdoc), Makefile, and Claude Code configuration (CLAUDE.md, .claude/hard-rules.md, symlinked etverse skills, posit-dev skills bundle).\nFull design roadmap in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan: design taxonomy and two-step API (PHASE_1); classical estimators (unmatched / matched / multiple-group, PHASE_2–4); time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC, PHASE_5–7); the causal layer (strategy + case-control weighting g-formula / IPW / AIPW / TMLE + design-weighted causal survival, PHASE_8–10); and efficiency / advanced / extension phases (PHASE_11–20).\n\nNo estimator code is implemented yet — every phase is at Status: DESIGN.",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "NEWS.html#package-scaffold-and-design-roadmap",
+    "href": "NEWS.html#package-scaffold-and-design-roadmap",
+    "title": "matchatr (development version)",
+    "section": "",
+    "text": "Initial bootstrap of matchatr: causal inference for (matched) case-control, nested case-control, and case-cohort study designs, as part of the etverse ecosystem.\n\nPackage scaffold: DESCRIPTION (Imports causatr, survatr, survival), MIT license, testthat 3 edition, Air formatting, altdoc + Quarto website (matching the other etverse packages), GitHub Actions (R-CMD-check, test-coverage / Codecov, format-check, altdoc), Makefile, and Claude Code configuration (CLAUDE.md, .claude/hard-rules.md, symlinked etverse skills, posit-dev skills bundle).\nFull design roadmap in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan: design taxonomy and two-step API (PHASE_1); classical estimators (unmatched / matched / multiple-group, PHASE_2–4); time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC, PHASE_5–7); the causal layer (strategy + case-control weighting g-formula / IPW / AIPW / TMLE + design-weighted causal survival, PHASE_8–10); and efficiency / advanced / extension phases (PHASE_11–20).\n\nNo estimator code is implemented yet — every phase is at Status: DESIGN.",
+    "crumbs": [
+      "News"
+    ]
+  },
+  {
+    "objectID": "LICENSE.html",
+    "href": "LICENSE.html",
+    "title": "MIT License",
+    "section": "",
+    "text": "MIT License\nCopyright (c) 2026 matchatr authors\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+    "crumbs": [
+      "License"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "matchatr",
+    "section": "",
+    "text": "matchatr provides causal inference for (matched) case-control, nested case-control (NCC), and case-cohort study designs. It pairs design-faithful classical estimators with marginal causal effects, and integrates with the etverse ecosystem — delegating estimation to causatr (g-computation / IPW / AIPW with sandwich and bootstrap variance) and survatr (causal survival on person-period data).\n\nStatus: early development. The package scaffold and the full PHASE_*.md design roadmap are in place; estimator implementations are being built phase by phase. The API below is the planned interface (fixed in PHASE_1).\n\n\n\nTwo orthogonal axes: a design object encodes the sampling structure (strata, matching ratio, time scale, prevalence, inclusion weights); an estimator chooses the analysis.\n\n\n\n\n\n\n\n\nDesign\nClassical estimand\nCausal (marginal) estimand\n\n\n\n\nUnmatched case-control\nconditional OR, Mantel-Haenszel\nRD / RR / marginal OR (case-control weighting)\n\n\nMatched case-control\nconditional OR (conditional logistic)\nRD / RR via standardization\n\n\nNested case-control\nrisk-set HR; Samuelsen IPW Cox\nmarginal survival contrasts (design-weighted)\n\n\nCase-cohort\nPrentice / Self-Prentice / Borgan HR\nabsolute risk, RD(t), RMST\n\n\n\nMarginal causal effects use case-control weighting (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and design-based inclusion weighting (Samuelsen, Borgan): the weights are passed as observation weights into the etverse engines, so they compose directly with existing estimators.\n\n\n\nYou can install the development version of matchatr from GitHub with:\n# install.packages(\"pak\")\npak::pak(\"etverse/matchatr\")\n\n\n\nlibrary(matchatr)\n\n# Matched case-control -&gt; conditional odds ratio\nfit &lt;- matcha(\n  data,\n  outcome = \"case\", exposure = \"x\",\n  design = matched_cc(strata = \"set\"),\n  confounders = ~ age + smoke, estimator = \"clogit\"\n)\n\n# Marginal causal risk difference from an unmatched case-control sample\nfit &lt;- matcha(\n  data,\n  outcome = \"case\", exposure = \"x\",\n  design = unmatched_cc(prevalence = 0.02),   # source-population prevalence q0\n  confounders = ~ age + smoke, estimator = \"ccw_gformula\"\n)\ncontrast(fit, type = \"difference\", ci_method = \"sandwich\")\n\n\n\nThe design is documented in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan. See CLAUDE.md for the phase index and FEATURE_COVERAGE_MATRIX.md for what is implemented and tested.\n\n\n\nmatchatr is one package in the etverse family for causal inference and methodological triangulation, alongside causatr (causal effect estimation) and survatr (causal survival analysis).",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#what-it-does",
+    "href": "index.html#what-it-does",
+    "title": "matchatr",
+    "section": "",
+    "text": "Two orthogonal axes: a design object encodes the sampling structure (strata, matching ratio, time scale, prevalence, inclusion weights); an estimator chooses the analysis.\n\n\n\n\n\n\n\n\nDesign\nClassical estimand\nCausal (marginal) estimand\n\n\n\n\nUnmatched case-control\nconditional OR, Mantel-Haenszel\nRD / RR / marginal OR (case-control weighting)\n\n\nMatched case-control\nconditional OR (conditional logistic)\nRD / RR via standardization\n\n\nNested case-control\nrisk-set HR; Samuelsen IPW Cox\nmarginal survival contrasts (design-weighted)\n\n\nCase-cohort\nPrentice / Self-Prentice / Borgan HR\nabsolute risk, RD(t), RMST\n\n\n\nMarginal causal effects use case-control weighting (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and design-based inclusion weighting (Samuelsen, Borgan): the weights are passed as observation weights into the etverse engines, so they compose directly with existing estimators.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "matchatr",
+    "section": "",
+    "text": "You can install the development version of matchatr from GitHub with:\n# install.packages(\"pak\")\npak::pak(\"etverse/matchatr\")",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#example",
+    "href": "index.html#example",
+    "title": "matchatr",
+    "section": "",
+    "text": "library(matchatr)\n\n# Matched case-control -&gt; conditional odds ratio\nfit &lt;- matcha(\n  data,\n  outcome = \"case\", exposure = \"x\",\n  design = matched_cc(strata = \"set\"),\n  confounders = ~ age + smoke, estimator = \"clogit\"\n)\n\n# Marginal causal risk difference from an unmatched case-control sample\nfit &lt;- matcha(\n  data,\n  outcome = \"case\", exposure = \"x\",\n  design = unmatched_cc(prevalence = 0.02),   # source-population prevalence q0\n  confounders = ~ age + smoke, estimator = \"ccw_gformula\"\n)\ncontrast(fit, type = \"difference\", ci_method = \"sandwich\")",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#roadmap",
+    "href": "index.html#roadmap",
+    "title": "matchatr",
+    "section": "",
+    "text": "The design is documented in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan. See CLAUDE.md for the phase index and FEATURE_COVERAGE_MATRIX.md for what is implemented and tested.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#part-of-the-etverse",
+    "href": "index.html#part-of-the-etverse",
+    "title": "matchatr",
+    "section": "",
+    "text": "matchatr is one package in the etverse family for causal inference and methodological triangulation, alongside causatr (causal effect estimation) and survatr (causal survival analysis).",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "CITATION.html",
+    "href": "CITATION.html",
+    "title": "Citation",
+    "section": "",
+    "text": "Citation\nTo cite package ‘matchatr’ in publications use:\n\nFabbri L (????). matchatr: Causal Inference for Case-Control, Nested Case-Control, and Case-Cohort Studies. R package version 0.0.0.9000, https://github.com/etverse/matchatr.",
+    "crumbs": [
+      "Citation"
+    ]
+  }
+]
