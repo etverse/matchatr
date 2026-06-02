@@ -8,6 +8,11 @@ input-validation gaps before the estimation layers depend on them.
 - `ratio = Inf` (or `-Inf`) now raises the classed `matchatr_bad_ratio` instead
   of an unclassed base-R error. `Inf %% 1` is `NaN` and `NaN != 0` is `NA`, so
   the old guard reached `if (NA)`; a finiteness check now runs before the modulo.
+- A degenerate single-class outcome (all cases, all controls, or all `NA`) is
+  now rejected with `matchatr_bad_outcome` for every encoding. The contrast
+  check previously fired only for numeric columns, so an all-controls logical or
+  two-level factor slipped through with `n_cases = 0`; `resolve_binary_outcome()`
+  now coerces to 0/1 first and applies one uniform both-classes-present check.
 
 ## 2026-06-02 — Design taxonomy, data model, and two-step API
 

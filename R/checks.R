@@ -215,29 +215,36 @@ resolve_binary_outcome <- function(data, outcome, call = rlang::caller_env()) {
     )
   }
 
-  if (is.logical(y)) {
-    return(as.integer(y))
-  }
-
-  if (is.factor(y)) {
+  # Coerce each accepted encoding to a 0/1 integer first; the contrast check
+  # below is then applied uniformly so logical / factor / numeric cannot
+  # diverge in what they let through.
+  y01 <- if (is.logical(y)) {
+    as.integer(y)
+  } else if (is.factor(y)) {
     if (nlevels(y) != 2L) {
       bad_outcome()
     }
     # First level -> 0, second level -> 1, matching the order the user set.
-    return(as.integer(y) - 1L)
-  }
-
-  if (is.numeric(y)) {
+    as.integer(y) - 1L
+  } else if (is.numeric(y)) {
     vals <- unique(stats::na.omit(y))
-    if (!all(vals %in% c(0, 1)) || length(vals) < 2L) {
-      # `length(vals) < 2` rejects a degenerate column that is all cases or
-      # all controls: there is no contrast to estimate from it.
+    if (!all(vals %in% c(0, 1))) {
       bad_outcome()
     }
-    return(as.integer(y))
+    as.integer(y)
+  } else {
+    bad_outcome()
   }
 
-  bad_outcome()
+  # A case-control analysis needs a contrast: both a case (1) and a control (0)
+  # must actually occur. Enforced here for every encoding so an all-cases /
+  # all-controls (or all-NA) column cannot reach the estimation layer with a
+  # silent n_cases = 0 -- previously only the numeric branch caught this
+  # (review Issue R2).
+  if (length(unique(stats::na.omit(y01))) < 2L) {
+    bad_outcome()
+  }
+  y01
 }
 
 #' Warn when a conditional-likelihood stratum is uninformative

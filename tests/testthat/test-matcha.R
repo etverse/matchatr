@@ -112,6 +112,36 @@ test_that("non-binary outcomes are rejected with matchatr_bad_outcome", {
   )
 })
 
+test_that("degenerate single-class outcomes are rejected for every encoding", {
+  # Review 2026-06-02 Issue R2: the contrast check was numeric-only, so an
+  # all-controls logical or 2-level factor slipped through with n_cases = 0.
+  # /tmp/matchatr_repro_degenerate_outcome.R
+  base <- make_cc_data(n_sets = 6L)
+
+  alllog <- base
+  alllog$case <- rep(FALSE, nrow(base))
+  expect_error(
+    matcha(alllog, "case", "x", unmatched_cc()),
+    class = "matchatr_bad_outcome"
+  )
+
+  # 2-level factor where only the "control" level actually occurs.
+  allfac <- base
+  allfac$case <- factor(rep("control", nrow(base)), levels = c("control", "case"))
+  expect_error(
+    matcha(allfac, "case", "x", unmatched_cc()),
+    class = "matchatr_bad_outcome"
+  )
+
+  # all-NA outcome: no contrast either.
+  allna <- base
+  allna$case <- NA_integer_
+  expect_error(
+    matcha(allna, "case", "x", unmatched_cc()),
+    class = "matchatr_bad_outcome"
+  )
+})
+
 # --- column existence + role checks -------------------------------------
 
 test_that("missing columns are rejected with matchatr_bad_design", {
