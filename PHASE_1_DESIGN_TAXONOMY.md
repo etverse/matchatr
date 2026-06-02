@@ -1,8 +1,11 @@
 # Phase 1 — Design Taxonomy, Data Model, and Two-Step API
 
-> **Status: DESIGN**
+> **Status: IMPLEMENTED** (2026-06-02)
 > Book chapters: 2 (Design Issues), with the sampling structures of 4, 16.
 > Foundation phase — fixes the data model and API every later phase depends on.
+> Code: `R/cc_design.R`, `R/matcha.R`, `R/dispatch.R`, `R/constructors.R`,
+> `R/checks.R`, `R/print.R`. Tests: `test-cc_design.R`, `test-matcha.R`,
+> `test-dispatch.R`, `test-constructors.R`, `test-print.R`, `test-rejections.R`.
 
 ## Scope
 
@@ -104,11 +107,15 @@ fires its classed error (`expect_snapshot(error = TRUE)`).
 
 ## Chunk plan
 
-1. Design constructors + validators + print.
-2. `matcha()` skeleton + dispatch table + fit constructor.
-3. Rejection paths + tests.
+1. ✅ Design constructors + validators + print.
+2. ✅ `matcha()` skeleton + dispatch table + fit constructor.
+3. ✅ Rejection paths + tests.
 
 ## Deferred items
 
 All estimation (Phases 2+). Weight computation (the `weight_spec` is declared here,
-realised in Phases 7/8/9). Counter-matching weights (Phase 5/7).
+realised in Phases 7/8/9). Counter-matching weights (Phase 5/7). The reused
+`contrast()` verb (arrives with the causal-contrast phases that produce a
+`matchatr_result`). Supplying a prevalence q₀ on non-`unmatched_cc` designs — in
+this phase only `unmatched_cc(prevalence=)` carries q₀, so CCW on other designs is
+correctly gated by `matchatr_missing_prevalence`.

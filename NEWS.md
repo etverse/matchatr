@@ -1,5 +1,40 @@
 # matchatr (development version)
 
+## 2026-06-02 — Design taxonomy, data model, and two-step API
+
+First implemented layer: the sampling-design objects and the `matcha()` fit
+verb that the rest of the package builds on. No estimator runs yet — this phase
+is plumbing, validation, and dispatch.
+
+- Six design constructors returning a unified `matchatr_design` S3 object:
+  `unmatched_cc()`, `matched_cc()`, `nested_cc()`, `case_cohort()`,
+  `two_phase()`, and `counter_matched()`. Each carries its sampling structure
+  (strata, time, matching ratio, prevalence q0, subcohort / phase columns) and a
+  `weight_spec` declaring the intended weighting scheme. Structural arguments are
+  validated at construction (q0 strictly in (0, 1); ratio a whole number >= 1;
+  strata a non-empty character vector) with classed `matchatr_*` errors.
+- `matcha(data, outcome, exposure, design, confounders, estimator)` validates
+  the request, resolves the orthogonal `(design, estimator)` axes to an
+  estimation engine via an internal dispatch table, and returns a
+  `matchatr_fit`. The case-control-weighted family (`"ccw_gformula"`,
+  `"ccw_ipw"`, `"ccw_aipw"`, `"ccw_tmle"`) routes on any design but requires a
+  prevalence q0; the classical estimators are design-specific (`"logistic"` /
+  `"mh"`, `"clogit"`, `"cch"`, ...). The `model` slot is `NULL` until an
+  estimation engine is run.
+- Weights are never a data column: the fit reserves distinct
+  `details$cc_weights` and `details$design_weights` slots (case-control weights
+  and inclusion-probability weights have different variance consequences) plus a
+  `details$variance_kind` slot for the eventual sampling-variance correction.
+- Classed rejection paths, all matching on a `matchatr_error` parent:
+  `matchatr_bad_estimator` (unknown / design-incompatible estimator),
+  `matchatr_bad_outcome` (non-binary case indicator),
+  `matchatr_missing_prevalence` (CCW without q0),
+  `matchatr_bad_prevalence` / `matchatr_bad_ratio` / `matchatr_bad_strata`
+  (malformed construction), `matchatr_bad_design` (missing columns / wrong
+  object), and a `matchatr_uninformative_stratum` warning when a conditional
+  likelihood would drop a matched set with no case or no control.
+- `print` methods for `matchatr_design` and `matchatr_fit`.
+
 ## 2026-06-02 — Package scaffold and design roadmap
 
 Initial bootstrap of matchatr: causal inference for (matched) case-control,
