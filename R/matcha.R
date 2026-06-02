@@ -16,9 +16,10 @@
 #' are kept in distinct slots on the fit (`details$cc_weights`,
 #' `details$design_weights`) because their variance consequences differ.
 #'
-#' The returned `matchatr_fit` carries `model = NULL` until an estimation
-#' engine is run on it; `details$engine` records the engine the (design,
-#' estimator) pair resolved to.
+#' The resolved engine is run as part of the fit: an implemented estimator (the
+#' unmatched case-control logistic regression) populates the `model` slot, while
+#' an engine with no wired estimator leaves it `NULL`. `details$engine` records
+#' the engine the (design, estimator) pair resolved to.
 #'
 #' @param data A data.frame or data.table. Not mutated; a data.table copy is
 #'   stored on the fit.
@@ -41,7 +42,8 @@
 #'   (`data`, `outcome`, `exposure`, `confounders`, `design`, `estimator`,
 #'   `engine`), a `details` list (resolved engine, weighting scheme, reserved
 #'   variance / weight slots, case and control counts), and the originating
-#'   `call`. The `model` slot is `NULL`.
+#'   `call`. The `model` slot holds the fitted estimation object for an
+#'   implemented engine, or `NULL` otherwise.
 #'
 #' @examples
 #' set.seed(1)
@@ -181,7 +183,7 @@ matcha <- function(
     n_controls = sum(y01 == 0L, na.rm = TRUE)
   )
 
-  new_matchatr_fit(
+  fit <- new_matchatr_fit(
     model = NULL,
     data = dt,
     outcome = outcome,
@@ -193,4 +195,9 @@ matcha <- function(
     details = details,
     call = call
   )
+
+  # Run the resolved engine: an implemented estimator populates `model`, while
+  # an engine with no wired estimator leaves it NULL.
+  fit$model <- run_engine(fit)
+  fit
 }

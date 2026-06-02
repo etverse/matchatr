@@ -1,7 +1,12 @@
 # Phase 2 — Unmatched Case-Control: Logistic OR and Mantel-Haenszel
 
-> **Status: DESIGN**
+> **Status: Chunk 1 IMPLEMENTED; Chunks 2–3 DESIGN.**
 > Book chapters: 3 (Basic Concepts and Analysis).
+> Chunk 1 (logistic conditional OR + OR contrast + unidentified-estimand
+> rejection) shipped in `R/unconditional.R` / `R/tidy.R` / `R/summary.R`, tested
+> in `test-unconditional.R`. Chunk 2 (categorical / ordinal / continuous-GAM
+> exposures + book-value oracles) and Chunk 3 (Mantel-Haenszel + RBG variance)
+> remain to do.
 
 ## Scope
 
@@ -49,12 +54,14 @@ matcha(data, outcome = "case", exposure = "x",
 
 | Exposure | Estimator | Estimand | Contrast | Variance | Status |
 |---|---|---|---|---|---|
-| binary | logistic | cond. OR | OR | model/sandwich | needs-test |
-| categorical k>2 | logistic | cond. OR | OR | model/sandwich | needs-test |
-| ordinal (grouped-linear) | logistic | cond. OR/trend | OR | model | needs-test |
-| continuous (linear/spline) | logistic (GLM/GAM) | cond. OR | OR | model | needs-test |
-| binary, stratified | mh | cond. OR | OR | RBG | needs-test |
-| logistic | — | RD/RR | — | — | ⛔ `matchatr_unidentified_estimand` |
+| binary | logistic | cond. OR | OR | model/sandwich | ✅ done (Chunk 1) |
+| two-level factor | logistic | cond. OR | OR | model | ✅ done (Chunk 1) |
+| continuous (linear) | logistic (GLM) | cond. OR | OR | model | ✅ done (Chunk 1) |
+| categorical k>2 | logistic | cond. OR | OR | model/sandwich | needs-test (Chunk 2) |
+| ordinal (grouped-linear) | logistic | cond. OR/trend | OR | model | needs-test (Chunk 2) |
+| continuous (spline/GAM) | logistic (GAM) | cond. OR | OR | model | needs-test (Chunk 2) |
+| binary, stratified | mh | cond. OR | OR | RBG | needs-test (Chunk 3) |
+| logistic | — | RD/RR | — | — | ⛔ `matchatr_unidentified_estimand` (done) |
 
 ## Implementation plan
 
@@ -82,8 +89,14 @@ here — this is the classical layer.
 
 ## Chunk plan
 
-1. `fit_logistic_cc()` + OR contrast + unidentified-estimand rejection.
-2. Categorical / ordinal / continuous exposure handling + book-value tests.
+1. ✅ `fit_logistic_cc()` + OR contrast + unidentified-estimand rejection.
+   Implemented: `matcha()` runs the `glm_logistic` engine; `contrast(type = "or")`
+   reports the exposure conditional OR (model / sandwich Wald CI); RD/RR abort with
+   `matchatr_unidentified_estimand` and bootstrap with `matchatr_unsupported_variance`;
+   `tidy()` / `summary()` render the OR table. Binary, two-level-factor, and plain
+   continuous exposures covered. Oracles: `stats::glm`, 2×2 Woolf, cohort DGP truth.
+2. Categorical (k>2) / ordinal trend / continuous spline–GAM exposure handling +
+   book-value tests (esophageal-cancer alcohol ORs, Framingham, oral-contraceptive).
 3. Mantel-Haenszel closed form + RBG variance + oracle.
 
 ## Deferred items

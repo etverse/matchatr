@@ -1,5 +1,35 @@
 # matchatr (development version)
 
+## 2026-06-02 — Unmatched case-control logistic conditional OR (PHASE_2 Chunk 1)
+
+First estimator engine: the classical unmatched case-control analysis. `matcha()`
+now *runs* the resolved engine as part of the fit — the `"logistic"` estimator
+fits `stats::glm(family = binomial)` for `outcome ~ exposure + confounders` and
+stores it in the `model` slot (engines without a wired estimator still leave
+`model = NULL`). Only the slope coefficients carry over from the cohort model;
+the case-control intercept is offset by the log sampling-fraction ratio
+(Prentice & Pyke, 1979) and is never reported as a baseline risk.
+
+- `contrast(fit, type = "or")` returns the exposure's conditional odds ratio as a
+  `matchatr_result`, with a Wald interval from the model information matrix
+  (`ci_method = "model"`, the new default) or the Huber-White sandwich
+  (`ci_method = "sandwich"`). `contrast()` gained a `conf_level` argument.
+- The risk difference and risk ratio are **not identified** from an unmatched
+  case-control sample without the source-population prevalence q0:
+  `contrast(type = "difference" / "ratio")` aborts with the classed
+  `matchatr_unidentified_estimand`, pointing to `type = "or"` or to a
+  case-control-weighted estimator with `prevalence`. Bootstrap CIs for the
+  conditional OR abort with `matchatr_unsupported_variance` (a Wald interval is
+  reported instead).
+- New S3 surface: `tidy.matchatr_fit()` (broom-style coefficient / OR table on the
+  log-odds or, with `exponentiate = TRUE`, the OR scale; model-based or `robust`
+  sandwich SE), `tidy.matchatr_result()`, `summary.matchatr_fit()`, and
+  `print.matchatr_result()`.
+- Tested against three oracles: `stats::glm` pass-through (point estimate, Wald and
+  sandwich CI), the closed-form 2×2 odds ratio with Woolf variance, and a cohort
+  data-generating process with a known log-OR (the conditional OR recovers the
+  cohort slope, since case-control sampling shifts only the intercept).
+
 ## 2026-06-02 — PHASE_1 validation hardening (critical review)
 
 Follow-up fixes from an adversarial review of the PHASE_1 foundation, closing

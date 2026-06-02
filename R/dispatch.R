@@ -2,7 +2,7 @@
 #'
 #' Maps each sampling design to the classical (non-causal) estimators it
 #' admits and the engine key each resolves to. The case-control-weighted
-#' (`"ccw_*"`) estimators are handled separately in [resolve_engine()] because
+#' (`"ccw_*"`) estimators are handled separately in `resolve_engine()` because
 #' they apply to *any* design (they reweight a sample back to the source
 #' population), so they are not enumerated per design here.
 #'
@@ -113,6 +113,28 @@ resolve_engine <- function(design_type, estimator, call = rlang::caller_env()) {
     engine = unname(allowed[[estimator]]),
     kind = "classical",
     conditional = identical(estimator, "clogit")
+  )
+}
+
+#' Run the resolved estimation engine on a fit
+#'
+#' Bridges [matcha()] to the estimator implementations: it switches on the
+#' fit's resolved `engine` key and returns the fitted model object. Engines
+#' with no wired estimator return `NULL`, leaving the fit's `model` slot empty
+#' so [contrast()] and the summary methods guard on it with the classed
+#' `matchatr_not_estimated` condition.
+#'
+#' @param fit A `matchatr_fit` with `model = NULL`, carrying the validated
+#'   analysis specification (data, outcome / exposure roles, confounders).
+#' @returns The fitted model object (e.g. a `glm`), or `NULL` for an engine
+#'   without a wired estimator.
+#' @family dispatch
+#' @noRd
+run_engine <- function(fit) {
+  switch(
+    fit$engine,
+    glm_logistic = fit_logistic_cc(fit),
+    NULL
   )
 }
 

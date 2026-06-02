@@ -34,7 +34,8 @@ A \code{matchatr_fit} object: a list with the validated specification
 (\code{data}, \code{outcome}, \code{exposure}, \code{confounders}, \code{design}, \code{estimator},
 \code{engine}), a \code{details} list (resolved engine, weighting scheme, reserved
 variance / weight slots, case and control counts), and the originating
-\code{call}. The \code{model} slot is \code{NULL}.
+\code{call}. The \code{model} slot holds the fitted estimation object for an
+implemented engine, or \code{NULL} otherwise.
 }
 \description{
 The fit verb for matchatr (mirroring \code{causatr::causat()} and
@@ -52,9 +53,10 @@ van der Laan) and design / inclusion-probability weights (Samuelsen, Borgan)
 are kept in distinct slots on the fit (\code{details$cc_weights},
 \code{details$design_weights}) because their variance consequences differ.
 
-The returned \code{matchatr_fit} carries \code{model = NULL} until an estimation
-engine is run on it; \code{details$engine} records the engine the (design,
-estimator) pair resolved to.
+The resolved engine is run as part of the fit: an implemented estimator (the
+unmatched case-control logistic regression) populates the \code{model} slot, while
+an engine with no wired estimator leaves it \code{NULL}. \code{details$engine} records
+the engine the (design, estimator) pair resolved to.
 }
 \examples{
 set.seed(1)

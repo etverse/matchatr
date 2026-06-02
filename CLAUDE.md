@@ -10,16 +10,21 @@ weighting** (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and
 (g-comp / IPW / AIPW + sandwich/bootstrap variance) and `survatr` (causal survival
 on person-period data) wherever possible.
 
-> **Status: foundation landed (PHASE_1).** The design taxonomy, the unified
-> `matchatr_design` S3 object + six constructors, the `matcha()` fit verb, and the
-> `(design, estimator)` dispatch + validation layer are implemented and tested.
-> NO *estimator* code runs yet — PHASE_2+ remain `Status: DESIGN`.
+> **Status: first estimator landed (PHASE_2 Chunk 1).** The PHASE_1 foundation
+> (design taxonomy, unified `matchatr_design` S3 object + six constructors, the
+> `matcha()` fit verb, the `(design, estimator)` dispatch + validation layer) is
+> in place, and the unmatched case-control **logistic conditional OR** now runs
+> end to end: `matcha()` fits `stats::glm`, `contrast(type = "or")` reports the
+> OR, and RD/RR are rejected as unidentified without q0. The remaining PHASE_2
+> chunks (categorical/ordinal/continuous-GAM exposures, Mantel-Haenszel) and
+> PHASE_3+ remain `Status: DESIGN`.
 
 ## Guide files
 
 - `FEATURE_COVERAGE_MATRIX.md` — **single source of truth for "what works".** Every
   PR that changes a feature MUST update this file. Records the PHASE_1 design/API
-  layer; estimator cells stay pending until PHASE_2+.
+  layer and the PHASE_2 Chunk 1 logistic conditional OR; the remaining estimator
+  cells stay pending until their phases land.
 - `PHASE_*.md` — per-phase design docs in the project root (see roadmap below). They
   follow the `implement-feature` Step-1b 10-point structure.
 
@@ -33,18 +38,20 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
 ### R/ layout (created as phases land)
 
 - **Design + API layer (PHASE_1, implemented):** `cc_design.R` (six design
-  constructors + `new_matchatr_design()`), `matcha.R` (the `matcha()` fit verb),
-  `dispatch.R` (the `(design, estimator)` → engine table + `resolve_engine()`),
-  `contrast.R` (the second-step `contrast()` verb — a validated skeleton until
-  estimation lands), `constructors.R` (`new_matchatr_fit()` /
-  `new_matchatr_result()`), `checks.R` (shared validators + classed-error
-  helpers), `print.R`. Still to come:
-  `weights_cc.R` (case-control / q₀ weights), `weights_design.R` (Samuelsen /
-  Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC control
-  sampling + counter-matching).
-- **Classical estimators:** `clogit.R` (matched CC / NCC conditional likelihood),
-  `unconditional.R` (logistic OR + Mantel-Haenszel), `polytomous.R` (multiple groups),
-  `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
+  constructors + `new_matchatr_design()`), `matcha.R` (the `matcha()` fit verb;
+  runs the resolved engine via `run_engine()`), `dispatch.R` (the
+  `(design, estimator)` → engine table + `resolve_engine()` + `run_engine()`),
+  `contrast.R` (the second-step `contrast()` verb; dispatches per engine),
+  `constructors.R` (`new_matchatr_fit()` / `new_matchatr_result()`), `checks.R`
+  (shared validators + classed-error helpers), `print.R`, `tidy.R`, `summary.R`.
+  Still to come: `weights_cc.R` (case-control / q₀ weights), `weights_design.R`
+  (Samuelsen / Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC
+  control sampling + counter-matching).
+- **Classical estimators:** `unconditional.R` (PHASE_2 Chunk 1 implemented —
+  `fit_logistic_cc()` wraps `stats::glm`, plus the conditional-OR contrast and
+  the `matchatr_unidentified_estimand` rejection; Mantel-Haenszel is Chunk 3),
+  `clogit.R` (matched CC / NCC conditional likelihood), `polytomous.R` (multiple
+  groups), `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).
@@ -54,11 +61,19 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
 - **S3 + support:** `print.R`, `summary.R`, `tidy.R`, `plot.R`, `coef.R`, `confint.R`,
   `data.R`, `matchatr-package.R`, `zzz.R`.
 
-## Two-step API (implemented in PHASE_1; `contrast()` is a skeleton until the causal phases)
+## Two-step API (PHASE_1; `contrast(type = "or")` computes the unmatched-CC conditional OR as of PHASE_2 Chunk 1, marginal contrasts await the causal phases)
 
 The verb mirrors the siblings (`causatr::causat()`, `survatr::surv_fit()`):
 
 ```r
+# Unmatched case-control -> conditional OR (implemented)
+fit <- matcha(data, outcome = "case", exposure = "x",
+              design = unmatched_cc(),
+              confounders = ~ age + smoke, estimator = "logistic")
+summary(fit)                      # OR table, Wald CIs
+contrast(fit, type = "or")        # exposure conditional OR + CI
+# contrast(fit, type = "difference")  # -> matchatr_unidentified_estimand (need q0)
+
 # Matched case-control -> conditional OR
 fit <- matcha(data, outcome = "case", exposure = "x",
               design = matched_cc(strata = "set"),

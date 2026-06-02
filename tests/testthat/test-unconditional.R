@@ -1,0 +1,279 @@
+# The unmatched case-control logistic engine: matcha() fits stats::glm, and
+# contrast(type = "or") / tidy() / summary() report the conditional odds ratio.
+# Oracles: stats::glm itself (pass-through), the closed-form 2x2 OR with Woolf
+# variance, the sandwich estimator, and a cohort DGP with a known log-OR.
+
+# --- matcha now runs the engine -----------------------------------------
+
+test_that("matcha fits a binomial glm for the logistic engine", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  expect_s3_class(fit$model, "glm")
+  expect_identical(stats::family(fit$model)$family, "binomial")
+
+  # Pass-through: matchatr's wrapper must reproduce a hand-fit glm exactly.
+  oracle <- stats::glm(case ~ x + age, stats::binomial(), df)
+  expect_equal(stats::coef(fit$model), stats::coef(oracle))
+})
+
+test_that("an engine with no wired estimator leaves model NULL", {
+  df <- make_cc_data()
+  fit <- suppressWarnings(matcha(df, "case", "x", matched_cc("set")))
+  expect_null(fit$model)
+})
+
+# --- truth-based: conditional OR recovers the cohort slope --------------
+
+test_that("the conditional OR recovers the cohort log-OR (truth-based)", {
+  df <- make_cohort_cc(beta_x = log(2), beta_age = 0.03)
+  truth <- attr(df, "truth")
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  res <- contrast(fit, type = "or")
+
+  # Case-control sampling preserves slopes: exp(beta_x) ~ 2 and the age slope
+  # ~ 0.03 are recovered up to sampling error (large cohort, fixed seed).
+  expect_equal(
+    log(res$contrasts$estimate),
+    unname(truth["beta_x"]),
+    tolerance = 0.1
+  )
+  td <- tidy(fit)
+  age_slope <- td$estimate[td$term == "age"]
+  # Absolute check: the age slope (~0.003 SE here) recovers 0.03 to within 0.01.
+  expect_lt(abs(age_slope - unname(truth["beta_age"])), 0.01)
+})
+
+# --- closed-form 2x2 oracle (OR + Woolf variance) -----------------------
+
+test_that("the unadjusted OR matches the closed-form 2x2 with Woolf CI", {
+  df <- make_2x2_cc(n11 = 60L, n10 = 40L, n01 = 30L, n00 = 70L)
+  fit <- matcha(df, "case", "x", unmatched_cc())
+  res <- contrast(fit, type = "or")
+
+  or_closed <- (60 * 70) / (40 * 30) # 3.5
+  expect_equal(res$contrasts$estimate, or_closed, tolerance = 1e-6)
+
+  # A saturated logistic model reproduces the Woolf log-OR variance, so the
+  # model-based Wald interval matches the closed-form Woolf interval (to glm's
+  # IRLS convergence precision).
+  woolf_se <- sqrt(1 / 60 + 1 / 40 + 1 / 30 + 1 / 70)
+  z <- stats::qnorm(0.975)
+  expect_equal(
+    res$contrasts$ci_lower,
+    exp(log(or_closed) - z * woolf_se),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    res$contrasts$ci_upper,
+    exp(log(or_closed) + z * woolf_se),
+    tolerance = 1e-5
+  )
+})
+
+# --- point/CI agreement with the glm oracle -----------------------------
+
+test_that("adjusted OR and Wald CI match stats::glm exactly", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  res <- contrast(fit, type = "or")
+
+  oracle <- stats::glm(case ~ x + age, stats::binomial(), df)
+  b <- stats::coef(oracle)["x"]
+  se <- sqrt(diag(stats::vcov(oracle)))["x"]
+  z <- stats::qnorm(0.975)
+  expect_equal(res$contrasts$estimate, unname(exp(b)), tolerance = 1e-10)
+  expect_equal(res$contrasts$se, unname(exp(b) * se), tolerance = 1e-10)
+  expect_equal(
+    res$contrasts$ci_lower,
+    unname(exp(b - z * se)),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    res$contrasts$ci_upper,
+    unname(exp(b + z * se)),
+    tolerance = 1e-10
+  )
+})
+
+test_that("the sandwich CI matches the robust glm variance", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  res <- contrast(fit, type = "or", ci_method = "sandwich")
+
+  oracle <- stats::glm(case ~ x + age, stats::binomial(), df)
+  se_robust <- sqrt(diag(sandwich::sandwich(oracle)))["x"]
+  expect_equal(
+    res$contrasts$se,
+    unname(exp(stats::coef(oracle)["x"]) * se_robust),
+    tolerance = 1e-10
+  )
+  # Sandwich and model-based SEs differ here (a real robustness check, not a
+  # tautology).
+  res_model <- contrast(fit, type = "or", ci_method = "model")
+  expect_false(isTRUE(all.equal(res$contrasts$se, res_model$contrasts$se)))
+})
+
+test_that("conf_level widens / narrows the interval as expected", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  ci90 <- contrast(fit, type = "or", conf_level = 0.90)$contrasts
+  ci99 <- contrast(fit, type = "or", conf_level = 0.99)$contrasts
+  expect_gt(ci90$ci_lower, ci99$ci_lower)
+  expect_lt(ci90$ci_upper, ci99$ci_upper)
+
+  oracle <- stats::glm(case ~ x + age, stats::binomial(), df)
+  b <- stats::coef(oracle)["x"]
+  se <- sqrt(diag(stats::vcov(oracle)))["x"]
+  expect_equal(
+    ci90$ci_lower,
+    unname(exp(b - stats::qnorm(0.95) * se)),
+    tolerance = 1e-10
+  )
+})
+
+# --- exposure encodings -------------------------------------------------
+
+test_that("a two-level factor exposure gives the same OR as 0/1", {
+  df <- make_cohort_cc()
+  or_num <- contrast(
+    matcha(df, "case", "x", unmatched_cc()),
+    type = "or"
+  )$contrasts$estimate
+
+  dff <- df
+  dff$x <- factor(
+    ifelse(df$x == 1L, "exposed", "unexposed"),
+    levels = c("unexposed", "exposed")
+  )
+  res_fac <- contrast(matcha(dff, "case", "x", unmatched_cc()), type = "or")
+  expect_equal(nrow(res_fac$contrasts), 1L)
+  expect_equal(res_fac$contrasts$estimate, or_num, tolerance = 1e-10)
+})
+
+test_that("a continuous exposure yields the per-unit OR", {
+  df <- make_cohort_cc()
+  # Use age as a continuous exposure (no confounders).
+  fit <- matcha(df, "case", "age", unmatched_cc())
+  res <- contrast(fit, type = "or")
+  oracle <- stats::glm(case ~ age, stats::binomial(), df)
+  expect_equal(
+    res$contrasts$estimate,
+    unname(exp(stats::coef(oracle)["age"])),
+    tolerance = 1e-10
+  )
+})
+
+# --- result / table structure -------------------------------------------
+
+test_that("the OR result carries log-scale estimates and OR-scale contrasts", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  res <- contrast(fit, type = "or")
+  expect_s3_class(res, "matchatr_result")
+  expect_identical(res$type, "or")
+  expect_identical(res$estimand, "conditional OR")
+  expect_identical(res$ci_method, "model")
+  expect_identical(res$n, nrow(df))
+
+  # estimates are on the log-odds scale, contrasts on the OR scale (exp).
+  expect_s3_class(res$estimates, "data.table")
+  expect_s3_class(res$contrasts, "data.table")
+  expect_equal(res$contrasts$estimate, exp(res$estimates$estimate))
+  # Only the exposure term is reported -- never the intercept.
+  expect_false("(Intercept)" %in% res$contrasts$comparison)
+  expect_identical(res$contrasts$comparison, "x")
+})
+
+test_that("tidy.matchatr_fit returns a broom-style coefficient table", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+
+  td <- tidy(fit)
+  expect_s3_class(td, "data.table")
+  expect_named(
+    td,
+    c(
+      "term",
+      "estimate",
+      "std.error",
+      "statistic",
+      "p.value",
+      "conf.low",
+      "conf.high"
+    )
+  )
+  expect_true("(Intercept)" %in% td$term)
+
+  # exponentiate flips the estimate and bounds to the OR scale; std.error stays
+  # on the log-odds scale (broom convention).
+  tde <- tidy(fit, exponentiate = TRUE)
+  expect_equal(tde$estimate, exp(td$estimate))
+  expect_equal(tde$std.error, td$std.error)
+  expect_equal(tde$conf.low, exp(td$conf.low))
+
+  # conf.int = FALSE drops the bounds.
+  expect_false("conf.low" %in% names(tidy(fit, conf.int = FALSE)))
+
+  # robust changes the SE.
+  expect_false(isTRUE(all.equal(
+    tidy(fit, robust = TRUE)$std.error,
+    td$std.error
+  )))
+})
+
+test_that("tidy.matchatr_result tidies the contrasts", {
+  df <- make_cohort_cc()
+  res <- contrast(matcha(df, "case", "x", unmatched_cc()), type = "or")
+  td <- tidy(res)
+  expect_named(
+    td,
+    c("term", "estimate", "std.error", "type", "conf.low", "conf.high")
+  )
+  expect_identical(td$type, "or")
+  expect_equal(td$estimate, res$contrasts$estimate)
+})
+
+test_that("summary prints the OR table and returns it invisibly", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  expect_output(summary(fit), "Conditional odds ratios")
+  expect_output(summary(fit), "intercept is not an interpretable")
+  out <- withVisible(summary(fit))
+  expect_false(out$visible)
+  expect_s3_class(out$value, "data.table")
+})
+
+# --- rejections ---------------------------------------------------------
+
+test_that("RD / RR are rejected as unidentified from unmatched CC", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  expect_error(
+    contrast(fit, type = "difference"),
+    class = "matchatr_unidentified_estimand"
+  )
+  expect_error(
+    contrast(fit, type = "ratio"),
+    class = "matchatr_unidentified_estimand"
+  )
+})
+
+test_that("bootstrap CI is rejected for the conditional OR", {
+  df <- make_cohort_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc())
+  expect_error(
+    contrast(fit, type = "or", ci_method = "bootstrap"),
+    class = "matchatr_unsupported_variance"
+  )
+})
+
+test_that("logistic-contrast rejections read clearly", {
+  df <- make_2x2_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc())
+  expect_snapshot(contrast(fit, type = "difference"), error = TRUE)
+  expect_snapshot(contrast(fit, type = "ratio"), error = TRUE)
+  expect_snapshot(
+    contrast(fit, type = "or", ci_method = "bootstrap"),
+    error = TRUE
+  )
+})

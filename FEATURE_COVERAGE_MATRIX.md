@@ -3,10 +3,12 @@
 Single source of truth for what works, what's tested, and at what fidelity.
 **Every PR that changes a feature MUST update this file.**
 
-> **Status: design + API layer in place (PHASE_1).** The sampling-design objects,
-> the `matcha()` fit verb, the `(design, estimator)` dispatch table, and every
-> input-validation / rejection path are implemented and tested. No *estimator*
-> runs yet — the estimator cells below stay pending until PHASE_2+.
+> **Status: first estimator landed (PHASE_2 Chunk 1).** On top of the PHASE_1
+> design objects, `matcha()` fit verb, `(design, estimator)` dispatch, and
+> input-validation / rejection paths, the unmatched case-control **logistic
+> conditional OR** now runs end to end (`stats::glm` + the `contrast()` /
+> `tidy()` / `summary()` OR layer). The remaining estimator cells stay pending
+> until their phases land.
 
 ## Legend
 
@@ -34,7 +36,7 @@ do not apply, so this section reports structural coverage instead.
 |---|---|---|
 | `unmatched_cc` / `matched_cc` / `nested_cc` / `case_cohort` / `two_phase` / `counter_matched` build a valid `matchatr_design` | ✅ built + asserted | `test-cc_design.R` |
 | Constructor validation: q0 ∈ (0,1), ratio whole ≥ 1, strata non-empty character | ⛔ rejection tested | `test-cc_design.R`, `test-rejections.R` |
-| `matcha()` returns a `matchatr_fit` (model = `NULL`), data.table copy, no mutation | ✅ asserted | `test-matcha.R` |
+| `matcha()` returns a `matchatr_fit` (data.table copy, no mutation); runs the resolved engine (logistic populates `model`, unwired engines leave it `NULL`) | ✅ asserted | `test-matcha.R`, `test-unconditional.R` |
 | `(design, estimator)` → engine dispatch; CCW family valid on any design | ✅ routing pinned | `test-dispatch.R` |
 | Binary-outcome resolution (logical / 2-level factor / numeric 0/1) | ✅ + ⛔ | `test-matcha.R` |
 | Reject unknown / design-incompatible estimator (`matchatr_bad_estimator`) | ⛔ | `test-dispatch.R`, `test-rejections.R` |
@@ -51,7 +53,26 @@ No estimator engine runs yet; no numeric oracle applies (per PHASE_1 design).
 
 ## Unmatched case-control (PHASE_2)
 
-_Pending implementation._
+**Chunk 1 (logistic conditional OR) implemented.** `matcha(estimator = "logistic")`
+fits `stats::glm(family = binomial)`; `contrast(type = "or")` reports the exposure
+conditional odds ratio with a Wald interval, `tidy()` / `summary()` render the OR
+table, and RD / RR are rejected as unidentified without the prevalence q0.
+
+| Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|
+| binary | logistic | cond. OR | OR | model | ✅ truth DGP + `glm` + 2×2 Woolf | `test-unconditional.R` |
+| binary | logistic | cond. OR | OR | sandwich | ✅ vs `sandwich::sandwich` | `test-unconditional.R` |
+| two-level factor | logistic | cond. OR | OR | model | ✅ == 0/1 coding | `test-unconditional.R` |
+| continuous | logistic | cond. OR (per unit) | OR | model | ✅ vs `glm` | `test-unconditional.R` |
+| logistic | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-unconditional.R` |
+| logistic OR | — | OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-unconditional.R` |
+| categorical k>2 / ordinal trend | logistic | cond. OR / trend | OR | model | ❌ Chunk 2 | — |
+| continuous (spline / GAM) | logistic (GAM) | cond. OR | OR | model | ❌ Chunk 2 | — |
+| binary, stratified | mh | cond. OR | OR | RBG | ❌ Chunk 3 | — |
+
+S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
+`robust` SE), `tidy.matchatr_result`, `summary.matchatr_fit`,
+`print.matchatr_result` — all tested in `test-unconditional.R`.
 
 ## Matched case-control (PHASE_3)
 

@@ -7,7 +7,8 @@
 contrast(
   fit,
   type = c("difference", "ratio", "or"),
-  ci_method = c("sandwich", "bootstrap"),
+  ci_method = c("model", "sandwich", "bootstrap"),
+  conf_level = 0.95,
   ...
 )
 }
@@ -17,35 +18,54 @@ contrast(
 \item{type}{Character contrast scale: \code{"difference"} (default), \code{"ratio"},
 or \code{"or"} (odds ratio).}
 
-\item{ci_method}{Character confidence-interval method: \code{"sandwich"}
-(default) or \code{"bootstrap"}.}
+\item{ci_method}{Character variance source for the interval: \code{"model"}
+(information-matrix Wald, the default), \code{"sandwich"} (Huber-White robust),
+or \code{"bootstrap"}.}
+
+\item{conf_level}{Numeric confidence level for the interval, a single number
+strictly in (0, 1). Defaults to 0.95.}
 
 \item{...}{Reserved for estimator-specific contrast arguments.}
 }
 \value{
-A \code{matchatr_result} object carrying the estimates, the pairwise
-contrasts, and their variance-covariance matrix.
+A \code{matchatr_result} object carrying the estimates, the contrasts,
+and their variance-covariance matrix.
 }
 \description{
 The second step of the two-step API (mirroring \code{causatr::contrast()} and the
-etverse convention): given a \code{\link[=matcha]{matcha()}} fit, compute the requested causal
-contrast on the chosen scale and return a \code{matchatr_result}. \code{matcha()}
-resolves the sampling design and analysis; \code{contrast()} turns the fitted
+etverse convention): given a \code{\link[=matcha]{matcha()}} fit, compute the requested effect on
+the chosen scale and return a \code{matchatr_result}. \code{matcha()} resolves the
+sampling design and runs the analysis; \code{contrast()} turns the fitted
 estimates into a reported effect with uncertainty.
 }
 \details{
-Producing a contrast requires fitted estimates. A fit whose estimation engine
-has not run carries none — its \code{model} slot is \code{NULL} — so \code{contrast()}
-validates its arguments and then aborts with a classed
-\code{matchatr_not_estimated} error rather than returning an empty result.
+What is identifiable depends on the design. From an unmatched case-control
+sample only the conditional odds ratio (\code{type = "or"}) is identified: under
+separate case / control sampling the marginal outcome frequency is fixed, so
+a marginal risk difference (\code{type = "difference"}) or risk ratio
+(\code{type = "ratio"}) requires the source-population prevalence q0 and a
+case-control-weighted estimator. Requesting an unidentified estimand aborts
+with the classed \code{matchatr_unidentified_estimand} condition.
+
+A fit whose engine has no wired estimator carries no estimates — its \code{model}
+slot is \code{NULL} — so \code{contrast()} validates its arguments and then aborts with
+\code{matchatr_not_estimated}.
 }
 \examples{
-df <- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))
-fit <- matcha(df, outcome = "case", exposure = "x", design = unmatched_cc())
-# A design / dispatch fit carries no estimates yet, so contrast() errors:
-try(contrast(fit))
+set.seed(1)
+df <- data.frame(
+  case = rep(c(1, 0), each = 100),
+  x = rbinom(200, 1, 0.4),
+  age = rnorm(200, 50, 10)
+)
+fit <- matcha(df, outcome = "case", exposure = "x",
+              design = unmatched_cc(), confounders = ~ age)
+# The conditional odds ratio is identified:
+contrast(fit, type = "or")
+# The risk difference is not (no prevalence q0):
+try(contrast(fit, type = "difference"))
 
 }
 \seealso{
-\code{\link[=matcha]{matcha()}}
+\code{\link[=matcha]{matcha()}}, \code{\link[=tidy.matchatr_fit]{tidy.matchatr_fit()}}
 }

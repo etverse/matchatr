@@ -178,6 +178,30 @@ check_prevalence <- function(prevalence, call = rlang::caller_env()) {
   invisible(NULL)
 }
 
+#' Validate a confidence-level argument
+#'
+#' A confidence level must be a single probability strictly inside (0, 1): a
+#' value of 0 or 1 yields a degenerate (zero-width or infinite) interval.
+#'
+#' @param conf_level Value to check.
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` on an
+#'   out-of-range or malformed value.
+#' @family validators
+#' @noRd
+check_conf_level <- function(conf_level, call = rlang::caller_env()) {
+  ok <- rlang::is_scalar_double(conf_level) ||
+    rlang::is_scalar_integer(conf_level)
+  if (!ok || is.na(conf_level) || conf_level <= 0 || conf_level >= 1) {
+    rlang::abort(
+      "`conf_level` must be a single number strictly between 0 and 1.",
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Validate a matching-ratio argument
 #'
 #' The matching ratio m is the number of controls sampled per case (m:1).
