@@ -1,5 +1,14 @@
 # matchatr (development version)
 
+## 2026-06-02 — PHASE_1 validation hardening (critical review)
+
+Follow-up fixes from an adversarial review of the PHASE_1 foundation, closing
+input-validation gaps before the estimation layers depend on them.
+
+- `ratio = Inf` (or `-Inf`) now raises the classed `matchatr_bad_ratio` instead
+  of an unclassed base-R error. `Inf %% 1` is `NaN` and `NaN != 0` is `NA`, so
+  the old guard reached `if (NA)`; a finiteness check now runs before the modulo.
+
 ## 2026-06-02 — Design taxonomy, data model, and two-step API
 
 First implemented layer: the sampling-design objects and the `matcha()` fit

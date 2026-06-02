@@ -166,7 +166,10 @@ check_ratio <- function(ratio, call = rlang::caller_env()) {
   ok <- rlang::is_scalar_double(ratio) || rlang::is_scalar_integer(ratio)
   # `ratio %% 1 != 0` rejects fractional values like 1.5 (R stores literals
   # such as `2` as doubles, so an integer-class test alone is too strict).
-  if (!ok || is.na(ratio) || ratio < 1 || ratio %% 1 != 0) {
+  # The `!is.finite(ratio)` guard must come *before* the modulo: `Inf %% 1` is
+  # `NaN` and `NaN != 0` is `NA`, which would make the `if` raise an unclassed
+  # base error instead of the classed `matchatr_bad_ratio` (review Issue B1).
+  if (!ok || is.na(ratio) || !is.finite(ratio) || ratio < 1 || ratio %% 1 != 0) {
     rlang::abort(
       "`ratio` must be a single whole number >= 1 (controls per case).",
       class = c("matchatr_bad_ratio", "matchatr_error"),

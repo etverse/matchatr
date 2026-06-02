@@ -100,6 +100,14 @@ test_that("ratio must be a single whole number >= 1", {
   expect_no_error(matched_cc("set", ratio = 3L))
 })
 
+test_that("a non-finite ratio is rejected with the classed error, not a base crash", {
+  # Review 2026-06-02 Issue B1: `Inf %% 1` is NaN, so the old guard hit
+  # `if (NA)` and raised an unclassed base error. /tmp/matchatr_repro_ratio_inf.R
+  expect_error(matched_cc("set", ratio = Inf), class = "matchatr_bad_ratio")
+  expect_error(nested_cc("set", "t", ratio = -Inf), class = "matchatr_bad_ratio")
+  expect_error(matched_cc("set", ratio = NaN), class = "matchatr_bad_ratio")
+})
+
 test_that("strata must be a non-empty character vector", {
   expect_error(matched_cc(strata = 1), class = "matchatr_bad_strata")
   expect_error(matched_cc(strata = character(0)), class = "matchatr_bad_strata")
