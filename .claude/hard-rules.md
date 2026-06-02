@@ -89,6 +89,16 @@ Project-specific rules that override / extend the etverse-wide rules at
 - **q₀ (prevalence) is required for case-control weighting.** Either supplied as
   known, or estimated from the full cohort. Missing q₀ for a CCW estimator is a
   classed error (`matchatr_missing_prevalence`).
+- **The case indicator must be a genuine binary with both classes present.**
+  `resolve_binary_outcome()` accepts logical / two-level factor / numeric 0/1,
+  coerces to 0/1, then requires both a case and a control to occur — an
+  all-cases / all-controls / all-NA column is `matchatr_bad_outcome` for *every*
+  encoding (the check is uniform, not numeric-only).
+- **A column may hold only one analysis role.** The outcome and exposure must
+  each be distinct from the confounders and from the design-referenced columns
+  (strata/time/subcohort/phase) — `matchatr_bad_input`. BUT confounders and
+  design columns MAY overlap: frequency-matching on a variable while also
+  adjusting for residual confounding by it is valid — do NOT flag that overlap.
 
 ### Review-time heuristics
 
