@@ -104,7 +104,10 @@ test_that("a non-finite ratio is rejected with the classed error, not a base cra
   # Review 2026-06-02 Issue B1: `Inf %% 1` is NaN, so the old guard hit
   # `if (NA)` and raised an unclassed base error. /tmp/matchatr_repro_ratio_inf.R
   expect_error(matched_cc("set", ratio = Inf), class = "matchatr_bad_ratio")
-  expect_error(nested_cc("set", "t", ratio = -Inf), class = "matchatr_bad_ratio")
+  expect_error(
+    nested_cc("set", "t", ratio = -Inf),
+    class = "matchatr_bad_ratio"
+  )
   expect_error(matched_cc("set", ratio = NaN), class = "matchatr_bad_ratio")
 })
 

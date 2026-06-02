@@ -200,7 +200,9 @@ check_ratio <- function(ratio, call = rlang::caller_env()) {
   # The `!is.finite(ratio)` guard must come *before* the modulo: `Inf %% 1` is
   # `NaN` and `NaN != 0` is `NA`, which would make the `if` raise an unclassed
   # base error instead of the classed `matchatr_bad_ratio` (review Issue B1).
-  if (!ok || is.na(ratio) || !is.finite(ratio) || ratio < 1 || ratio %% 1 != 0) {
+  if (
+    !ok || is.na(ratio) || !is.finite(ratio) || ratio < 1 || ratio %% 1 != 0
+  ) {
     rlang::abort(
       "`ratio` must be a single whole number >= 1 (controls per case).",
       class = c("matchatr_bad_ratio", "matchatr_error"),

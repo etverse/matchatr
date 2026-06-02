@@ -127,7 +127,10 @@ test_that("degenerate single-class outcomes are rejected for every encoding", {
 
   # 2-level factor where only the "control" level actually occurs.
   allfac <- base
-  allfac$case <- factor(rep("control", nrow(base)), levels = c("control", "case"))
+  allfac$case <- factor(
+    rep("control", nrow(base)),
+    levels = c("control", "case")
+  )
   expect_error(
     matcha(allfac, "case", "x", unmatched_cc()),
     class = "matchatr_bad_outcome"
