@@ -148,14 +148,16 @@ make_stratified_cc <- function(n_strata = 5L, beta_x = 0.7, seed = 10L) {
 # exposure prevalence (the matched-away nuisance), then the case is selected
 # with probability proportional to exp(x * beta_x) (Breslow & Day 1980, the
 # 1:M conditional-likelihood construction). The CMLE of `x` therefore recovers
-# exp(beta_x) regardless of the set-level baseline. A binary nuisance covariate
-# `z` (non-matching confounder) is carried for adjustment tests. Sets whose
-# exposure is constant are uninformative and dropped by `clogit` (harmless).
+# exp(beta_x) regardless of the set-level baseline. A non-matching covariate `z`
+# carries its own known conditional log-OR `beta_z` (default 0 = pure noise) so
+# adjustment tests can check recovery, not just forwarding. Sets whose exposure
+# is constant are uninformative and dropped by `clogit` (harmless).
 # Columns: case (0/1), x (0/1 exposure), z (0/1 covariate), set (matched-set id).
 make_matched_cc <- function(
   n_sets = 250L,
   ratio = 3L,
   beta_x = log(2.5),
+  beta_z = 0,
   seed = 11L
 ) {
   withr::with_seed(seed, {
@@ -167,9 +169,10 @@ make_matched_cc <- function(
       x <- stats::rbinom(m, 1L, p_i)
       z <- stats::rbinom(m, 1L, 0.5)
       # Conditional-likelihood case selection: exactly one case per set, drawn
-      # with weight exp(x * beta_x). This is the matched-CC analogue of the
-      # risk-set sampling that makes clogit the design-faithful estimator.
-      w <- exp(x * beta_x)
+      # with weight exp(x * beta_x + z * beta_z). The matched-CC analogue of the
+      # risk-set sampling that makes clogit design-faithful; gives x (and z, when
+      # beta_z != 0) a known conditional log-OR.
+      w <- exp(x * beta_x + z * beta_z)
       case_idx <- sample.int(m, 1L, prob = w)
       case <- integer(m)
       case[case_idx] <- 1L
@@ -177,7 +180,7 @@ make_matched_cc <- function(
     })
     out <- do.call(rbind, parts)
     rownames(out) <- NULL
-    attr(out, "truth") <- c(beta_x = beta_x)
+    attr(out, "truth") <- c(beta_x = beta_x, beta_z = beta_z)
     out
   })
 }

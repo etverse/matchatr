@@ -51,10 +51,11 @@ test_that("the conditional ORs match the handbook induced-abortion values", {
   # spontaneous ~ 7.29 (the conditional logistic fit on the matched strata).
   expect_equal(td$estimate[td$term == "induced"], 4.0919, tolerance = 1e-3)
   expect_equal(td$estimate[td$term == "spontaneous"], 7.2854, tolerance = 1e-3)
-  # induced enters as a numeric trend, so OR(2+) = OR(1+)^2 ~ 16.7 (the handbook
-  # two-or-more value), pinning the per-unit log-linear interpretation.
-  b_ind <- log(td$estimate[td$term == "induced"])
-  expect_equal(exp(2 * b_ind), 16.74, tolerance = 0.05)
+  # `induced` enters as a numeric trend, so the predicted OR for two prior
+  # abortions is exp(2 * beta) = OR(1)^2 ~ 16.7 (the handbook two-or-more value).
+  # This is a model prediction, not a separate assertion -- exp(2 * log(OR)) is
+  # algebraically OR^2, so re-asserting it against 16.74 would only re-pin the
+  # per-unit OR already checked above; left documented rather than tested.
 })
 
 # --- truth-based: CMLE recovers the conditional log-OR -------------------
@@ -119,8 +120,11 @@ test_that("1:1 matching reproduces the closed-form McNemar OR and variance", {
   expect_equal(res$estimates$se^2, 1 / n10 + 1 / n01, tolerance = 1e-6)
 })
 
-test_that("adjusting for a non-matching covariate matches the clogit oracle", {
-  df <- make_matched_cc(n_sets = 300L)
+test_that("adjusting for a non-matching covariate recovers its known log-OR", {
+  # The covariate z now carries a genuine conditional log-OR; a pure-noise z
+  # (beta_z = 0) would let a mis-recovered confounder pass unnoticed.
+  df <- make_matched_cc(n_sets = 600L, beta_z = log(1.8))
+  truth <- attr(df, "truth")
   fit <- matcha(
     df,
     "case",
@@ -129,9 +133,20 @@ test_that("adjusting for a non-matching covariate matches the clogit oracle", {
     confounders = ~z,
     estimator = "clogit"
   )
+  # Pass-through against the hand-fit clogit (the wrapper builds the same model).
   oracle <- survival::clogit(case ~ x + z + strata(set), data = df)
   expect_equal(stats::coef(fit$model), stats::coef(oracle))
   expect_equal(stats::vcov(fit$model), stats::vcov(oracle))
+  # Truth-based: both the exposure and the adjusted covariate recover their known
+  # conditional log-ORs, each within 3.5 of its own reported SE (an exposure /
+  # confounder swap or a mis-recovered adjustment would fail this).
+  td <- tidy(fit) # log scale, with std.error per term
+  for (term in c("x", "z")) {
+    est <- td$estimate[td$term == term]
+    se <- td$std.error[td$term == term]
+    truth_term <- if (term == "x") truth["beta_x"] else truth["beta_z"]
+    expect_lt(abs(est - unname(truth_term)), 3.5 * se)
+  }
 })
 
 # --- factor exposure (per-level OR vs the reference) --------------------
