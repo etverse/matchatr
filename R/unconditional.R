@@ -346,7 +346,7 @@ parametric_positions <- function(model) {
 #' Locate the coefficient(s) belonging to the exposure term
 #'
 #' Maps the exposure to its coefficient position(s) via the parametric term
-#' assignment ([term_assign()]), i.e. by term *position*, so it is collision-free
+#' assignment (`term_assign()`), i.e. by term *position*, so it is collision-free
 #' even when `glm` produces non-unique coefficient names from `factor x level`
 #' concatenation (e.g. exposure `ses`+`low` shares the name `"seslow"` with a
 #' confounder `se`+`slow`). The intercept is never returned, and the
