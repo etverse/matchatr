@@ -1,8 +1,10 @@
 # The matched case-control conditional logistic engine: matcha() fits
 # survival::clogit and contrast(type = "or") / tidy() report the conditional OR.
-# Oracles: survival::clogit itself (exact pass-through), the handbook §4.4
-# induced-abortion ORs on `infert`, and a matched-set DGP with a known
-# conditional log-OR built from the conditional likelihood (Breslow & Day 1980).
+# Oracles: survival::clogit (exact pass-through), the 1:1 McNemar closed form
+# (OR = n10/n01, Var(log OR) = 1/n10 + 1/n01 -- independent of clogit), and a
+# matched-set DGP with a known conditional log-OR built from the conditional
+# likelihood (Breslow & Day 1980). The infert ORs are a regression pin against
+# the canonical survival::clogit example, not an external oracle.
 
 # --- exact pass-through oracle on infert ---------------------------------
 
@@ -37,7 +39,7 @@ test_that("the clogit engine reproduces survival::clogit exactly on infert", {
   )
 })
 
-test_that("the conditional ORs match the handbook induced-abortion values", {
+test_that("the conditional ORs match the canonical infert clogit example", {
   fit <- matcha(
     infert,
     "case",
@@ -47,8 +49,11 @@ test_that("the conditional ORs match the handbook induced-abortion values", {
     estimator = "clogit"
   )
   td <- tidy(fit, exponentiate = TRUE)
-  # Handbook §4.4 CMLE matched-set ORs: induced ~ 4.09 per prior abortion,
-  # spontaneous ~ 7.29 (the conditional logistic fit on the matched strata).
+  # Regression pin against the canonical infert conditional-logistic fit (the
+  # `survival::clogit` documented example, `?clogit`): induced ~ 4.09 per prior
+  # induced abortion, spontaneous ~ 7.29. These are clogit's own output, so this
+  # guards against a gross wrapper break rather than serving as an external
+  # oracle (the independent statistical checks are the McNemar and truth tests).
   expect_equal(td$estimate[td$term == "induced"], 4.0919, tolerance = 1e-3)
   expect_equal(td$estimate[td$term == "spontaneous"], 7.2854, tolerance = 1e-3)
   # `induced` enters as a numeric trend, so the predicted OR for two prior
@@ -79,7 +84,10 @@ test_that("the conditional OR recovers the matched-set log-OR (truth-based)", {
   # only by luck of the seed. A 3.5-SE band is robust to the seed yet still
   # rejects any bias above ~0.45 (a sign flip sits ~14 SEs away).
   se_log <- res$estimates$se
-  expect_lt(abs(log(res$contrasts$estimate) - unname(truth["beta_x"])), 3.5 * se_log)
+  expect_lt(
+    abs(log(res$contrasts$estimate) - unname(truth["beta_x"])),
+    3.5 * se_log
+  )
 })
 
 # --- 1:1 matching: closed-form McNemar OR AND variance (independent oracle) ---
@@ -197,6 +205,94 @@ test_that("multi-column strata cross into a single conditioning factor", {
   expect_equal(stats::coef(fit$model), stats::coef(oracle))
 })
 
+# --- continuous exposure (per-unit OR), truth-based ---------------------
+
+test_that("a continuous exposure recovers the per-unit log-OR (truth-based)", {
+  # Matched sets with a CONTINUOUS exposure; the case is drawn from the
+  # conditional likelihood (weight exp(x * beta)), so the per-unit CMLE recovers
+  # beta. The set-level mean is the matched-away nuisance.
+  beta <- 0.7
+  df <- withr::with_seed(21L, {
+    parts <- lapply(seq_len(500L), function(i) {
+      x <- stats::rnorm(4L, stats::rnorm(1L, 0, 1), 1)
+      case_idx <- sample.int(4L, 1L, prob = exp(x * beta))
+      case <- integer(4L)
+      case[case_idx] <- 1L
+      data.frame(case = case, x = x, set = i)
+    })
+    do.call(rbind, parts)
+  })
+  fit <- matcha(
+    df,
+    "case",
+    "x",
+    matched_cc(strata = "set"),
+    estimator = "clogit"
+  )
+  res <- contrast(fit, type = "or")
+  expect_lt(abs(log(res$contrasts$estimate) - beta), 3.5 * res$estimates$se)
+})
+
+# --- variable matching ratios in one sample -----------------------------
+
+test_that("mixed 1:1 / 1:2 / 1:3 matching ratios recover the log-OR", {
+  beta <- log(2.5)
+  ratios <- rep(c(1L, 2L, 3L), each = 200L)
+  df <- withr::with_seed(31L, {
+    parts <- Map(
+      function(i, r) {
+        m <- r + 1L
+        x <- stats::rbinom(m, 1L, stats::plogis(stats::rnorm(1L, 0, 1)))
+        case_idx <- sample.int(m, 1L, prob = exp(x * beta))
+        case <- integer(m)
+        case[case_idx] <- 1L
+        data.frame(case = case, x = x, set = i)
+      },
+      seq_along(ratios),
+      ratios
+    )
+    do.call(rbind, parts)
+  })
+  fit <- matcha(
+    df,
+    "case",
+    "x",
+    matched_cc(strata = "set"),
+    estimator = "clogit"
+  )
+  res <- contrast(fit, type = "or")
+  expect_lt(abs(log(res$contrasts$estimate) - beta), 3.5 * res$estimates$se)
+})
+
+# --- a concordant-on-exposure set contributes nothing -------------------
+
+test_that("appending a set concordant on exposure leaves the OR unchanged", {
+  df <- make_matched_cc(n_sets = 200L)
+  or1 <- contrast(
+    matcha(df, "case", "x", matched_cc(strata = "set"), estimator = "clogit"),
+    type = "or"
+  )$contrasts$estimate
+  # A set whose members all share the same exposure has no within-set variation,
+  # so its conditional-likelihood factor is constant in beta and adds nothing.
+  concordant <- data.frame(
+    case = c(1L, 0L, 0L, 0L),
+    x = c(1L, 1L, 1L, 1L),
+    z = 0L,
+    set = max(df$set) + 1L
+  )
+  or2 <- contrast(
+    matcha(
+      rbind(df, concordant),
+      "case",
+      "x",
+      matched_cc(strata = "set"),
+      estimator = "clogit"
+    ),
+    type = "or"
+  )$contrasts$estimate
+  expect_equal(or1, or2, tolerance = 1e-6)
+})
+
 # --- result structure / labels ------------------------------------------
 
 test_that("the clogit result is labelled and sized correctly", {
@@ -298,7 +394,7 @@ test_that("an exposure with no within-set variation is not estimable", {
   )
 })
 
-test_that("a missing value triggers the dropped-rows warning", {
+test_that("a missing value triggers the dropped-rows warning with the count", {
   df <- infert
   df$induced[1:4] <- NA
   expect_warning(
@@ -309,8 +405,41 @@ test_that("a missing value triggers the dropped-rows warning", {
       matched_cc(strata = "stratum"),
       estimator = "clogit"
     ),
-    class = "matchatr_dropped_rows"
+    class = "matchatr_dropped_rows",
+    regexp = "4 row"
   )
+})
+
+test_that("a dropped uninformative stratum does NOT inflate the dropped count", {
+  # clogit drops a stratum with no case or no control from the likelihood but
+  # still counts its rows in model$n, so n_dropped = nrow - model$n stays 0 and
+  # NO spurious dropped-rows warning fires (the warning is for missing values
+  # only). Pin that interaction, which is easy to break by reading the wrong n.
+  bad <- make_uninformative_cc()
+  fired <- FALSE
+  withCallingHandlers(
+    matcha(
+      bad,
+      "case",
+      "x",
+      matched_cc(strata = "set"),
+      estimator = "clogit"
+    ),
+    matchatr_dropped_rows = function(w) {
+      fired <<- TRUE
+      invokeRestart("muffleWarning")
+    },
+    matchatr_uninformative_stratum = function(w) invokeRestart("muffleWarning")
+  )
+  expect_false(fired)
+  fit <- suppressWarnings(matcha(
+    bad,
+    "case",
+    "x",
+    matched_cc(strata = "set"),
+    estimator = "clogit"
+  ))
+  expect_identical(fit$model$n, nrow(bad))
 })
 
 test_that("clogit rejection messages read clearly", {

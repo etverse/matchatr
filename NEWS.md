@@ -23,10 +23,12 @@ adjustment ORs are reported; the matching variables are controlled implicitly.
   (`matchatr_unsupported_variance`); cluster-robust variance for reused controls
   is deferred to the risk-set designs. An exposure with no within-stratum
   variation aborts with `matchatr_unestimable_exposure`.
-- Validated against `survival::clogit` (exact pass-through of coefficients and
-  variance), the handbook §4.4 induced-abortion ORs on `infert`
-  (induced ≈ 4.09, spontaneous ≈ 7.29, OR(2+) ≈ 16.7), and a matched-set DGP
-  built from the conditional likelihood with a known log-OR.
+- Validated against an independent closed-form oracle for 1:1 matching (McNemar:
+  OR = n10/n01 and Var(log OR) = 1/n10 + 1/n01, exact and computed without
+  clogit), a matched-set DGP built from the conditional likelihood with a known
+  log-OR (CMLE recovers β for binary, continuous, mixed-ratio, and adjusted
+  cases), `survival::clogit` pass-through, and a regression pin against the
+  canonical `infert` clogit example (induced ≈ 4.09, spontaneous ≈ 7.29).
 - The shared `conditional_or_result()` assembly (exposure coefficient by term
   position, Wald interval on the log scale, exponentiated) now backs both the
   unmatched logistic and the matched conditional logistic engines.

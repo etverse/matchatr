@@ -98,9 +98,12 @@ variable-ratio handling (Chunk 3) remain pending.
 
 | Matching | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
-| 1:1 / M:1, binary x | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` (infert) + truth DGP | `test-clogit.R` |
-| infert induced/spontaneous | clogit | cond. OR | OR | partial-lik info | ✅ handbook §4.4 (OR ≈ 4.09, 7.29; OR(2+) ≈ 16.7) | `test-clogit.R` |
-| M:1 + non-matching covariate | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` | `test-clogit.R` |
+| 1:1, binary x | clogit | cond. OR | OR | partial-lik info | ✅ closed-form McNemar: OR = n10/n01 **and** Var(log OR) = 1/n10+1/n01 (independent of clogit) | `test-clogit.R` |
+| M:1, binary x | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP (CMLE recovers β within 3.5 SE) + `survival::clogit` pass-through | `test-clogit.R` |
+| variable ratio (mixed 1:1/1:2/1:3) | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP | `test-clogit.R` |
+| continuous exposure (per unit) | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP | `test-clogit.R` |
+| infert induced/spontaneous | clogit | cond. OR | OR | partial-lik info | 🟡 regression pin vs canonical `survival::clogit` example (OR ≈ 4.09, 7.29) | `test-clogit.R` |
+| M:1 + non-matching covariate | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP (recovers adjusted β) + `survival::clogit` pass-through | `test-clogit.R` |
 | factor exposure (per-level) | clogit | cond. OR per level | OR | partial-lik info | ✅ vs `survival::clogit` (+ reference) | `test-clogit.R` |
 | multi-column strata (frequency matching) | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` (crossed strata) | `test-clogit.R` |
 | clogit | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-clogit.R` |
