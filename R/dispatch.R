@@ -154,6 +154,7 @@ run_engine <- function(fit) {
   switch(
     fit$engine,
     glm_logistic = fit_logistic_cc(fit),
+    mantel_haenszel = fit_mh(fit),
     NULL
   )
 }

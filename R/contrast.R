@@ -108,6 +108,13 @@ contrast <- function(
       conf_level = conf_level,
       call = call
     ),
+    mantel_haenszel = contrast_mh(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
     # Defensive: a fitted model whose engine has no contrast assembly wired.
     rlang::abort(
       paste0(

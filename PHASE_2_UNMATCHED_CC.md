@@ -1,12 +1,13 @@
 # Phase 2 — Unmatched Case-Control: Logistic OR and Mantel-Haenszel
 
-> **Status: Chunks 1–2 IMPLEMENTED; Chunk 3 DESIGN.**
+> **Status: COMPLETE (Chunks 1–3 implemented).**
 > Book chapters: 3 (Basic Concepts and Analysis).
 > Chunk 1 (logistic conditional OR + OR contrast + unidentified-estimand
-> rejection) and Chunk 2 (categorical / ordinal / GAM-confounder exposures via a
-> pluggable `model_fn` + `esoph` book-value oracle) shipped in
-> `R/unconditional.R` / `R/tidy.R` / `R/summary.R`, tested in
-> `test-unconditional.R`. Chunk 3 (Mantel-Haenszel + RBG variance) remains.
+> rejection), Chunk 2 (categorical / ordinal / GAM-confounder exposures via a
+> pluggable `model_fn` + `esoph` book-value oracle), and Chunk 3
+> (Mantel-Haenszel + Robins-Breslow-Greenland variance) are implemented in
+> `R/unconditional.R` / `R/coef_extract.R` / `R/mantel_haenszel.R` / `R/tidy.R`
+> / `R/summary.R`, tested in `test-unconditional.R` / `test-mantel_haenszel.R`.
 
 ## Scope
 
@@ -60,7 +61,7 @@ matcha(data, outcome = "case", exposure = "x",
 | categorical k>2 | logistic | cond. OR | OR | model/sandwich | ✅ done (Chunk 2) |
 | ordinal (numeric score) | logistic | cond. OR/trend | OR | model | ✅ done (Chunk 2) |
 | smooth confounder (GAM via `model_fn`) | logistic (GAM) | cond. OR | OR | model/sandwich | ✅ done (Chunk 2) |
-| binary, stratified | mh | cond. OR | OR | RBG | needs-test (Chunk 3) |
+| binary, stratified | mh | summary OR | OR | RBG | ✅ done (Chunk 3) |
 | logistic | — | RD/RR | — | — | ⛔ `matchatr_unidentified_estimand` (done) |
 | ordered-factor exposure | logistic | — | — | — | ⛔ `matchatr_bad_input` (done, Chunk 2) |
 | smooth-of-exposure (spline OR-curve) | logistic (GAM) | OR(value vs value) | — | — | deferred (value-vs-value contrast) |
@@ -105,7 +106,13 @@ here — this is the classical layer.
    alcohol ORs reproduce the monotone dose-response (matches `glm`). Smooth-of-
    exposure (spline OR-curve) deferred. Framingham / oral-contraceptive book
    values not added (no bundled dataset; `esoph` is the in-base Ch3 oracle).
-3. Mantel-Haenszel closed form + RBG variance + oracle.
+3. ✅ Mantel-Haenszel closed form + RBG variance + oracle. Implemented:
+   `unmatched_cc(strata = )` carries the stratifying variable(s); `fit_mh()`
+   computes OR_MH over per-stratum 2×2 tables with the Robins-Breslow-Greenland
+   log-OR variance; `contrast(type = "or")` reports it. Binary exposure required;
+   RD/RR and sandwich/bootstrap declined; zero-margin rejected. Oracle:
+   `stats::mantelhaen.test(correct = FALSE)` (OR and CI match exactly, since it
+   uses the same RBG variance) + the closed-form 2×2 OR for the crude case.
 
 ## Deferred items
 

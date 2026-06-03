@@ -403,6 +403,61 @@ resolve_binary_outcome <- function(data, outcome, call = rlang::caller_env()) {
   y01
 }
 
+#' Coerce a binary exposure to a 0/1 integer vector
+#'
+#' The Mantel-Haenszel summary odds ratio is defined for a binary exposure
+#' (a 2x2 table per stratum). This resolver accepts the same three encodings as
+#' `resolve_binary_outcome()` — logical, a two-level factor (second level =
+#' exposed), or numeric 0/1 — and returns the 0/1 integer vector. A multi-level
+#' or continuous exposure is rejected, pointing to the logistic estimator (which
+#' handles categorical / continuous exposures). Degenerate (single-value)
+#' exposures are left to the estimator's zero-margin guard.
+#'
+#' @param data A data.frame or data.table.
+#' @param exposure Character scalar naming the exposure column.
+#' @param call Caller environment surfaced in the error.
+#' @returns An integer vector of 0/1 (NA preserved); aborts with class
+#'   `matchatr_bad_input` on a non-binary exposure.
+#' @family validators
+#' @noRd
+resolve_binary_exposure <- function(
+  data,
+  exposure,
+  call = rlang::caller_env()
+) {
+  x <- data[[exposure]]
+  bad_exposure <- function() {
+    rlang::abort(
+      c(
+        paste0(
+          "The Mantel-Haenszel estimator requires a binary exposure; `",
+          exposure,
+          "` is not binary (logical, two-level factor, or numeric 0/1)."
+        ),
+        i = "For a categorical (k>2) or continuous exposure use `estimator = \"logistic\"`."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  if (is.logical(x)) {
+    as.integer(x)
+  } else if (is.factor(x)) {
+    if (nlevels(x) != 2L) {
+      bad_exposure()
+    }
+    as.integer(x) - 1L
+  } else if (is.numeric(x)) {
+    vals <- unique(stats::na.omit(x))
+    if (!all(vals %in% c(0, 1))) {
+      bad_exposure()
+    }
+    as.integer(x)
+  } else {
+    bad_exposure()
+  }
+}
+
 #' Warn when a conditional-likelihood stratum is uninformative
 #'
 #' A matched set (matched CC) or sampled risk set (NCC) contributes nothing to

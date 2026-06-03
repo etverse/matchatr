@@ -13,12 +13,13 @@ on person-period data) wherever possible.
 > **Status: first estimator landed (PHASE_2 Chunk 1).** The PHASE_1 foundation
 > (design taxonomy, unified `matchatr_design` S3 object + six constructors, the
 > `matcha()` fit verb, the `(design, estimator)` dispatch + validation layer) is
-> in place, and the unmatched case-control **logistic conditional OR** now runs
-> end to end for every exposure type: `matcha()` fits `stats::glm` (or a pluggable
-> `model_fn` such as `mgcv::gam`), `contrast(type = "or")` reports the OR(s)
-> (binary / continuous / categorical / ordinal-trend), and RD/RR are rejected as
-> unidentified without q0. Only PHASE_2 Chunk 3 (Mantel-Haenszel) and PHASE_3+
-> remain `Status: DESIGN`.
+> in place, and **PHASE_2 (unmatched case-control) is complete**: `matcha()` fits
+> the conditional-OR logistic via `stats::glm` (or a pluggable `model_fn` such as
+> `mgcv::gam`) for binary / continuous / categorical / ordinal-trend exposures,
+> and `estimator = "mh"` computes the Mantel-Haenszel stratified OR with
+> Robins-Breslow-Greenland variance; `contrast(type = "or")` reports the OR(s),
+> and RD/RR are rejected as unidentified without q0. PHASE_3+ remain
+> `Status: DESIGN`.
 
 ## Guide files
 
@@ -48,11 +49,15 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   Still to come: `weights_cc.R` (case-control / q₀ weights), `weights_design.R`
   (Samuelsen / Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC
   control sampling + counter-matching).
-- **Classical estimators:** `unconditional.R` (PHASE_2 Chunk 1 implemented —
-  `fit_logistic_cc()` wraps `stats::glm`, plus the conditional-OR contrast and
-  the `matchatr_unidentified_estimand` rejection; Mantel-Haenszel is Chunk 3),
-  `clogit.R` (matched CC / NCC conditional likelihood), `polytomous.R` (multiple
-  groups), `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
+- **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
+  wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and
+  the `matchatr_unidentified_estimand` rejection), `mantel_haenszel.R` (PHASE_2
+  Chunk 3 — `fit_mh()` closed-form stratified OR + Robins-Breslow-Greenland
+  variance), `coef_extract.R` (fitter-agnostic coefficient / variance extraction
+  shared by both — `term_assign()`, `estimable_vcov()`, `exposure_coef_index()`,
+  `parametric_positions()`), `clogit.R` (matched CC / NCC conditional
+  likelihood), `polytomous.R` (multiple groups), `weighted_cox.R` (NCC IPW Cox),
+  `case_cohort.R` (`cch` wrappers).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).

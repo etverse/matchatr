@@ -53,10 +53,11 @@ No estimator engine runs yet; no numeric oracle applies (per PHASE_1 design).
 
 ## Unmatched case-control (PHASE_2)
 
-**Chunks 1–2 (logistic conditional OR, all exposure types) implemented.**
+**Chunks 1–3 implemented — the unmatched case-control layer is complete.**
 `matcha(estimator = "logistic")` fits `stats::glm(family = binomial)` (or a
-pluggable `model_fn`, e.g. `mgcv::gam`); `contrast(type = "or")` reports the
-exposure conditional odds ratio(s) with a Wald interval, `tidy()` / `summary()`
+pluggable `model_fn`, e.g. `mgcv::gam`) and `estimator = "mh"` computes the
+Mantel-Haenszel stratified OR; `contrast(type = "or")` reports the exposure
+conditional / summary odds ratio(s) with a Wald interval, `tidy()` / `summary()`
 render the OR table, and RD / RR are rejected as unidentified without q0.
 
 | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
@@ -72,7 +73,10 @@ render the OR table, and RD / RR are rejected as unidentified without q0.
 | logistic OR | — | OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-unconditional.R` |
 | constant / collinear exposure | logistic | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-unconditional.R` |
 | ordered-factor exposure | logistic | — | — | — | ⛔ `matchatr_bad_input` (polynomial contrasts) | `test-unconditional.R` |
-| binary, stratified | mh | cond. OR | OR | RBG | ❌ Chunk 3 | — |
+| binary, stratified | mh | summary OR | OR | RBG | ✅ vs `stats::mantelhaen.test` (OR + CI) | `test-mantel_haenszel.R` |
+| binary, crude (no strata) | mh | OR | OR | RBG | ✅ vs closed-form 2×2 | `test-mantel_haenszel.R` |
+| non-binary exposure | mh | — | — | — | ⛔ `matchatr_bad_input` | `test-mantel_haenszel.R` |
+| zero-margin / sandwich·bootstrap CI | mh | — | — | — | ⛔ `matchatr_unestimable_exposure` / `matchatr_unsupported_variance` | `test-mantel_haenszel.R` |
 
 S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
 `robust` SE), `tidy.matchatr_result`, `summary.matchatr_fit`,

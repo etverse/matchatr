@@ -114,6 +114,30 @@ expand_esoph <- function() {
   rows
 }
 
+# A stratified case-control sample with a binary exposure, for the
+# Mantel-Haenszel oracle (cross-checked against stats::mantelhaen.test). Each
+# stratum k has its own baseline log-odds; `x` carries a common log-OR of 0.7.
+# Columns: case (0/1), x (0/1), agegrp (K-level factor), sex (2-level factor).
+make_stratified_cc <- function(n_strata = 5L, beta_x = 0.7, seed = 10L) {
+  withr::with_seed(seed, {
+    do.call(
+      rbind,
+      lapply(seq_len(n_strata), function(k) {
+        n <- sample(80:160, 1)
+        x <- rbinom(n, 1L, 0.4)
+        case <- rbinom(n, 1L, plogis(-1 + beta_x * x + 0.3 * (k - 3)))
+        data.frame(
+          case = case,
+          x = x,
+          agegrp = factor(k, levels = seq_len(n_strata)),
+          sex = factor(sample(c("M", "F"), n, replace = TRUE)),
+          stringsAsFactors = FALSE
+        )
+      })
+    )
+  })
+}
+
 # A deterministic 2x2 case-control table as a data frame, for the closed-form
 # odds-ratio / Woolf-variance oracle. With these cell counts the OR is exactly
 # (n11 * n00) / (n10 * n01) = (60 * 70) / (40 * 30) = 3.5, and a saturated

@@ -1,5 +1,30 @@
 # matchatr (development version)
 
+## 2026-06-03 — Mantel-Haenszel stratified odds ratio (PHASE_2 Chunk 3)
+
+Completes the unmatched case-control layer with the closed-form Mantel-Haenszel
+estimator. `unmatched_cc()` gains a `strata` argument (the stratifying
+variable(s); several are crossed into one factor, and none gives the crude
+single-table OR). `matcha(estimator = "mh")` computes the summary odds ratio
+over the per-stratum 2×2 tables, and `contrast(type = "or")` reports it with a
+**Robins-Breslow-Greenland** (1986) Wald confidence interval — valid in both the
+sparse-data and large-strata limits.
+
+- The exposure must be binary (a 2×2 table per stratum); a categorical (k>2) or
+  continuous exposure is rejected (`matchatr_bad_input`) with a pointer to
+  `estimator = "logistic"`.
+- RD / RR are rejected as unidentified (shared with the logistic engine). The MH
+  variance is the closed-form RBG estimator, so `ci_method = "sandwich"` /
+  `"bootstrap"` are declined (`matchatr_unsupported_variance`); a zero
+  exposure-outcome margin aborts with `matchatr_unestimable_exposure`.
+- Validated against `stats::mantelhaen.test(correct = FALSE)`, whose odds-ratio
+  estimate **and** confidence interval use the same RBG variance — the matchatr
+  OR and CI match it exactly — plus the closed-form 2×2 odds ratio for the crude
+  case.
+- The fitter-agnostic coefficient-extraction helpers (`term_assign`,
+  `estimable_vcov`, `exposure_coef_index`, `parametric_positions`) moved to
+  `R/coef_extract.R`, shared by the logistic and Mantel-Haenszel engines.
+
 ## 2026-06-03 — PHASE_2 Chunk 2 critical-review fixes
 
 Follow-up fixes from an adversarial review of the categorical/GAM exposure work.

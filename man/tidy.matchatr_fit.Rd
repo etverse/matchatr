@@ -45,7 +45,10 @@ the coefficient (log-odds) scale; with \code{exponentiate = TRUE} the estimate a
 the confidence bounds are exponentiated while \code{std.error} stays on the
 log-odds scale (the broom convention). The intercept row is included but is
 not an interpretable baseline risk: under separate case / control sampling it
-is offset by the log sampling-fraction ratio (Prentice & Pyke, 1979).
+is offset by the log sampling-fraction ratio (Prentice & Pyke, 1979). Only the
+parametric coefficients are reported: when the fit is an \code{mgcv::gam}, the
+smooth-basis terms (\verb{s(age).1}, ...) are penalized basis weights, not odds
+ratios, and are excluded.
 }
 \examples{
 set.seed(1)
