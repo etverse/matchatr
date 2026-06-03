@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>print.matchatr_design – matchatr</title>
+<title>tidy.matchatr_result – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_design.html">print.matchatr_design</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/tidy.matchatr_result.html">tidy.matchatr_result</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -207,7 +207,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
   </div>
 </li>
@@ -237,7 +237,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/tidy.matchatr_result.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/tidy.matchatr_result.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">tidy.matchatr_result</span></a>
   </div>
 </li>
@@ -283,7 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#print-a-matchatr-design" id="toc-print-a-matchatr-design" class="nav-link active" data-scroll-target="#print-a-matchatr-design">Print a matchatr design</a>
+  <li><a href="#tidy-a-matchatr-contrast-result" id="toc-tidy-a-matchatr-contrast-result" class="nav-link active" data-scroll-target="#tidy-a-matchatr-contrast-result">Tidy a matchatr contrast result</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
@@ -296,21 +296,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_design.html">print.matchatr_design</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/tidy.matchatr_result.html">tidy.matchatr_result</a></li></ol></nav></header>
 
 
 
 
-<section id="print-a-matchatr-design" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr-design">Print a matchatr design</h2>
+<section id="tidy-a-matchatr-contrast-result" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="tidy-a-matchatr-contrast-result">Tidy a matchatr contrast result</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Displays a compact summary of a matchatr_design object: the sampling structure, the columns it references, the matching ratio and prevalence when present, and the weighting scheme it will use.</p>
+<p>Returns the contrasts carried by a <code>matchatr_result</code> as a tidy <code>data.table</code>, one row per reported contrast, with the contrast scale recorded in a <code>type</code> column.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">## S3 method for class 'matchatr_design'
-print(x, ...)
+<pre><code class="language-R">## S3 method for class 'matchatr_result'
+tidy(x, ...)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -321,7 +321,7 @@ print(x, ...)
 <code id="x">x</code>
 </td>
 <td>
-A <code>matchatr_design</code> object.
+A <code>matchatr_result</code> object returned by <code>contrast()</code>.
 </td>
 </tr>
 <tr>
@@ -329,38 +329,33 @@ A <code>matchatr_design</code> object.
 <code id="...">…</code>
 </td>
 <td>
-Unused; present for S3 consistency.
+Unused; present for generic consistency.
 </td>
 </tr>
 </tbody></table>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>Invisibly returns <code>x</code>.</p>
+<p>A <code>data.table</code> with columns <code>term</code>, <code>estimate</code>, <code>std.error</code>, <code>type</code>, <code>conf.low</code>, <code>conf.high</code>.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>unmatched_cc()</code>, <code>matched_cc()</code>, <code>nested_cc()</code>, <code>case_cohort()</code></p>
+<p><code>contrast()</code></p>
+<p>Other tidiers: <code>tidy.matchatr_fit()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">ratio =</span> <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>), <span class="at">each =</span> <span class="dv">100</span>), <span class="at">x =</span> <span class="fu">rbinom</span>(<span class="dv">200</span>, <span class="dv">1</span>, <span class="fl">0.4</span>))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(df, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>, <span class="at">design =</span> <span class="fu">unmatched_cc</span>())</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Matched case-control
- Strata:     set
- Ratio:      2:1
- Weights:    none</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> <span class="fl">0.02</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Unmatched case-control
- Prevalence: 0.02 (q0)
- Weights:    case-control (q0)</code></pre>
+<pre><code>     term estimate std.error   type  conf.low conf.high
+   &lt;char&gt;    &lt;num&gt;     &lt;num&gt; &lt;char&gt;     &lt;num&gt;     &lt;num&gt;
+1:      x 1.131579  0.324955     or 0.6445338  1.986662</code></pre>
 </div>
 </div>
 

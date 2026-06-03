@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>print.matchatr_design – matchatr</title>
+<title>summary.matchatr_fit – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_design.html">print.matchatr_design</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/summary.matchatr_fit.html">summary.matchatr_fit</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -207,7 +207,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
   </div>
 </li>
@@ -225,7 +225,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/summary.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/summary.matchatr_fit.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">summary.matchatr_fit</span></a>
   </div>
 </li>
@@ -283,11 +283,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#print-a-matchatr-design" id="toc-print-a-matchatr-design" class="nav-link active" data-scroll-target="#print-a-matchatr-design">Print a matchatr design</a>
+  <li><a href="#summarise-a-matchatr-fit" id="toc-summarise-a-matchatr-fit" class="nav-link active" data-scroll-target="#summarise-a-matchatr-fit">Summarise a matchatr fit</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
@@ -296,21 +297,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_design.html">print.matchatr_design</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/summary.matchatr_fit.html">summary.matchatr_fit</a></li></ol></nav></header>
 
 
 
 
-<section id="print-a-matchatr-design" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr-design">Print a matchatr design</h2>
+<section id="summarise-a-matchatr-fit" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="summarise-a-matchatr-fit">Summarise a matchatr fit</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Displays a compact summary of a matchatr_design object: the sampling structure, the columns it references, the matching ratio and prevalence when present, and the weighting scheme it will use.</p>
+<p>Prints the odds-ratio table of a fitted unmatched case-control logistic regression — one row per model term, on the odds-ratio scale with a Wald confidence interval — under a short header naming the design, estimator, and variance source.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">## S3 method for class 'matchatr_design'
-print(x, ...)
+<pre><code class="language-R">## S3 method for class 'matchatr_fit'
+summary(object, conf.level = 0.95, robust = FALSE, ...)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -318,10 +319,26 @@ print(x, ...)
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
+<code id="object">object</code>
 </td>
 <td>
-A <code>matchatr_design</code> object.
+A <code>matchatr_fit</code> whose <code>model</code> is a fitted binomial <code>glm</code>.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="conf.level">conf.level</code>
+</td>
+<td>
+Numeric confidence level in (0, 1). Default 0.95.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="robust">robust</code>
+</td>
+<td>
+Logical; use the Huber-White sandwich standard error. Default <code>FALSE</code>.
 </td>
 </tr>
 <tr>
@@ -334,33 +351,46 @@ Unused; present for S3 consistency.
 </tr>
 </tbody></table>
 </section>
+<section id="details" class="level3">
+<h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>The intercept is shown but flagged as non-interpretable: it is not a baseline risk in a case-control sample. Standard errors are model-based by default, or Huber-White robust when <code>robust = TRUE</code>.</p>
+</section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>Invisibly returns <code>x</code>.</p>
+<p>Invisibly, the odds-ratio <code>data.table</code> (as returned by <code>tidy.matchatr_fit()</code> with <code>exponentiate = TRUE</code>).</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>unmatched_cc()</code>, <code>matched_cc()</code>, <code>nested_cc()</code>, <code>case_cohort()</code></p>
+<p><code>matcha()</code>, <code>tidy.matchatr_fit()</code>, <code>contrast()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">ratio =</span> <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">case =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>), <span class="at">each =</span> <span class="dv">100</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">rbinom</span>(<span class="dv">200</span>, <span class="dv">1</span>, <span class="fl">0.4</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">age =</span> <span class="fu">rnorm</span>(<span class="dv">200</span>, <span class="dv">50</span>, <span class="dv">10</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(df, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">confounders =</span> <span class="sc">~</span> age)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Matched case-control
- Strata:     set
- Ratio:      2:1
- Weights:    none</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> <span class="fl">0.02</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Unmatched case-control
- Prevalence: 0.02 (q0)
- Weights:    case-control (q0)</code></pre>
+<pre><code>&lt;matchatr_fit&gt; summary
+ Design:     Unmatched case-control
+ Estimator:  logistic  (engine: glm_logistic)
+ Std. error: model-based
+
+Conditional odds ratios (95% Wald CI):
+          term  estimate  std.error  statistic   p.value  conf.low conf.high
+        &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;
+1: (Intercept) 1.3289105 0.74085320  0.3838270 0.7011067 0.3110859  5.676899
+2:           x 1.1270782 0.28743963  0.4161870 0.6772732 0.6416305  1.979808
+3:         age 0.9933368 0.01429163 -0.4677933 0.6399324 0.9658984  1.021555
+
+Note: the intercept is not an interpretable baseline risk in a case-control sample.</code></pre>
 </div>
 </div>
 

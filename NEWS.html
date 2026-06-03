@@ -184,6 +184,30 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/print.matchatr_result.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_result</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/summary.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">summary.matchatr_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/tidy.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/tidy.matchatr_result.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_result</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/two_phase.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">two_phase</span></a>
   </div>
@@ -226,6 +250,11 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#mantel-haenszel-stratified-odds-ratio-phase_2-chunk-3" id="toc-mantel-haenszel-stratified-odds-ratio-phase_2-chunk-3" class="nav-link" data-scroll-target="#mantel-haenszel-stratified-odds-ratio-phase_2-chunk-3">2026-06-03 — Mantel-Haenszel stratified odds ratio (PHASE_2 Chunk 3)</a></li>
+  <li><a href="#phase_2-chunk-2-critical-review-fixes" id="toc-phase_2-chunk-2-critical-review-fixes" class="nav-link" data-scroll-target="#phase_2-chunk-2-critical-review-fixes">2026-06-03 — PHASE_2 Chunk 2 critical-review fixes</a></li>
+  <li><a href="#categorical-ordinal-gam-exposures-phase_2-chunk-2" id="toc-categorical-ordinal-gam-exposures-phase_2-chunk-2" class="nav-link" data-scroll-target="#categorical-ordinal-gam-exposures-phase_2-chunk-2">2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)</a></li>
+  <li><a href="#phase_2-chunk-1-critical-review-fixes" id="toc-phase_2-chunk-1-critical-review-fixes" class="nav-link" data-scroll-target="#phase_2-chunk-1-critical-review-fixes">2026-06-02 — PHASE_2 Chunk 1 critical-review fixes</a></li>
+  <li><a href="#unmatched-case-control-logistic-conditional-or-phase_2-chunk-1" id="toc-unmatched-case-control-logistic-conditional-or-phase_2-chunk-1" class="nav-link" data-scroll-target="#unmatched-case-control-logistic-conditional-or-phase_2-chunk-1">2026-06-02 — Unmatched case-control logistic conditional OR (PHASE_2 Chunk 1)</a></li>
   <li><a href="#phase_1-validation-hardening-critical-review" id="toc-phase_1-validation-hardening-critical-review" class="nav-link" data-scroll-target="#phase_1-validation-hardening-critical-review">2026-06-02 — PHASE_1 validation hardening (critical review)</a></li>
   <li><a href="#design-taxonomy-data-model-and-two-step-api" id="toc-design-taxonomy-data-model-and-two-step-api" class="nav-link" data-scroll-target="#design-taxonomy-data-model-and-two-step-api">2026-06-02 — Design taxonomy, data model, and two-step API</a></li>
   <li><a href="#package-scaffold-and-design-roadmap" id="toc-package-scaffold-and-design-roadmap" class="nav-link" data-scroll-target="#package-scaffold-and-design-roadmap">2026-06-02 — Package scaffold and design roadmap</a></li>
@@ -241,6 +270,58 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="mantel-haenszel-stratified-odds-ratio-phase_2-chunk-3" class="level2">
+<h2 class="anchored" data-anchor-id="mantel-haenszel-stratified-odds-ratio-phase_2-chunk-3">2026-06-03 — Mantel-Haenszel stratified odds ratio (PHASE_2 Chunk 3)</h2>
+<p>Completes the unmatched case-control layer with the closed-form Mantel-Haenszel estimator. <code>unmatched_cc()</code> gains a <code>strata</code> argument (the stratifying variable(s); several are crossed into one factor, and none gives the crude single-table OR). <code>matcha(estimator = "mh")</code> computes the summary odds ratio over the per-stratum 2×2 tables, and <code>contrast(type = "or")</code> reports it with a <strong>Robins-Breslow-Greenland</strong> (1986) Wald confidence interval — valid in both the sparse-data and large-strata limits.</p>
+<ul>
+<li>The exposure must be binary (a 2×2 table per stratum); a categorical (k&gt;2) or continuous exposure is rejected (<code>matchatr_bad_input</code>) with a pointer to <code>estimator = "logistic"</code>.</li>
+<li>RD / RR are rejected as unidentified (shared with the logistic engine). The MH variance is the closed-form RBG estimator, so <code>ci_method = "sandwich"</code> / <code>"bootstrap"</code> are declined (<code>matchatr_unsupported_variance</code>); a zero exposure-outcome margin aborts with <code>matchatr_unestimable_exposure</code>.</li>
+<li>Validated against <code>stats::mantelhaen.test(correct = FALSE)</code>, whose odds-ratio estimate <strong>and</strong> confidence interval use the same RBG variance — the matchatr OR and CI match it exactly — plus the closed-form 2×2 odds ratio for the crude case.</li>
+<li>The fitter-agnostic coefficient-extraction helpers (<code>term_assign</code>, <code>estimable_vcov</code>, <code>exposure_coef_index</code>, <code>parametric_positions</code>) moved to <code>R/coef_extract.R</code>, shared by the logistic and Mantel-Haenszel engines.</li>
+</ul>
+</section>
+<section id="phase_2-chunk-2-critical-review-fixes" class="level2">
+<h2 class="anchored" data-anchor-id="phase_2-chunk-2-critical-review-fixes">2026-06-03 — PHASE_2 Chunk 2 critical-review fixes</h2>
+<p>Follow-up fixes from an adversarial review of the categorical/GAM exposure work.</p>
+<ul>
+<li>Exposure-coefficient extraction is now by term <em>position</em> (collision-free) rather than by reconstructed coefficient name. <code>glm</code> permits non-unique coefficient names from <code>factor x level</code> concatenation — e.g.&nbsp;exposure <code>ses</code> level <code>low</code> and confounder <code>se</code> level <code>slow</code> both yield <code>"seslow"</code> — and the previous name-based selection could grab the confounder’s coefficient as a spurious second exposure OR, while name-based SE indexing returned the wrong (first-match) or <code>NA</code> standard error. Variance is now indexed by position via a unified <code>term_assign()</code> (glm <code>model.matrix</code> assign / gam <code>$assign</code> + <code>$pterms</code>) and a position-based <code>estimable_vcov()</code>, robust to both name collisions and aliasing.</li>
+<li>An ordered-factor exposure is now rejected up front in <code>matcha()</code> (<code>matchatr_bad_input</code>) instead of at <code>contrast()</code> time, so no model is fit and no spurious missing-data warning is emitted for an analysis that cannot yield a per-level OR.</li>
+<li><code>tidy()</code> / <code>summary()</code> on a GAM fit now report only the parametric coefficients. Previously the smooth-basis terms (<code>s(age).1</code>, …) were listed as rows and, with <code>exponentiate = TRUE</code>, their <code>exp()</code> was reported as an “odds ratio” with a Wald p-value — penalized basis weights are neither.</li>
+<li><code>model_fn</code> is validated more strictly: it must accept a <code>family</code> argument (or <code>...</code>) — caught at <code>matcha()</code> with a classed <code>matchatr_bad_input</code> instead of a raw “unused argument” base error — and the fitted object must be a binomial fit. A fitter that ignores <code>family</code> and returns, say, an OLS <code>lm</code> now aborts with <code>matchatr_bad_model_fit</code> rather than silently exponentiating a linear-probability slope into a bogus “odds ratio”.</li>
+<li>The recorded reference level for a factor exposure is now read from the fitted model’s <code>xlevels</code> (the baseline actually used), not the factor’s first <em>declared</em> level. A factor with an unused first level (e.g.&nbsp;declared <code>absent &lt; med &lt; high</code> but only <code>med</code>/<code>high</code> observed) previously mislabeled the contrast as “vs absent”; it now correctly reports “vs med”.</li>
+</ul>
+</section>
+<section id="categorical-ordinal-gam-exposures-phase_2-chunk-2" class="level2">
+<h2 class="anchored" data-anchor-id="categorical-ordinal-gam-exposures-phase_2-chunk-2">2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)</h2>
+<p>Extends the unmatched case-control logistic engine to every exposure type.</p>
+<ul>
+<li><strong>Categorical (k&gt;2) exposure</strong>: a factor exposure now yields one odds ratio per non-reference level; <code>contrast()</code> returns k-1 rows and the result records the factor’s reference level (<code>result$reference</code>).</li>
+<li><strong>Ordinal trend</strong>: an ordinal exposure entered as a numeric score yields a single per-step trend OR.</li>
+<li><strong>Pluggable fitter</strong>: <code>matcha(..., model_fn = )</code> selects the logistic fitter (default <code>stats::glm</code>); e.g.&nbsp;<code>model_fn = mgcv::gam</code> with <code>confounders = ~ s(age)</code> adjusts for a confounder with a smooth term while the exposure stays parametric with an interpretable OR. Exposure-coefficient extraction is now by name, so it works across <code>glm</code> and <code>gam</code>.</li>
+<li><strong>Ordered-factor exposure rejected</strong> (<code>matchatr_bad_input</code>): <code>glm</code>/<code>gam</code> fit it with polynomial contrasts (<code>.L</code>, <code>.Q</code>, …), which are not per-level ORs; the error points to a numeric score (trend) or an unordered factor (per-level).</li>
+<li>Validated against <code>stats::glm</code> for every exposure type, and against the Ille-et-Vilaine <strong><code>esoph</code></strong> case-control data (handbook Ch3): the categorical alcohol ORs reproduce the canonical monotone dose-response.</li>
+</ul>
+</section>
+<section id="phase_2-chunk-1-critical-review-fixes" class="level2">
+<h2 class="anchored" data-anchor-id="phase_2-chunk-1-critical-review-fixes">2026-06-02 — PHASE_2 Chunk 1 critical-review fixes</h2>
+<p>Follow-up fixes from an adversarial review of the unmatched case-control logistic engine.</p>
+<ul>
+<li><code>tidy()</code> / <code>summary()</code> with <code>robust = TRUE</code>, and <code>contrast(type = "or", ci_method = "sandwich")</code>, returned misaligned standard errors when the fitted model had an aliased (rank-deficient / collinear) term. <code>sandwich::sandwich()</code> drops aliased columns while <code>stats::coef()</code> keeps them, so the shorter SE vector was recycled against the coefficient vector and every term at or after the first aliased one got the wrong SE / CI / p-value. Standard errors are now aligned to the coefficient vector by name — aliased terms get <code>NA</code> — via a shared <code>estimable_vcov()</code> helper that reduces both variance sources to the estimable coefficient set.</li>
+<li>A constant or collinear exposure aliases to <code>NA</code> in <code>glm</code>; <code>contrast(type = "or")</code> previously returned an <code>NA</code> odds ratio silently. It now aborts with the classed <code>matchatr_unestimable_exposure</code>, mirroring the degenerate-outcome rejection.</li>
+<li><code>matchatr_result$n</code> reported <code>nrow(data)</code>, overcounting when <code>glm</code> dropped rows with missing covariates. It now reports <code>stats::nobs(model)</code> — the complete-case count actually used, matching <code>causatr</code> — and a <code>matchatr_dropped_rows</code> warning reports how many rows were dropped. Actual missing-data handling (multiple imputation) stays delegated to <code>causatr::causat_mice</code> / the future imputation phase, not reimplemented here.</li>
+<li><code>contrast()</code> now defaults <code>type</code> to the estimand the design identifies: <code>"or"</code> for the classical odds-ratio engines, <code>"difference"</code> otherwise. <code>contrast(fit)</code> on an unmatched case-control logistic fit therefore returns the conditional OR instead of erroring on the previously hard-coded risk-difference default.</li>
+</ul>
+</section>
+<section id="unmatched-case-control-logistic-conditional-or-phase_2-chunk-1" class="level2">
+<h2 class="anchored" data-anchor-id="unmatched-case-control-logistic-conditional-or-phase_2-chunk-1">2026-06-02 — Unmatched case-control logistic conditional OR (PHASE_2 Chunk 1)</h2>
+<p>First estimator engine: the classical unmatched case-control analysis. <code>matcha()</code> now <em>runs</em> the resolved engine as part of the fit — the <code>"logistic"</code> estimator fits <code>stats::glm(family = binomial)</code> for <code>outcome ~ exposure + confounders</code> and stores it in the <code>model</code> slot (engines without a wired estimator still leave <code>model = NULL</code>). Only the slope coefficients carry over from the cohort model; the case-control intercept is offset by the log sampling-fraction ratio (Prentice &amp; Pyke, 1979) and is never reported as a baseline risk.</p>
+<ul>
+<li><code>contrast(fit, type = "or")</code> returns the exposure’s conditional odds ratio as a <code>matchatr_result</code>, with a Wald interval from the model information matrix (<code>ci_method = "model"</code>, the new default) or the Huber-White sandwich (<code>ci_method = "sandwich"</code>). <code>contrast()</code> gained a <code>conf_level</code> argument.</li>
+<li>The risk difference and risk ratio are <strong>not identified</strong> from an unmatched case-control sample without the source-population prevalence q0: <code>contrast(type = "difference" / "ratio")</code> aborts with the classed <code>matchatr_unidentified_estimand</code>, pointing to <code>type = "or"</code> or to a case-control-weighted estimator with <code>prevalence</code>. Bootstrap CIs for the conditional OR abort with <code>matchatr_unsupported_variance</code> (a Wald interval is reported instead).</li>
+<li>New S3 surface: <code>tidy.matchatr_fit()</code> (broom-style coefficient / OR table on the log-odds or, with <code>exponentiate = TRUE</code>, the OR scale; model-based or <code>robust</code> sandwich SE), <code>tidy.matchatr_result()</code>, <code>summary.matchatr_fit()</code>, and <code>print.matchatr_result()</code>.</li>
+<li>Tested against three oracles: <code>stats::glm</code> pass-through (point estimate, Wald and sandwich CI), the closed-form 2×2 odds ratio with Woolf variance, and a cohort data-generating process with a known log-OR (the conditional OR recovers the cohort slope, since case-control sampling shifts only the intercept).</li>
+</ul>
+</section>
 <section id="phase_1-validation-hardening-critical-review" class="level2">
 <h2 class="anchored" data-anchor-id="phase_1-validation-hardening-critical-review">2026-06-02 — PHASE_1 validation hardening (critical review)</h2>
 <p>Follow-up fixes from an adversarial review of the PHASE_1 foundation, closing input-validation gaps before the estimation layers depend on them.</p>

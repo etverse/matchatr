@@ -219,6 +219,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/print.matchatr_result.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_result</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/summary.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">summary.matchatr_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_result.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_result</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/two_phase.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">two_phase</span></a>
   </div>
@@ -286,7 +310,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">unmatched_cc(prevalence = NULL)
+<pre><code class="language-R">unmatched_cc(prevalence = NULL, strata = NULL)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -300,6 +324,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code>NULL</code> or a single number in (0, 1). The marginal outcome prevalence q0 in the source population. Required for case-control-weighted (<code>“ccw_*“</code>) estimators, which reweight the sample back to the population; optional for the conditional / classical odds-ratio estimators, which do not need it.
 </td>
 </tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="strata">strata</code>
+</td>
+<td>
+<code>NULL</code> or a non-empty character vector naming the column(s) to stratify on for the Mantel-Haenszel estimator (<code>estimator = “mh”</code>), e.g. <code>“agegrp”</code> or <code>c(“agegrp”, “sex”)</code>. Several columns are crossed into a single stratifying factor. Used only by <code>“mh”</code>; the <code>“logistic”</code> estimator adjusts for covariates via <code>confounders</code> instead, and <code>“mh”</code> with no <code>strata</code> reduces to the crude single-table odds ratio.
+</td>
+</tr>
 </tbody></table>
 </section>
 <section id="details" class="level3">
@@ -308,7 +340,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_design</code> object of <code>type</code> <code>“unmatched_cc”</code> carrying the prevalence and a <code>weight_spec</code> describing the case-control weighting scheme.</p>
+<p>A <code>matchatr_design</code> object of <code>type</code> <code>“unmatched_cc”</code> carrying the prevalence, the Mantel-Haenszel strata, and a <code>weight_spec</code> describing the case-control weighting scheme.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
@@ -332,6 +364,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  Type:       Unmatched case-control
  Prevalence: 0.02 (q0)
  Weights:    case-control (q0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unmatched_cc</span>(<span class="at">strata =</span> <span class="st">"agegrp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_design&gt;
+ Type:       Unmatched case-control
+ Strata:     agegrp
+ Weights:    none</code></pre>
 </div>
 </div>
 

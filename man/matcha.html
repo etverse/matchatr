@@ -219,6 +219,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/print.matchatr_result.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_result</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/summary.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">summary.matchatr_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_result.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_result</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/two_phase.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">two_phase</span></a>
   </div>
@@ -286,7 +310,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">matcha(data, outcome, exposure, design, confounders = NULL, estimator = NULL)
+<pre><code class="language-R">matcha(
+  data,
+  outcome,
+  exposure,
+  design,
+  confounders = NULL,
+  estimator = NULL,
+  model_fn = NULL
+)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -340,16 +372,24 @@ A one-sided formula of confounders (e.g.&nbsp;<code>~ age + smoke</code>), or <c
 Character scalar naming the analysis, or <code>NULL</code> to use the design’s canonical default. Classical choices are design-specific (<code>“logistic”</code> / <code>“mh”</code> for unmatched CC, <code>“clogit”</code> for matched CC / NCC, <code>“cch”</code> for case-cohort); the case-control-weighted causal estimators <code>“ccw_gformula”</code>, <code>“ccw_ipw”</code>, <code>“ccw_aipw”</code>, <code>“ccw_tmle”</code> apply to any design but require a prevalence q0 on the design.
 </td>
 </tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="model_fn">model_fn</code>
+</td>
+<td>
+Optional model-fitting function for the unmatched case-control logistic engine, with a <code style="white-space: pre;">(formula, family, data)</code> interface. Defaults to <code>stats::glm()</code>; pass e.g.&nbsp;<code>mgcv::gam</code> to adjust for a confounder with a smooth term (<code>confounders = ~ s(age)</code>) while keeping the exposure parametric. Ignored by the other engines.
+</td>
+</tr>
 </tbody></table>
 </section>
 <section id="details" class="level3">
 <h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>Weights are never read from or written to <code>data</code>. The design’s <code>weight_spec</code> records the intended scheme; the case-control weights (q0-based, Rose &amp; van der Laan) and design / inclusion-probability weights (Samuelsen, Borgan) are kept in distinct slots on the fit (<code>details$cc_weights</code>, <code>details$design_weights</code>) because their variance consequences differ.</p>
-<p>The returned <code>matchatr_fit</code> carries <code>model = NULL</code> until an estimation engine is run on it; <code>details$engine</code> records the engine the (design, estimator) pair resolved to.</p>
+<p>The resolved engine is run as part of the fit: an implemented estimator (the unmatched case-control logistic regression) populates the <code>model</code> slot, while an engine with no wired estimator leaves it <code>NULL</code>. <code>details$engine</code> records the engine the (design, estimator) pair resolved to.</p>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_fit</code> object: a list with the validated specification (<code>data</code>, <code>outcome</code>, <code>exposure</code>, <code>confounders</code>, <code>design</code>, <code>estimator</code>, <code>engine</code>), a <code>details</code> list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating <code>call</code>. The <code>model</code> slot is <code>NULL</code>.</p>
+<p>A <code>matchatr_fit</code> object: a list with the validated specification (<code>data</code>, <code>outcome</code>, <code>exposure</code>, <code>confounders</code>, <code>design</code>, <code>estimator</code>, <code>engine</code>), a <code>details</code> list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating <code>call</code>. The <code>model</code> slot holds the fitted estimation object for an implemented engine, or <code>NULL</code> otherwise.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
