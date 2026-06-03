@@ -2,39 +2,65 @@
 #'
 #' @description
 #' The second step of the two-step API (mirroring `causatr::contrast()` and the
-#' etverse convention): given a [matcha()] fit, compute the requested causal
-#' contrast on the chosen scale and return a `matchatr_result`. `matcha()`
-#' resolves the sampling design and analysis; `contrast()` turns the fitted
+#' etverse convention): given a [matcha()] fit, compute the requested effect on
+#' the chosen scale and return a `matchatr_result`. `matcha()` resolves the
+#' sampling design and runs the analysis; `contrast()` turns the fitted
 #' estimates into a reported effect with uncertainty.
 #'
 #' @details
-#' Producing a contrast requires fitted estimates. A fit whose estimation engine
-#' has not run carries none — its `model` slot is `NULL` — so `contrast()`
-#' validates its arguments and then aborts with a classed
-#' `matchatr_not_estimated` error rather than returning an empty result.
+#' What is identifiable depends on the design. From an unmatched case-control
+#' sample only the conditional odds ratio (`type = "or"`) is identified: under
+#' separate case / control sampling the marginal outcome frequency is fixed, so
+#' a marginal risk difference (`type = "difference"`) or risk ratio
+#' (`type = "ratio"`) requires the source-population prevalence q0 and a
+#' case-control-weighted estimator. Requesting an unidentified estimand aborts
+#' with the classed `matchatr_unidentified_estimand` condition.
+#'
+#' A fit whose engine has no wired estimator carries no estimates — its `model`
+#' slot is `NULL` — so `contrast()` validates its arguments and then aborts with
+#' `matchatr_not_estimated`.
+#'
+#' For an odds-ratio result the confidence interval is Wald on the log scale and
+#' exponentiated, so it is asymmetric on the OR scale: `estimate +/- z * se`
+#' does not reproduce the reported `ci_lower` / `ci_upper` (the `se` is the
+#' delta-method OR-scale SE, kept for reference). Use the reported bounds.
 #'
 #' @param fit A `matchatr_fit` object returned by [matcha()].
-#' @param type Character contrast scale: `"difference"` (default), `"ratio"`,
-#'   or `"or"` (odds ratio).
-#' @param ci_method Character confidence-interval method: `"sandwich"`
-#'   (default) or `"bootstrap"`.
+#' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"or"`
+#'   (odds ratio). When omitted, it defaults to the estimand the design
+#'   identifies — `"or"` for the classical odds-ratio engines (unmatched
+#'   case-control logistic), `"difference"` otherwise.
+#' @param ci_method Character variance source for the interval: `"model"`
+#'   (information-matrix Wald, the default), `"sandwich"` (Huber-White robust),
+#'   or `"bootstrap"`.
+#' @param conf_level Numeric confidence level for the interval, a single number
+#'   strictly in (0, 1). Defaults to 0.95.
 #' @param ... Reserved for estimator-specific contrast arguments.
 #'
-#' @returns A `matchatr_result` object carrying the estimates, the pairwise
-#'   contrasts, and their variance-covariance matrix.
+#' @returns A `matchatr_result` object carrying the estimates, the contrasts,
+#'   and their variance-covariance matrix.
 #'
 #' @examples
-#' df <- data.frame(case = c(1, 0, 1, 0), x = c(1, 0, 1, 0))
-#' fit <- matcha(df, outcome = "case", exposure = "x", design = unmatched_cc())
-#' # A design / dispatch fit carries no estimates yet, so contrast() errors:
-#' try(contrast(fit))
+#' set.seed(1)
+#' df <- data.frame(
+#'   case = rep(c(1, 0), each = 100),
+#'   x = rbinom(200, 1, 0.4),
+#'   age = rnorm(200, 50, 10)
+#' )
+#' fit <- matcha(df, outcome = "case", exposure = "x",
+#'               design = unmatched_cc(), confounders = ~ age)
+#' # The conditional odds ratio is identified:
+#' contrast(fit, type = "or")
+#' # The risk difference is not (no prevalence q0):
+#' try(contrast(fit, type = "difference"))
 #'
-#' @seealso [matcha()]
+#' @seealso [matcha()], [tidy.matchatr_fit()]
 #' @export
 contrast <- function(
   fit,
   type = c("difference", "ratio", "or"),
-  ci_method = c("sandwich", "bootstrap"),
+  ci_method = c("model", "sandwich", "bootstrap"),
+  conf_level = 0.95,
   ...
 ) {
   if (!inherits(fit, "matchatr_fit")) {
@@ -43,15 +69,21 @@ contrast <- function(
       class = c("matchatr_bad_input", "matchatr_error")
     )
   }
-  # Validate the contrast scale / CI method here so the public signature is
-  # fixed regardless of which estimation engine eventually fills in the body.
-  type <- match.arg(type)
+  # Validate the contrast scale / CI method / confidence level up front so the
+  # public signature is fixed regardless of which engine fills in the body.
+  # When the caller does not name a `type`, default to the estimand the design
+  # identifies (the OR for an odds-ratio-only engine) rather than the generic
+  # risk difference, which such an engine would have to reject.
+  if (missing(type)) {
+    type <- default_contrast_type(fit$engine)
+  } else {
+    type <- match.arg(type)
+  }
   ci_method <- match.arg(ci_method)
+  check_conf_level(conf_level)
 
-  # `fit$model` is populated by an estimation engine; until one has run there
-  # are no fitted estimates to contrast. Estimation engines replace this guard
-  # with the standardisation / contrast computation that returns a
-  # `matchatr_result` (via `new_matchatr_result()`).
+  # An engine with no wired estimator leaves `model = NULL`; there is nothing to
+  # contrast until its estimation layer lands.
   if (is.null(fit$model)) {
     rlang::abort(
       c(
@@ -59,18 +91,38 @@ contrast <- function(
         i = paste0(
           "Its `",
           fit$engine,
-          "` estimation engine has not produced a ",
-          "fitted model."
+          "` estimation engine has not produced a fitted model."
         )
       ),
       class = c("matchatr_not_estimated", "matchatr_error")
     )
   }
 
-  # Unreachable while every fit has `model = NULL`; an estimation engine
-  # supplies the contrast computation that returns here.
-  rlang::abort(
-    "Internal error: `contrast()` reached estimation with no engine wired.",
-    class = c("matchatr_not_estimated", "matchatr_error")
+  call <- match.call()
+  switch(
+    fit$engine,
+    glm_logistic = contrast_logistic(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
+    mantel_haenszel = contrast_mh(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
+    # Defensive: a fitted model whose engine has no contrast assembly wired.
+    rlang::abort(
+      paste0(
+        "No contrast is wired for the `",
+        fit$engine,
+        "` engine."
+      ),
+      class = c("matchatr_not_estimated", "matchatr_error")
+    )
   )
 }

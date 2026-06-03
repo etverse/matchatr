@@ -5,5 +5,5 @@
     Condition
       Error in `contrast()`:
       ! This `matchatr_fit` carries no estimates to contrast.
-      i Its `glm_logistic` estimation engine has not produced a fitted model.
+      i Its `clogit` estimation engine has not produced a fitted model.
 

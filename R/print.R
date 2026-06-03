@@ -88,6 +88,59 @@ print.matchatr_fit <- function(x, ...) {
   invisible(x)
 }
 
+#' Print a matchatr contrast result
+#'
+#' @description
+#' Displays a compact summary of a `matchatr_result`: the
+#' estimator and engine that produced it, the estimand and contrast scale, the
+#' confidence-interval method and sample size, followed by the contrasts table.
+#'
+#' @param x A `matchatr_result` object returned by [contrast()].
+#' @param ... Unused; present for S3 consistency.
+#' @returns Invisibly returns `x`.
+#' @examples
+#' set.seed(1)
+#' df <- data.frame(case = rep(c(1, 0), each = 100), x = rbinom(200, 1, 0.4))
+#' fit <- matcha(df, outcome = "case", exposure = "x", design = unmatched_cc())
+#' print(contrast(fit, type = "or"))
+#' @seealso [contrast()]
+#' @export
+print.matchatr_result <- function(x, ...) {
+  cat("<matchatr_result>\n")
+  cat(
+    " Estimator:  ",
+    x$estimator,
+    "  (engine: ",
+    x$engine,
+    ")\n",
+    sep = ""
+  )
+  cat(" Estimand:   ", x$estimand, "\n", sep = "")
+  cat(" Contrast:   ", contrast_label(x$type), "\n", sep = "")
+  cat(" CI method:  ", x$ci_method, "\n", sep = "")
+  cat(" N:          ", x$n, "\n", sep = "")
+  cat("\nContrasts:\n")
+  print(x$contrasts)
+  invisible(x)
+}
+
+#' Human-readable label for a contrast scale
+#'
+#' @param type Character scalar contrast type.
+#' @returns A character scalar label; the raw `type` if unrecognised so the
+#'   print method never errors on a malformed object.
+#' @family printing
+#' @noRd
+contrast_label <- function(type) {
+  switch(
+    type,
+    difference = "Risk difference",
+    ratio = "Risk ratio",
+    or = "Odds ratio",
+    type
+  )
+}
+
 #' Human-readable label for a design type
 #'
 #' @param type Character scalar design type.

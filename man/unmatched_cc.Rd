@@ -4,7 +4,7 @@
 \alias{unmatched_cc}
 \title{Unmatched case-control design}
 \usage{
-unmatched_cc(prevalence = NULL)
+unmatched_cc(prevalence = NULL, strata = NULL)
 }
 \arguments{
 \item{prevalence}{\code{NULL} or a single number in (0, 1). The marginal outcome
@@ -12,11 +12,18 @@ prevalence q0 in the source population. Required for case-control-weighted
 (\code{"ccw_*"}) estimators, which reweight the sample back to the population;
 optional for the conditional / classical odds-ratio estimators, which do
 not need it.}
+
+\item{strata}{\code{NULL} or a non-empty character vector naming the column(s) to
+stratify on for the Mantel-Haenszel estimator (\code{estimator = "mh"}), e.g.
+\code{"agegrp"} or \code{c("agegrp", "sex")}. Several columns are crossed into a
+single stratifying factor. Used only by \code{"mh"}; the \code{"logistic"} estimator
+adjusts for covariates via \code{confounders} instead, and \code{"mh"} with no
+\code{strata} reduces to the crude single-table odds ratio.}
 }
 \value{
 A \code{matchatr_design} object of \code{type} \code{"unmatched_cc"} carrying the
-prevalence and a \code{weight_spec} describing the case-control weighting
-scheme.
+prevalence, the Mantel-Haenszel strata, and a \code{weight_spec} describing the
+case-control weighting scheme.
 }
 \description{
 Declares an independent (unmatched) case-control sample: cases and controls
@@ -35,6 +42,7 @@ engine.
 \examples{
 unmatched_cc()
 unmatched_cc(prevalence = 0.02)
+unmatched_cc(strata = "agegrp")
 
 }
 \seealso{

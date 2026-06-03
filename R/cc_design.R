@@ -13,10 +13,16 @@
 #'   (`"ccw_*"`) estimators, which reweight the sample back to the population;
 #'   optional for the conditional / classical odds-ratio estimators, which do
 #'   not need it.
+#' @param strata `NULL` or a non-empty character vector naming the column(s) to
+#'   stratify on for the Mantel-Haenszel estimator (`estimator = "mh"`), e.g.
+#'   `"agegrp"` or `c("agegrp", "sex")`. Several columns are crossed into a
+#'   single stratifying factor. Used only by `"mh"`; the `"logistic"` estimator
+#'   adjusts for covariates via `confounders` instead, and `"mh"` with no
+#'   `strata` reduces to the crude single-table odds ratio.
 #'
 #' @returns A `matchatr_design` object of `type` `"unmatched_cc"` carrying the
-#'   prevalence and a `weight_spec` describing the case-control weighting
-#'   scheme.
+#'   prevalence, the Mantel-Haenszel strata, and a `weight_spec` describing the
+#'   case-control weighting scheme.
 #'
 #' @details
 #' Weights are never stored as a data column. The `weight_spec` records the
@@ -27,12 +33,16 @@
 #' @examples
 #' unmatched_cc()
 #' unmatched_cc(prevalence = 0.02)
+#' unmatched_cc(strata = "agegrp")
 #'
 #' @family design constructors
 #' @seealso [matched_cc()], [nested_cc()], [case_cohort()], [matcha()]
 #' @export
-unmatched_cc <- function(prevalence = NULL) {
+unmatched_cc <- function(prevalence = NULL, strata = NULL) {
   check_prevalence(prevalence)
+  if (!is.null(strata)) {
+    check_character(strata, class = "matchatr_bad_strata")
+  }
   # q0 present -> the sample can be reweighted to the population (CCW);
   # absent -> only the conditional OR / MH estimators apply, no weights.
   weight_spec <- list(
@@ -41,6 +51,7 @@ unmatched_cc <- function(prevalence = NULL) {
   )
   new_matchatr_design(
     type = "unmatched_cc",
+    strata = strata,
     prevalence = prevalence,
     weight_spec = weight_spec,
     call = match.call()

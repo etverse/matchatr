@@ -1,7 +1,7 @@
 # matcha() is the fit verb: validate -> build/accept design -> resolve dispatch
-# -> return a matchatr_fit. No estimation happens in this phase, so model is
-# NULL; the tests pin the resolved routing, the validated spec, and every
-# data-level rejection path.
+# -> run the engine -> return a matchatr_fit. The logistic engine populates
+# `model`; engines without a wired estimator leave it NULL. The tests pin the
+# resolved routing, the validated spec, and every data-level rejection path.
 
 test_that("matcha returns a matchatr_fit with the resolved spec", {
   df <- make_cc_data()
@@ -13,7 +13,8 @@ test_that("matcha returns a matchatr_fit with the resolved spec", {
     confounders = ~ age + smoke
   )
   expect_s3_class(fit, "matchatr_fit")
-  expect_null(fit$model)
+  # The logistic engine runs as part of the fit, so `model` is a fitted glm.
+  expect_s3_class(fit$model, "glm")
   expect_s3_class(fit$data, "data.table")
   expect_identical(fit$outcome, "case")
   expect_identical(fit$exposure, "x")

@@ -178,6 +178,30 @@ check_prevalence <- function(prevalence, call = rlang::caller_env()) {
   invisible(NULL)
 }
 
+#' Validate a confidence-level argument
+#'
+#' A confidence level must be a single probability strictly inside (0, 1): a
+#' value of 0 or 1 yields a degenerate (zero-width or infinite) interval.
+#'
+#' @param conf_level Value to check.
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` on an
+#'   out-of-range or malformed value.
+#' @family validators
+#' @noRd
+check_conf_level <- function(conf_level, call = rlang::caller_env()) {
+  ok <- rlang::is_scalar_double(conf_level) ||
+    rlang::is_scalar_integer(conf_level)
+  if (!ok || is.na(conf_level) || conf_level <= 0 || conf_level >= 1) {
+    rlang::abort(
+      "`conf_level` must be a single number strictly between 0 and 1.",
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Validate a matching-ratio argument
 #'
 #' The matching ratio m is the number of controls sampled per case (m:1).
@@ -270,6 +294,47 @@ check_role_collisions <- function(
   invisible(NULL)
 }
 
+#' Reject an ordered-factor exposure
+#'
+#' matchatr reports the exposure as a single effect (continuous / trend) or one
+#' odds ratio per level (unordered factor). An *ordered* factor is fit by
+#' `glm` / `mgcv::gam` with polynomial contrasts (`.L`, `.Q`, ...), whose
+#' coefficients are not per-level odds ratios, so it is rejected at the
+#' user-facing entry point rather than silently producing polynomial-contrast
+#' "ORs".
+#'
+#' @param data A data.frame or data.table.
+#' @param exposure Character scalar exposure column name (already validated to
+#'   exist).
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` when the
+#'   exposure column is an ordered factor.
+#' @family validators
+#' @noRd
+check_exposure_not_ordered <- function(
+  data,
+  exposure,
+  call = rlang::caller_env()
+) {
+  col <- data[[exposure]]
+  if (is.factor(col) && is.ordered(col)) {
+    rlang::abort(
+      c(
+        paste0(
+          "Exposure `",
+          exposure,
+          "` is an ordered factor, which is fit with polynomial contrasts ",
+          "(not per-level odds ratios)."
+        ),
+        i = "Pass a numeric score for a trend OR, or an unordered factor for per-level ORs."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Coerce a case-status column to a 0/1 integer vector
 #'
 #' Case-control, nested case-control, and case-cohort designs all have a
@@ -336,6 +401,61 @@ resolve_binary_outcome <- function(data, outcome, call = rlang::caller_env()) {
     bad_outcome()
   }
   y01
+}
+
+#' Coerce a binary exposure to a 0/1 integer vector
+#'
+#' The Mantel-Haenszel summary odds ratio is defined for a binary exposure
+#' (a 2x2 table per stratum). This resolver accepts the same three encodings as
+#' `resolve_binary_outcome()` — logical, a two-level factor (second level =
+#' exposed), or numeric 0/1 — and returns the 0/1 integer vector. A multi-level
+#' or continuous exposure is rejected, pointing to the logistic estimator (which
+#' handles categorical / continuous exposures). Degenerate (single-value)
+#' exposures are left to the estimator's zero-margin guard.
+#'
+#' @param data A data.frame or data.table.
+#' @param exposure Character scalar naming the exposure column.
+#' @param call Caller environment surfaced in the error.
+#' @returns An integer vector of 0/1 (NA preserved); aborts with class
+#'   `matchatr_bad_input` on a non-binary exposure.
+#' @family validators
+#' @noRd
+resolve_binary_exposure <- function(
+  data,
+  exposure,
+  call = rlang::caller_env()
+) {
+  x <- data[[exposure]]
+  bad_exposure <- function() {
+    rlang::abort(
+      c(
+        paste0(
+          "The Mantel-Haenszel estimator requires a binary exposure; `",
+          exposure,
+          "` is not binary (logical, two-level factor, or numeric 0/1)."
+        ),
+        i = "For a categorical (k>2) or continuous exposure use `estimator = \"logistic\"`."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  if (is.logical(x)) {
+    as.integer(x)
+  } else if (is.factor(x)) {
+    if (nlevels(x) != 2L) {
+      bad_exposure()
+    }
+    as.integer(x) - 1L
+  } else if (is.numeric(x)) {
+    vals <- unique(stats::na.omit(x))
+    if (!all(vals %in% c(0, 1))) {
+      bad_exposure()
+    }
+    as.integer(x)
+  } else {
+    bad_exposure()
+  }
 }
 
 #' Warn when a conditional-likelihood stratum is uninformative

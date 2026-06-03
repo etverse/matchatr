@@ -16,9 +16,10 @@
 #' are kept in distinct slots on the fit (`details$cc_weights`,
 #' `details$design_weights`) because their variance consequences differ.
 #'
-#' The returned `matchatr_fit` carries `model = NULL` until an estimation
-#' engine is run on it; `details$engine` records the engine the (design,
-#' estimator) pair resolved to.
+#' The resolved engine is run as part of the fit: an implemented estimator (the
+#' unmatched case-control logistic regression) populates the `model` slot, while
+#' an engine with no wired estimator leaves it `NULL`. `details$engine` records
+#' the engine the (design, estimator) pair resolved to.
 #'
 #' @param data A data.frame or data.table. Not mutated; a data.table copy is
 #'   stored on the fit.
@@ -36,12 +37,18 @@
 #'   `"cch"` for case-cohort); the case-control-weighted causal estimators
 #'   `"ccw_gformula"`, `"ccw_ipw"`, `"ccw_aipw"`, `"ccw_tmle"` apply to any
 #'   design but require a prevalence q0 on the design.
+#' @param model_fn Optional model-fitting function for the unmatched
+#'   case-control logistic engine, with a `(formula, family, data)` interface.
+#'   Defaults to [stats::glm()]; pass e.g. `mgcv::gam` to adjust for a confounder
+#'   with a smooth term (`confounders = ~ s(age)`) while keeping the exposure
+#'   parametric. Ignored by the other engines.
 #'
 #' @returns A `matchatr_fit` object: a list with the validated specification
 #'   (`data`, `outcome`, `exposure`, `confounders`, `design`, `estimator`,
 #'   `engine`), a `details` list (resolved engine, weighting scheme, reserved
 #'   variance / weight slots, case and control counts), and the originating
-#'   `call`. The `model` slot is `NULL`.
+#'   `call`. The `model` slot holds the fitted estimation object for an
+#'   implemented engine, or `NULL` otherwise.
 #'
 #' @examples
 #' set.seed(1)
@@ -69,7 +76,8 @@ matcha <- function(
   exposure,
   design,
   confounders = NULL,
-  estimator = NULL
+  estimator = NULL,
+  model_fn = NULL
 ) {
   # Record the user's call so the fit can echo it in print().
   call <- match.call()
@@ -95,6 +103,27 @@ matcha <- function(
   if (!is.null(confounders)) {
     check_formula(confounders)
   }
+  # `model_fn` is the pluggable logistic fitter (e.g. `stats::glm`, `mgcv::gam`);
+  # it must be a function that accepts a `family` argument (it is always called
+  # as `model_fn(formula, family = binomial(), data = )`).
+  if (!is.null(model_fn)) {
+    if (!is.function(model_fn)) {
+      rlang::abort(
+        "`model_fn` must be a model-fitting function (e.g. `stats::glm`) or NULL.",
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
+    fmls <- tryCatch(names(formals(args(model_fn))), error = function(e) NULL)
+    if (length(fmls) > 0L && !any(c("family", "...") %in% fmls)) {
+      rlang::abort(
+        c(
+          "`model_fn` must accept a `family` argument (or `...`).",
+          i = "It is called as `model_fn(formula, family = binomial(), data = )`; use e.g. `stats::glm` or `mgcv::gam`."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
+  }
   if (identical(outcome, exposure)) {
     rlang::abort(
       "`outcome` and `exposure` must be different columns.",
@@ -113,6 +142,9 @@ matcha <- function(
   # Every named column must exist before we touch its values.
   check_cols_exist(dt, outcome, arg = "outcome")
   check_cols_exist(dt, exposure, arg = "exposure")
+  # matchatr reports per-level / single-variable effects; an ordered-factor
+  # exposure (polynomial contrasts) is rejected up front.
+  check_exposure_not_ordered(dt, exposure)
   if (!is.null(confounders)) {
     # all.vars() strips transforms (`I(age^2)` -> `age`) to plain names.
     check_cols_exist(dt, all.vars(confounders), arg = "confounders")
@@ -177,11 +209,14 @@ matcha <- function(
     cc_weights = NULL,
     design_weights = NULL,
     variance_kind = NULL,
+    # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
+    # engine; e.g. mgcv::gam for smooth confounder adjustment.
+    model_fn = model_fn,
     n_cases = sum(y01 == 1L, na.rm = TRUE),
     n_controls = sum(y01 == 0L, na.rm = TRUE)
   )
 
-  new_matchatr_fit(
+  fit <- new_matchatr_fit(
     model = NULL,
     data = dt,
     outcome = outcome,
@@ -193,4 +228,9 @@ matcha <- function(
     details = details,
     call = call
   )
+
+  # Run the resolved engine: an implemented estimator populates `model`, while
+  # an engine with no wired estimator leaves it NULL.
+  fit$model <- run_engine(fit)
+  fit
 }
