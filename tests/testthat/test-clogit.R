@@ -79,6 +79,44 @@ test_that("the conditional OR recovers the matched-set log-OR (truth-based)", {
   )
 })
 
+# --- 1:1 matching: closed-form McNemar OR AND variance (independent oracle) ---
+
+# Critical-review-loop (2026-06-03, test-audit B1/B2; repro
+# /tmp/matchatr_repro_mcnemar.R). The other oracle tests compare against
+# survival::clogit run with the same formula, so they validate forwarding, not
+# the conditional variance. For 1:1 matching the conditional likelihood reduces
+# to McNemar's: among discordant pairs n10 (case exposed, control unexposed) and
+# n01 (case unexposed, control exposed), the CMLE is OR = n10/n01 with
+# Var(log OR) = 1/n10 + 1/n01 -- both exact and computed here WITHOUT clogit.
+test_that("1:1 matching reproduces the closed-form McNemar OR and variance", {
+  df <- make_matched_cc(n_sets = 300L, ratio = 1L, beta_x = log(2.5))
+  sets <- split(df, df$set)
+  n10 <- sum(vapply(
+    sets,
+    function(s) s$x[s$case == 1L] == 1L && s$x[s$case == 0L] == 0L,
+    logical(1)
+  ))
+  n01 <- sum(vapply(
+    sets,
+    function(s) s$x[s$case == 1L] == 0L && s$x[s$case == 0L] == 1L,
+    logical(1)
+  ))
+
+  fit <- matcha(
+    df,
+    "case",
+    "x",
+    matched_cc(strata = "set"),
+    estimator = "clogit"
+  )
+  res <- contrast(fit, type = "or")
+  # Point OR = n10 / n01 (the discordant-pair ratio), exact.
+  expect_equal(res$contrasts$estimate, n10 / n01, tolerance = 1e-7)
+  # Information-matrix Var(log OR) = 1/n10 + 1/n01, exact -- this is the
+  # variance check no clogit-vcov comparison can provide.
+  expect_equal(res$estimates$se^2, 1 / n10 + 1 / n01, tolerance = 1e-6)
+})
+
 test_that("adjusting for a non-matching covariate matches the clogit oracle", {
   df <- make_matched_cc(n_sets = 300L)
   fit <- matcha(
