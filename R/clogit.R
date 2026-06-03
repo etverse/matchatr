@@ -67,18 +67,38 @@ fit_clogit <- function(fit) {
     paste(fit$design$strata, collapse = ", "),
     ")"
   )
-  # outcome ~ exposure + confounders + strata(set). reformulate() preserves the
-  # confounder transforms / interactions; the exposure enters as a main effect so
-  # its coefficient(s) identify the conditional log OR.
+  # With an effect modifier the exposure enters crossed with the modifier
+  # (`exposure * modifier` = exposure + modifier + exposure:modifier); the
+  # interaction coefficients carry the per-level shift in the exposure log OR
+  # (the stratum-specific contrast). Without one the exposure is a plain main
+  # effect whose coefficient(s) identify the conditional log OR.
+  exposure_term <- if (is.null(fit$effect_modifier)) {
+    fit$exposure
+  } else {
+    paste0(fit$exposure, " * ", fit$effect_modifier)
+  }
+  # outcome ~ exposure (* modifier) + confounders + strata(set). reformulate()
+  # preserves the confounder transforms / interactions.
   model_formula <- stats::reformulate(
-    termlabels = c(fit$exposure, conf_terms, strata_term),
+    termlabels = c(exposure_term, conf_terms, strata_term),
     response = fit$outcome
   )
+  # Fit on a copy whose modifier is coerced to a factor with its unused levels
+  # dropped: per-level odds ratios need discrete levels (and the model's
+  # `xlevels`), and an empty/unused factor level would otherwise contribute an
+  # all-zero interaction column aliased to NA, which would wrongly mark the
+  # whole stratum-specific OR unestimable. droplevels() keeps the order of the
+  # remaining declared levels, so a user-set reference level is preserved.
+  fit_data <- fit$data
+  em <- fit$effect_modifier
+  if (!is.null(em)) {
+    fit_data[[em]] <- droplevels(as.factor(fit_data[[em]]))
+  }
   # `clogit` rewrites its own call to an unqualified `coxph(Surv(...) ~ ... +
   # strata(...))` and evaluates it in this frame, so those three survival names
   # must resolve here (the imports below) even though the entry point is called
   # qualified.
-  model <- survival::clogit(model_formula, data = fit$data)
+  model <- survival::clogit(model_formula, data = fit_data)
 
   # clogit's default na.action silently drops rows with a missing outcome,
   # exposure, or confounder. `model$n` is the rows actually used (coxph's
@@ -152,6 +172,22 @@ contrast_clogit <- function(
       class = c("matchatr_unsupported_variance", "matchatr_error"),
       call = call
     )
+  }
+
+  # With an effect modifier the contrast is one exposure OR per modifier level
+  # (the stratum-specific OR), assembled from the joint partial-likelihood
+  # variance; otherwise it is the single conditional OR shared with the
+  # unmatched logistic engine.
+  if (!is.null(fit$effect_modifier)) {
+    return(stratum_specific_or_result(
+      fit,
+      model = fit$model,
+      conf_level = conf_level,
+      ci_method = ci_method,
+      # coxph's nobs() counts events; the analysis size is the rows used (`$n`).
+      n = fit$model$n,
+      call = call
+    ))
   }
 
   conditional_or_result(

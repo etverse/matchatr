@@ -1,5 +1,43 @@
 # matchatr (development version)
 
+## 2026-06-03 — Effect modification in matched case-control (PHASE_3 Chunk 3)
+
+Completes the matched case-control layer with stratum-specific odds ratios.
+Passing `effect_modifier = "m"` to `matcha(estimator = "clogit")` fits
+`outcome ~ exposure * m + confounders + strata(set)`, and `contrast(type = "or")`
+reports the exposure's conditional odds ratio within each modifier level — the
+exposure main coefficient `beta_x` at the modifier's reference level and the
+linear combination `beta_x + beta_{x:level}` elsewhere — with Wald intervals
+from the joint partial-likelihood variance (so the per-level SE accounts for the
+main–interaction covariance). The new `R/effect_modification.R`
+(`stratum_specific_or_result()`) assembles the per-level ORs via a contrast
+matrix `C V C'`; the modifier may coincide with a matching variable, which is
+the canonical use (does the exposure effect differ across the matching factor?).
+
+- Supported for a single-coefficient exposure (binary, continuous, or two-level
+  factor) crossed with a categorical (logical / character / factor) modifier; a
+  character / logical modifier is coerced to a factor. A 3+-level factor exposure
+  is `matchatr_unsupported_combination`, a continuous (numeric) modifier or a
+  non-`clogit` engine is `matchatr_bad_input`, a modifier coinciding with the
+  outcome / exposure is `matchatr_bad_input`, and an aliased per-level
+  interaction is `matchatr_unestimable_exposure`. RD / RR stay unidentified and
+  sandwich / bootstrap intervals remain declined.
+- Validated three ways: the within-level 1:1 McNemar closed form pins both the
+  per-level point estimate (`OR = n10/n01`) and the linear-combination variance
+  (`Var(log OR) = 1/n10 + 1/n01`) independently of `survival::clogit`;
+  hand-built `survival::clogit` linear combinations check forwarding, the level
+  labelling, and the interaction-column ordering for a three-level modifier with
+  covariate adjustment; and a truth DGP with known per-level conditional log-ORs
+  confirms recovery within a self-scaling SE band.
+- M:1-with-covariates and variable-ratio matching needed no new code (the
+  conditional likelihood handles any matched-set composition); their truth-based
+  cells were already covered by Chunk 1's `clogit` engine.
+- The effect modifier is `droplevels()`'d before fitting: a modifier factor
+  carrying an unused (zero-observation) level previously added an all-zero
+  interaction column aliased to `NA` and aborted the whole stratum-specific OR
+  as unestimable. Unused levels are now dropped (preserving the order of the
+  remaining declared levels, so a user-set reference is kept).
+
 ## 2026-06-03 — McNemar 1:1 matched-pair odds ratio (PHASE_3 Chunk 2)
 
 Adds the closed-form 1:1 estimator alongside the conditional logistic engine.

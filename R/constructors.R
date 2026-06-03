@@ -18,6 +18,9 @@
 #' @param estimator Character scalar estimator name.
 #' @param engine Character scalar engine key the (design, estimator) pair
 #'   resolved to.
+#' @param effect_modifier Character scalar naming the categorical effect-modifier
+#'   column whose levels modify the exposure effect, or `NULL` for no effect
+#'   modification.
 #' @param details Named list of estimator/design metadata. Reserves
 #'   `variance_kind`, `cc_weights`, and `design_weights` — the case-control
 #'   weights and design (inclusion-probability) weights are kept in distinct
@@ -35,6 +38,7 @@ new_matchatr_fit <- function(
   design,
   estimator,
   engine,
+  effect_modifier = NULL,
   details = list(),
   call = NULL
 ) {
@@ -48,6 +52,7 @@ new_matchatr_fit <- function(
       design = design,
       estimator = estimator,
       engine = engine,
+      effect_modifier = effect_modifier,
       details = details,
       call = call
     ),

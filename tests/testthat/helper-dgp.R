@@ -185,6 +185,56 @@ make_matched_cc <- function(
   })
 }
 
+# Truth-based DGP for effect modification in matched case-control data. Each
+# matched set has `ratio` controls and one case, drawn from the CONDITIONAL
+# likelihood with a per-member selection weight exp(x * beta_{m}), so the
+# exposure's conditional log-OR is `betas[level]` within each modifier level
+# `m`. The conditional logistic model `case ~ x * m + strata(set)` therefore
+# recovers beta_x = betas[ref] and beta_x + beta_{x:level} = betas[level].
+#
+# `within_set = FALSE` makes the modifier CONSTANT within each set (the modifier
+# is itself a matching variable): the sets split into disjoint groups by level
+# and, for 1:1 matching, each level's conditional likelihood reduces to McNemar
+# on that level's discordant pairs -- the independent point + variance oracle.
+# `within_set = TRUE` lets the modifier vary within a set, so its main effect is
+# estimable (not aliased) and the more general interaction path is exercised.
+# Columns: case (0/1), x (0/1 exposure), m (factor modifier), set (matched-set
+# id). The true per-level log-ORs are returned in the "truth" attribute.
+make_matched_cc_em <- function(
+  n_sets = 300L,
+  ratio = 1L,
+  betas = c(a = log(2), b = log(5)),
+  within_set = FALSE,
+  seed = 41L
+) {
+  levs <- names(betas)
+  m_size <- ratio + 1L
+  out <- withr::with_seed(seed, {
+    parts <- lapply(seq_len(n_sets), function(i) {
+      mod <- if (within_set) {
+        sample(levs, m_size, replace = TRUE)
+      } else {
+        rep(sample(levs, 1L), m_size)
+      }
+      # Set-level exposure prevalence (the matched-away nuisance).
+      p_i <- stats::plogis(stats::rnorm(1, 0, 1))
+      x <- stats::rbinom(m_size, 1L, p_i)
+      # Conditional-likelihood case selection with a level-specific exposure
+      # weight, giving x a known conditional log-OR within each modifier level.
+      w <- exp(x * betas[mod])
+      case_idx <- sample.int(m_size, 1L, prob = w)
+      case <- integer(m_size)
+      case[case_idx] <- 1L
+      data.frame(case = case, x = x, m = mod, set = i, stringsAsFactors = FALSE)
+    })
+    do.call(rbind, parts)
+  })
+  rownames(out) <- NULL
+  out$m <- factor(out$m, levels = levs)
+  attr(out, "truth") <- betas
+  out
+}
+
 # A deterministic 2x2 case-control table as a data frame, for the closed-form
 # odds-ratio / Woolf-variance oracle. With these cell counts the OR is exactly
 # (n11 * n00) / (n10 * n01) = (60 * 70) / (40 * 30) = 3.5, and a saturated

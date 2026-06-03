@@ -86,17 +86,20 @@ S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
 
 ## Matched case-control (PHASE_3)
 
-**Chunks 1–2 implemented — conditional logistic regression + McNemar 1:1.**
+**Chunks 1–3 implemented — the matched case-control layer is complete.**
 `matcha(design = matched_cc(strata = ...), estimator = "clogit")` fits the
 matched case-control conditional maximum likelihood via `survival::clogit`
 (`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum),
 and `contrast(type = "or")` reports the exposure's conditional odds ratio with a
 partial-likelihood-information Wald interval. `estimator = "mcnemar"` computes the
 1:1 matched-pair OR = n10/n01 with Var(log OR) = 1/n10 + 1/n01 in closed form
-(no `clogit`), rejecting M:1 / richer matching toward `clogit`. The matching
+(no `clogit`), rejecting M:1 / richer matching toward `clogit`. Adding
+`effect_modifier = "m"` fits `outcome ~ exposure * m + ... + strata(set)` and
+reports the exposure's **stratum-specific** conditional OR within each modifier
+level (`beta_x` at the reference level, `beta_x + beta_{x:level}` elsewhere,
+Wald intervals from the joint partial-likelihood variance). The matching
 variables are conditioned away (no estimable coefficient); only the exposure /
-adjustment ORs are reported. Effect modification / explicit variable-ratio
-handling (Chunk 3) remains pending.
+adjustment / interaction ORs are reported.
 
 | Matching | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -109,6 +112,14 @@ handling (Chunk 3) remains pending.
 | M:1 + non-matching covariate | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP (recovers adjusted β) + `survival::clogit` pass-through | `test-clogit.R` |
 | factor exposure (per-level) | clogit | cond. OR per level | OR | partial-lik info | ✅ vs `survival::clogit` (+ reference) | `test-clogit.R` |
 | multi-column strata (frequency matching) | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` (crossed strata) | `test-clogit.R` |
+| effect modifier (`x:m`), modifier = matching var (1:1) | clogit | stratum-specific OR | OR | partial-lik info | ✅ within-level McNemar: OR **and** Var(log OR) per level (independent of clogit) | `test-effect_modification.R` |
+| effect modifier (`x:m`), multi-level + adjustment (M:1) | clogit | stratum-specific OR | OR | partial-lik info | ✅ hand-built `survival::clogit` linear combos (point/SE/CI) + truth DGP | `test-effect_modification.R` |
+| effect modifier, character / logical coercion | clogit | stratum-specific OR | OR | partial-lik info | ✅ == factor coding | `test-effect_modification.R` |
+| effect modifier on non-clogit engine | — | — | — | — | ⛔ `matchatr_bad_input` | `test-effect_modification.R` |
+| continuous / numeric effect modifier | clogit | — | — | — | ⛔ `matchatr_bad_input` (bin / `factor()`) | `test-effect_modification.R` |
+| effect modifier = outcome / exposure | clogit | — | — | — | ⛔ `matchatr_bad_input` | `test-effect_modification.R` |
+| effect modifier + 3+-level factor exposure | clogit | — | — | — | ⛔ `matchatr_unsupported_combination` | `test-effect_modification.R` |
+| effect modifier, aliased per-level interaction | clogit | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-effect_modification.R` |
 | unconditional 1:1 MLE (OR² bias) | — | — | — | — | ✅ pins invariant: unconditional β = 2 × conditional (McNemar) β | `test-mcnemar.R` |
 | clogit | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-clogit.R` |
 | clogit OR | — | OR | — | sandwich / bootstrap | ⛔ `matchatr_unsupported_variance` | `test-clogit.R` |
@@ -126,8 +137,13 @@ The conditional OR assembly is shared with the unmatched logistic engine via
 on the log scale, exponentiated). `tidy()` renders the per-term OR table (no
 intercept row). The McNemar 1:1 closed form (`estimator = "mcnemar"`) lives in
 its own engine (`R/mcnemar.R`, mirroring the Mantel-Haenszel closed form) and
-reports through the shared `matchatr_result` contract. Effect modification across
-strata and explicit variable-ratio handling are pending Chunk 3.
+reports through the shared `matchatr_result` contract. Effect modification
+(`R/effect_modification.R`, `stratum_specific_or_result()`) builds the per-level
+exposure log OR as a linear combination of the `exposure * modifier`
+coefficients and reads its variance from the joint partial-likelihood vcov; M:1
+and variable-ratio matching need no special handling because the conditional
+likelihood treats any matched-set composition uniformly (truth-tested in
+`test-clogit.R`).
 
 ## Multiple case / control groups (PHASE_4)
 
