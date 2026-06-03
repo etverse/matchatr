@@ -298,6 +298,26 @@ term_assign <- function(model) {
   }
 }
 
+#' Positions of the parametric (fixed-effect) coefficients
+#'
+#' The coefficient positions a tidy / summary table should report. An
+#' `mgcv::gam` keeps its `nsdf` parametric coefficients first, followed by
+#' smooth-basis coefficients (`s(age).1`, ...) that are penalized basis weights,
+#' not odds ratios; those are excluded. Any other fit (e.g. `glm`) is fully
+#' parametric.
+#'
+#' @param model A fitted model (e.g. `glm`, `mgcv::gam`).
+#' @returns An integer vector of positions in `coef(model)`.
+#' @family estimators
+#' @noRd
+parametric_positions <- function(model) {
+  if (!is.null(model$nsdf)) {
+    seq_len(model$nsdf)
+  } else {
+    seq_along(stats::coef(model))
+  }
+}
+
 #' Locate the coefficient(s) belonging to the exposure term
 #'
 #' Maps the exposure to its coefficient position(s) via the parametric term

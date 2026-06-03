@@ -18,6 +18,10 @@ Follow-up fixes from an adversarial review of the categorical/GAM exposure work.
   (`matchatr_bad_input`) instead of at `contrast()` time, so no model is fit and
   no spurious missing-data warning is emitted for an analysis that cannot yield a
   per-level OR.
+- `tidy()` / `summary()` on a GAM fit now report only the parametric
+  coefficients. Previously the smooth-basis terms (`s(age).1`, ...) were listed
+  as rows and, with `exponentiate = TRUE`, their `exp()` was reported as an
+  "odds ratio" with a Wald p-value — penalized basis weights are neither.
 
 ## 2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)
 

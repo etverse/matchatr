@@ -16,7 +16,10 @@ generics::tidy
 #' the confidence bounds are exponentiated while `std.error` stays on the
 #' log-odds scale (the broom convention). The intercept row is included but is
 #' not an interpretable baseline risk: under separate case / control sampling it
-#' is offset by the log sampling-fraction ratio (Prentice & Pyke, 1979).
+#' is offset by the log sampling-fraction ratio (Prentice & Pyke, 1979). Only the
+#' parametric coefficients are reported: when the fit is an `mgcv::gam`, the
+#' smooth-basis terms (`s(age).1`, ...) are penalized basis weights, not odds
+#' ratios, and are excluded.
 #'
 #' @param x A `matchatr_fit` whose `model` is a fitted binomial `glm`.
 #' @param conf.int Logical; add `conf.low` / `conf.high` Wald bounds. Default
@@ -49,15 +52,21 @@ tidy.matchatr_fit <- function(
   check_conf_level(conf.level)
 
   model <- x$model
-  beta <- stats::coef(model)
+  beta_all <- stats::coef(model)
   # Align the SEs to the coefficient vector by POSITION: coefficient names can
   # collide (factor x level concatenation), and the model vcov keeps aliased
   # rows while the sandwich drops them. estimable_vcov() returns the estimable
   # variance with positions, so aliased coefficients get an NA SE (never a
   # silently recycled or borrowed value).
   ev <- estimable_vcov(model, robust = robust)
-  se <- rep(NA_real_, length(beta))
-  se[ev$est_pos] <- sqrt(diag(ev$vcov))
+  se_all <- rep(NA_real_, length(beta_all))
+  se_all[ev$est_pos] <- sqrt(diag(ev$vcov))
+
+  # Report only the parametric coefficients: a GAM fit's smooth-basis terms
+  # (e.g. `s(age).1`) are penalized basis weights, not odds ratios.
+  pp <- parametric_positions(model)
+  beta <- beta_all[pp]
+  se <- se_all[pp]
   # Wald z-statistic and two-sided p-value on the log-odds scale.
   z_stat <- unname(beta) / se
   z <- stats::qnorm(1 - (1 - conf.level) / 2)

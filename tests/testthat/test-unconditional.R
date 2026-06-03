@@ -296,6 +296,25 @@ test_that("model_fn = gam with a smooth confounder runs under both CI methods", 
   expect_true(all(res_s$contrasts$se > 0))
 })
 
+test_that("tidy / summary on a gam fit exclude smooth-basis coefficients", {
+  skip_if_not_installed("mgcv")
+  df <- make_categorical_cc()
+  fit <- matcha(
+    df,
+    "case",
+    "x",
+    unmatched_cc(),
+    confounders = ~ s(age),
+    model_fn = mgcv::gam
+  )
+  td <- tidy(fit)
+  # Only parametric terms (intercept + the two exposure levels); no `s(age).k`.
+  expect_setequal(td$term, c("(Intercept)", "xmed", "xhigh"))
+  expect_false(any(grepl("^s\\(age\\)", td$term)))
+  # Parametric SEs are finite (not a recycled / NA artefact).
+  expect_true(all(is.finite(td$std.error)))
+})
+
 # Book value: the Ille-et-Vilaine esophageal-cancer case-control data (handbook
 # Ch3). A categorical alcohol exposure adjusted for age and tobacco reproduces
 # the canonical monotone dose-response, matching glm on the same expanded data.
