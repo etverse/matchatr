@@ -164,7 +164,7 @@ contrast_logistic <- function(
   # Two-sided Wald critical value for the requested confidence level.
   z <- stats::qnorm(1 - (1 - conf_level) / 2)
 
-  idx <- exposure_coef_index(model, fit$exposure, fit$data, call = call)
+  idx <- exposure_coef_index(model, fit$exposure, call = call)
   term_labels <- names(beta)[idx]
   b <- unname(beta[idx])
   # A constant or collinear exposure is aliased to NA by glm: it has no
@@ -185,15 +185,15 @@ contrast_logistic <- function(
     )
   }
 
-  # Index the variance by coefficient NAME, not position: the model vcov keeps
-  # aliased rows while the sandwich drops them, so a positional index into
-  # `diag(vcov)` would misalign once any earlier term is aliased.
-  # `estimable_vcov()` reduces both sources to the estimable set, and the
-  # (non-aliased) exposure terms are guaranteed present after the guard above.
-  vcov_exp <- estimable_vcov(
-    model,
-    robust = identical(ci_method, "sandwich")
-  )[term_labels, term_labels, drop = FALSE]
+  # Index the variance by POSITION, not coefficient name: names can collide
+  # (factor x level concatenation) and the model vcov keeps aliased rows while
+  # the sandwich drops them. `estimable_vcov()` returns the variance over the
+  # estimable coefficients with their positions (`est_pos`); the exposure
+  # coefficients are non-aliased (guard above), so each maps into that set.
+  ev <- estimable_vcov(model, robust = identical(ci_method, "sandwich"))
+  sel <- match(idx, ev$est_pos)
+  vcov_exp <- ev$vcov[sel, sel, drop = FALSE]
+  dimnames(vcov_exp) <- list(term_labels, term_labels)
   s <- unname(sqrt(diag(vcov_exp)))
   log_lower <- b - z * s
   log_upper <- b + z * s
@@ -235,101 +235,101 @@ contrast_logistic <- function(
   )
 }
 
-#' Variance-covariance of the estimable coefficients
+#' Variance-covariance of the estimable coefficients, by position
 #'
-#' Returns the model information-matrix or Huber-White sandwich
-#' variance-covariance matrix restricted to the *estimable* coefficients — those
-#' [stats::coef()] does not set to `NA` for a rank-deficient / aliased fit —
-#' indexed by coefficient name. `stats::vcov()` keeps aliased rows (carrying
-#' `NA`) while `sandwich::sandwich()` drops them, so a positional index into one
-#' would misalign against the other; reducing both to the same estimable set and
-#' indexing by name avoids that.
+#' Returns the model information-matrix or Huber-White sandwich variance over the
+#' *estimable* coefficients (those [stats::coef()] does not set to `NA` for a
+#' rank-deficient / aliased fit), together with their positions in the full
+#' coefficient vector. `stats::vcov()` keeps aliased rows (carrying `NA`) while
+#' `sandwich::sandwich()` drops them; both are reduced to the estimable set here,
+#' whose rows correspond — *in order* — to the returned `est_pos`. Callers index
+#' by position rather than by name, because `glm` permits non-unique coefficient
+#' names (a `factor x level` concatenation can collide, e.g. `ses`+`low` equals
+#' `se`+`slow`), which makes name indexing ambiguous.
 #'
-#' @param model A fitted model (e.g. `glm`).
+#' @param model A fitted model (e.g. `glm`, `mgcv::gam`).
 #' @param robust Logical; use the Huber-White sandwich
 #'   ([sandwich::sandwich()]) instead of the model information matrix.
-#' @returns A named numeric matrix over the estimable coefficients.
+#' @returns A list with `est_pos` (integer positions of the estimable
+#'   coefficients in `coef(model)`) and `vcov` (their variance matrix, rows
+#'   aligned to `est_pos`).
 #' @family estimators
 #' @noRd
 estimable_vcov <- function(model, robust = FALSE) {
   beta <- stats::coef(model)
-  estimable <- names(beta)[!is.na(beta)]
-  v <- if (isTRUE(robust)) {
+  est_pos <- which(!is.na(beta))
+  vcov_mat <- if (isTRUE(robust)) {
+    # sandwich() already excludes aliased coefficients, in coefficient order.
     sandwich::sandwich(model)
   } else {
-    stats::vcov(model)
+    stats::vcov(model)[est_pos, est_pos, drop = FALSE]
   }
-  v[estimable, estimable, drop = FALSE]
+  list(est_pos = est_pos, vcov = vcov_mat)
+}
+
+#' Parametric term -> coefficient assignment, across fitters
+#'
+#' Maps the parametric model terms to the positions of the coefficients they
+#' contribute, using term *position* (collision-free) rather than reconstructed
+#' names. A `glm`/`lm` exposes this via the `model.matrix` `assign` attribute and
+#' `terms()`; an `mgcv::gam` keeps its parametric coefficients first and stores
+#' their term map in `model$assign` against `model$pterms` (the smooth-basis
+#' coefficients have no parametric term and are excluded).
+#'
+#' @param model A fitted model (e.g. `glm`, `mgcv::gam`).
+#' @returns A list with `assign` (integer term index per parametric coefficient,
+#'   `0` for the intercept) and `labels` (the parametric `term.labels`). The
+#'   `assign` vector aligns with the leading coefficients of `coef(model)`.
+#' @family estimators
+#' @noRd
+term_assign <- function(model) {
+  if (!is.null(model$assign) && !is.null(model$pterms)) {
+    # mgcv::gam: parametric coefficients lead coef(model); $assign maps them to
+    # $pterms, and the trailing smooth-basis coefficients are left unmapped.
+    list(
+      assign = model$assign,
+      labels = attr(model$pterms, "term.labels")
+    )
+  } else {
+    list(
+      assign = attr(stats::model.matrix(model), "assign"),
+      labels = attr(stats::terms(model), "term.labels")
+    )
+  }
 }
 
 #' Locate the coefficient(s) belonging to the exposure term
 #'
-#' Maps the exposure column to its coefficient position(s) by NAME, derived from
-#' the exposure's storage type rather than from a model-internal `assign`
-#' attribute, so it works uniformly across fitters (a `glm` and an `mgcv::gam`
-#' do not expose the same `model.matrix` `assign`). A numeric / logical exposure
-#' contributes the single coefficient named after the column; an (unordered)
-#' factor with levels `l1, ..., lk` contributes `paste0(exposure, l2..lk)` (the
-#' reference level `l1` has no coefficient). A binary or continuous exposure is
-#' the one-coefficient special case.
-#'
-#' An *ordered* factor is rejected: `glm`/`gam` fit it with polynomial contrasts
-#' (`.L`, `.Q`, ...), whose coefficients are not per-level odds ratios. The
-#' caller should pass a numeric score (for a trend OR) or an unordered factor
-#' (for per-level ORs).
+#' Maps the exposure to its coefficient position(s) via the parametric term
+#' assignment ([term_assign()]), i.e. by term *position*, so it is collision-free
+#' even when `glm` produces non-unique coefficient names from `factor x level`
+#' concatenation (e.g. exposure `ses`+`low` shares the name `"seslow"` with a
+#' confounder `se`+`slow`). The intercept is never returned, and the
+#' approach works uniformly for a binary, continuous, or (unordered) factor
+#' exposure across `glm` and `mgcv::gam`.
 #'
 #' @param model A fitted model (e.g. `glm`, `mgcv::gam`).
-#' @param exposure Character scalar exposure column name.
-#' @param data The analysis data, used to read the exposure's type / levels.
+#' @param exposure Character scalar exposure column name; it must enter the
+#'   model as a parametric main-effect term.
 #' @param call Caller environment surfaced in the error.
-#' @returns An integer vector of coefficient indices for the exposure term;
-#'   aborts with `matchatr_bad_input` if the exposure is an ordered factor or
-#'   contributes no coefficient.
+#' @returns An integer vector of coefficient positions (in `coef(model)`) for
+#'   the exposure term; aborts with `matchatr_bad_input` if the exposure is not
+#'   a parametric main-effect term.
 #' @family estimators
 #' @noRd
-exposure_coef_index <- function(
-  model,
-  exposure,
-  data,
-  call = rlang::caller_env()
-) {
-  exposure_col <- data[[exposure]]
-  if (is.factor(exposure_col) && is.ordered(exposure_col)) {
-    rlang::abort(
-      c(
-        paste0(
-          "Exposure `",
-          exposure,
-          "` is an ordered factor, which is fit with polynomial contrasts ",
-          "(not per-level odds ratios)."
-        ),
-        i = "Pass a numeric score for a trend OR, or an unordered factor for per-level ORs."
-      ),
-      class = c("matchatr_bad_input", "matchatr_error"),
-      call = call
-    )
-  }
-
-  coef_names <- names(stats::coef(model))
-  # Coefficient name(s) the exposure column contributes: the bare column name
-  # for numeric / logical, or `paste0(exposure, level)` for each factor level
-  # (the reference level produces no coefficient, so it simply does not match).
-  candidates <- if (is.factor(exposure_col)) {
-    paste0(exposure, levels(exposure_col))
-  } else {
-    exposure
-  }
-  idx <- which(coef_names %in% candidates)
-  if (length(idx) == 0L) {
+exposure_coef_index <- function(model, exposure, call = rlang::caller_env()) {
+  ta <- term_assign(model)
+  pos <- match(exposure, ta$labels)
+  if (is.na(pos)) {
     rlang::abort(
       paste0(
         "Exposure `",
         exposure,
-        "` contributes no coefficient to the fitted model."
+        "` is not a parametric main-effect term in the fitted model."
       ),
       class = c("matchatr_bad_input", "matchatr_error"),
       call = call
     )
   }
-  idx
+  which(ta$assign == pos)
 }

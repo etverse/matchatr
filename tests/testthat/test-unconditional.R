@@ -180,6 +180,41 @@ test_that("a categorical (k>2) exposure yields one OR per non-reference level", 
   )
 })
 
+test_that("colliding factor-level coefficient names do not corrupt the OR", {
+  # Exposure `ses` level `low` and confounder `se` level `slow` both produce the
+  # glm coefficient name "seslow". The exposure OR / SE must be the `ses` term's,
+  # selected by term position, not by the colliding coefficient name.
+  withr::with_seed(2, {
+    n <- 4000
+    ses <- factor(sample(c("high", "low"), n, TRUE), levels = c("high", "low"))
+    se <- factor(sample(c("fast", "slow"), n, TRUE), levels = c("fast", "slow"))
+    case <- rbinom(
+      n,
+      1,
+      plogis(-1 + 0.8 * (ses == "low") + 1.5 * (se == "slow"))
+    )
+  })
+  df <- data.frame(case = case, ses = ses, se = se)
+  fit <- matcha(df, "case", "ses", unmatched_cc(), confounders = ~se)
+  res <- contrast(fit, type = "or")
+
+  expect_equal(nrow(res$contrasts), 1L) # only the ses effect, not se
+  oracle <- stats::glm(case ~ ses + se, stats::binomial(), df)
+  ses_idx <- which(attr(stats::model.matrix(oracle), "assign") == 1L)
+  expect_equal(
+    res$contrasts$estimate,
+    unname(exp(stats::coef(oracle)[ses_idx])),
+    tolerance = 1e-10
+  )
+  # tidy() gives each colliding "seslow" its own (position-based) SE, not an NA
+  # or a value borrowed from the first match.
+  td <- tidy(fit)
+  seslow_se <- td$std.error[td$term == "seslow"]
+  expect_equal(length(seslow_se), 2L)
+  expect_false(anyNA(seslow_se))
+  expect_false(isTRUE(all.equal(seslow_se[1], seslow_se[2])))
+})
+
 test_that("an ordinal numeric exposure yields a single per-step trend OR", {
   df <- make_categorical_cc()
   # Integer scores 0/1/2 -> a single trend OR per one-level step.
@@ -198,9 +233,12 @@ test_that("an ordinal numeric exposure yields a single per-step trend OR", {
 test_that("an ordered-factor exposure is rejected with guidance", {
   df <- make_categorical_cc()
   df$x <- factor(df$x, ordered = TRUE)
-  fit <- matcha(df, "case", "x", unmatched_cc())
-  # Polynomial contrasts are not per-level ORs; refuse and point to the fix.
-  expect_error(contrast(fit, type = "or"), class = "matchatr_bad_input")
+  # Polynomial contrasts are not per-level ORs; refuse before fitting (so no
+  # wasted fit or misleading missing-data warning), pointing to the fix.
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc()),
+    class = "matchatr_bad_input"
+  )
 })
 
 test_that("model_fn must be a function", {
@@ -485,9 +523,8 @@ test_that("logistic-contrast rejections read clearly", {
     error = TRUE
   )
 
-  # Ordered-factor exposure: the guidance message is user-facing.
+  # Ordered-factor exposure: rejected at fit time; the guidance is user-facing.
   dord <- make_categorical_cc()
   dord$x <- factor(dord$x, ordered = TRUE)
-  fit_ord <- matcha(dord, "case", "x", unmatched_cc())
-  expect_snapshot(contrast(fit_ord, type = "or"), error = TRUE)
+  expect_snapshot(matcha(dord, "case", "x", unmatched_cc()), error = TRUE)
 })

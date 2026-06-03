@@ -129,6 +129,9 @@ matcha <- function(
   # Every named column must exist before we touch its values.
   check_cols_exist(dt, outcome, arg = "outcome")
   check_cols_exist(dt, exposure, arg = "exposure")
+  # matchatr reports per-level / single-variable effects; an ordered-factor
+  # exposure (polynomial contrasts) is rejected up front.
+  check_exposure_not_ordered(dt, exposure)
   if (!is.null(confounders)) {
     # all.vars() strips transforms (`I(age^2)` -> `age`) to plain names.
     check_cols_exist(dt, all.vars(confounders), arg = "confounders")

@@ -1,5 +1,24 @@
 # matchatr (development version)
 
+## 2026-06-03 — PHASE_2 Chunk 2 critical-review fixes
+
+Follow-up fixes from an adversarial review of the categorical/GAM exposure work.
+
+- Exposure-coefficient extraction is now by term *position* (collision-free)
+  rather than by reconstructed coefficient name. `glm` permits non-unique
+  coefficient names from `factor x level` concatenation — e.g. exposure `ses`
+  level `low` and confounder `se` level `slow` both yield `"seslow"` — and the
+  previous name-based selection could grab the confounder's coefficient as a
+  spurious second exposure OR, while name-based SE indexing returned the wrong
+  (first-match) or `NA` standard error. Variance is now indexed by position via
+  a unified `term_assign()` (glm `model.matrix` assign / gam `$assign` + `$pterms`)
+  and a position-based `estimable_vcov()`, robust to both name collisions and
+  aliasing.
+- An ordered-factor exposure is now rejected up front in `matcha()`
+  (`matchatr_bad_input`) instead of at `contrast()` time, so no model is fit and
+  no spurious missing-data warning is emitted for an analysis that cannot yield a
+  per-level OR.
+
 ## 2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)
 
 Extends the unmatched case-control logistic engine to every exposure type.

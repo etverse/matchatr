@@ -30,9 +30,9 @@
 ---
 
     Code
-      contrast(fit_ord, type = "or")
+      matcha(dord, "case", "x", unmatched_cc())
     Condition
-      Error in `contrast()`:
+      Error in `matcha()`:
       ! Exposure `x` is an ordered factor, which is fit with polynomial contrasts (not per-level odds ratios).
       i Pass a numeric score for a trend OR, or an unordered factor for per-level ORs.
 

@@ -294,6 +294,47 @@ check_role_collisions <- function(
   invisible(NULL)
 }
 
+#' Reject an ordered-factor exposure
+#'
+#' matchatr reports the exposure as a single effect (continuous / trend) or one
+#' odds ratio per level (unordered factor). An *ordered* factor is fit by
+#' `glm` / `mgcv::gam` with polynomial contrasts (`.L`, `.Q`, ...), whose
+#' coefficients are not per-level odds ratios, so it is rejected at the
+#' user-facing entry point rather than silently producing polynomial-contrast
+#' "ORs".
+#'
+#' @param data A data.frame or data.table.
+#' @param exposure Character scalar exposure column name (already validated to
+#'   exist).
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` when the
+#'   exposure column is an ordered factor.
+#' @family validators
+#' @noRd
+check_exposure_not_ordered <- function(
+  data,
+  exposure,
+  call = rlang::caller_env()
+) {
+  col <- data[[exposure]]
+  if (is.factor(col) && is.ordered(col)) {
+    rlang::abort(
+      c(
+        paste0(
+          "Exposure `",
+          exposure,
+          "` is an ordered factor, which is fit with polynomial contrasts ",
+          "(not per-level odds ratios)."
+        ),
+        i = "Pass a numeric score for a trend OR, or an unordered factor for per-level ORs."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Coerce a case-status column to a 0/1 integer vector
 #'
 #' Case-control, nested case-control, and case-cohort designs all have a
