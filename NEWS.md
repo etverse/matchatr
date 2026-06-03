@@ -32,6 +32,11 @@ the canonical use (does the exposure effect differ across the matching factor?).
 - M:1-with-covariates and variable-ratio matching needed no new code (the
   conditional likelihood handles any matched-set composition); their truth-based
   cells were already covered by Chunk 1's `clogit` engine.
+- The effect modifier is `droplevels()`'d before fitting: a modifier factor
+  carrying an unused (zero-observation) level previously added an all-zero
+  interaction column aliased to `NA` and aborted the whole stratum-specific OR
+  as unestimable. Unused levels are now dropped (preserving the order of the
+  remaining declared levels, so a user-set reference is kept).
 
 ## 2026-06-03 — McNemar 1:1 matched-pair odds ratio (PHASE_3 Chunk 2)
 

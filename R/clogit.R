@@ -83,13 +83,16 @@ fit_clogit <- function(fit) {
     termlabels = c(exposure_term, conf_terms, strata_term),
     response = fit$outcome
   )
-  # Fit on a copy whose modifier is coerced to a factor: per-level odds ratios
-  # need discrete levels (and the model's `xlevels`), so a character / logical
-  # modifier becomes a factor while a column already a factor is left untouched.
+  # Fit on a copy whose modifier is coerced to a factor with its unused levels
+  # dropped: per-level odds ratios need discrete levels (and the model's
+  # `xlevels`), and an empty/unused factor level would otherwise contribute an
+  # all-zero interaction column aliased to NA, which would wrongly mark the
+  # whole stratum-specific OR unestimable. droplevels() keeps the order of the
+  # remaining declared levels, so a user-set reference level is preserved.
   fit_data <- fit$data
   em <- fit$effect_modifier
-  if (!is.null(em) && !is.factor(fit_data[[em]])) {
-    fit_data[[em]] <- factor(fit_data[[em]])
+  if (!is.null(em)) {
+    fit_data[[em]] <- droplevels(as.factor(fit_data[[em]]))
   }
   # `clogit` rewrites its own call to an unqualified `coxph(Surv(...) ~ ... +
   # strata(...))` and evaluates it in this frame, so those three survival names

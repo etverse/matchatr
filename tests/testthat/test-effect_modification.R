@@ -174,6 +174,48 @@ test_that("a character modifier gives the same ORs as the equivalent factor", {
   expect_equal(res_c$estimates$se, res_f$estimates$se)
 })
 
+# --- an unused modifier level is dropped, not fatal --------------------------
+
+# Critical-review-loop (2026-06-03, Issue #1; repro
+# /tmp/matchatr_repro_unused_level.R). A modifier factor carrying an unused
+# (zero-observation) level used to add an all-zero interaction column aliased to
+# NA, which aborted the WHOLE contrast as unestimable. The modifier is now
+# droplevels()'d before fitting, so the observed levels estimate as if the empty
+# level were never declared.
+test_that("an unused modifier factor level is dropped, not treated as fatal", {
+  df <- make_matched_cc_em(n_sets = 300L, ratio = 1L, within_set = FALSE)
+  df_extra <- df
+  # Declare a third level "c" that no row uses.
+  df_extra$m <- factor(as.character(df_extra$m), levels = c("a", "b", "c"))
+  res_extra <- contrast(
+    matcha(
+      df_extra,
+      "case",
+      "x",
+      matched_cc(strata = "set"),
+      effect_modifier = "m",
+      estimator = "clogit"
+    ),
+    type = "or"
+  )
+  res_clean <- contrast(
+    matcha(
+      df,
+      "case",
+      "x",
+      matched_cc(strata = "set"),
+      effect_modifier = "m",
+      estimator = "clogit"
+    ),
+    type = "or"
+  )
+  # Only the two observed levels are reported, identical to the no-empty-level
+  # fit -- the phantom level neither adds a row nor poisons the estimate.
+  expect_identical(res_extra$contrasts$comparison, c("x | m = a", "x | m = b"))
+  expect_equal(res_extra$contrasts$estimate, res_clean$contrasts$estimate)
+  expect_equal(res_extra$estimates$se, res_clean$estimates$se)
+})
+
 # --- result structure / labels -----------------------------------------------
 
 test_that("the effect-modification result is labelled and shaped correctly", {
