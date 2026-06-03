@@ -1,5 +1,26 @@
 # matchatr (development version)
 
+## 2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)
+
+Extends the unmatched case-control logistic engine to every exposure type.
+
+- **Categorical (k>2) exposure**: a factor exposure now yields one odds ratio per
+  non-reference level; `contrast()` returns k-1 rows and the result records the
+  factor's reference level (`result$reference`).
+- **Ordinal trend**: an ordinal exposure entered as a numeric score yields a
+  single per-step trend OR.
+- **Pluggable fitter**: `matcha(..., model_fn = )` selects the logistic fitter
+  (default `stats::glm`); e.g. `model_fn = mgcv::gam` with `confounders = ~ s(age)`
+  adjusts for a confounder with a smooth term while the exposure stays parametric
+  with an interpretable OR. Exposure-coefficient extraction is now by name, so it
+  works across `glm` and `gam`.
+- **Ordered-factor exposure rejected** (`matchatr_bad_input`): `glm`/`gam` fit it
+  with polynomial contrasts (`.L`, `.Q`, ...), which are not per-level ORs; the
+  error points to a numeric score (trend) or an unordered factor (per-level).
+- Validated against `stats::glm` for every exposure type, and against the
+  Ille-et-Vilaine **`esoph`** case-control data (handbook Ch3): the categorical
+  alcohol ORs reproduce the canonical monotone dose-response.
+
 ## 2026-06-02 — PHASE_2 Chunk 1 critical-review fixes
 
 Follow-up fixes from an adversarial review of the unmatched case-control

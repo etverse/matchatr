@@ -27,3 +27,12 @@
       ! Bootstrap confidence intervals are not provided for the conditional odds ratio.
       i Use `ci_method = "model"` (Wald) or `ci_method = "sandwich"` (robust).
 
+---
+
+    Code
+      contrast(fit_ord, type = "or")
+    Condition
+      Error in `contrast()`:
+      ! Exposure `x` is an ordered factor, which is fit with polynomial contrasts (not per-level odds ratios).
+      i Pass a numeric score for a trend OR, or an unordered factor for per-level ORs.
+

@@ -4,7 +4,15 @@
 \alias{matcha}
 \title{Fit a case-control-type design}
 \usage{
-matcha(data, outcome, exposure, design, confounders = NULL, estimator = NULL)
+matcha(
+  data,
+  outcome,
+  exposure,
+  design,
+  confounders = NULL,
+  estimator = NULL,
+  model_fn = NULL
+)
 }
 \arguments{
 \item{data}{A data.frame or data.table. Not mutated; a data.table copy is
@@ -28,6 +36,12 @@ design's canonical default. Classical choices are design-specific
 \code{"cch"} for case-cohort); the case-control-weighted causal estimators
 \code{"ccw_gformula"}, \code{"ccw_ipw"}, \code{"ccw_aipw"}, \code{"ccw_tmle"} apply to any
 design but require a prevalence q0 on the design.}
+
+\item{model_fn}{Optional model-fitting function for the unmatched
+case-control logistic engine, with a \verb{(formula, family, data)} interface.
+Defaults to \code{\link[stats:glm]{stats::glm()}}; pass e.g. \code{mgcv::gam} to adjust for a confounder
+with a smooth term (\code{confounders = ~ s(age)}) while keeping the exposure
+parametric. Ignored by the other engines.}
 }
 \value{
 A \code{matchatr_fit} object: a list with the validated specification

@@ -14,10 +14,11 @@ on person-period data) wherever possible.
 > (design taxonomy, unified `matchatr_design` S3 object + six constructors, the
 > `matcha()` fit verb, the `(design, estimator)` dispatch + validation layer) is
 > in place, and the unmatched case-control **logistic conditional OR** now runs
-> end to end: `matcha()` fits `stats::glm`, `contrast(type = "or")` reports the
-> OR, and RD/RR are rejected as unidentified without q0. The remaining PHASE_2
-> chunks (categorical/ordinal/continuous-GAM exposures, Mantel-Haenszel) and
-> PHASE_3+ remain `Status: DESIGN`.
+> end to end for every exposure type: `matcha()` fits `stats::glm` (or a pluggable
+> `model_fn` such as `mgcv::gam`), `contrast(type = "or")` reports the OR(s)
+> (binary / continuous / categorical / ordinal-trend), and RD/RR are rejected as
+> unidentified without q0. Only PHASE_2 Chunk 3 (Mantel-Haenszel) and PHASE_3+
+> remain `Status: DESIGN`.
 
 ## Guide files
 

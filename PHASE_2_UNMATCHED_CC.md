@@ -1,12 +1,12 @@
 # Phase 2 — Unmatched Case-Control: Logistic OR and Mantel-Haenszel
 
-> **Status: Chunk 1 IMPLEMENTED; Chunks 2–3 DESIGN.**
+> **Status: Chunks 1–2 IMPLEMENTED; Chunk 3 DESIGN.**
 > Book chapters: 3 (Basic Concepts and Analysis).
 > Chunk 1 (logistic conditional OR + OR contrast + unidentified-estimand
-> rejection) shipped in `R/unconditional.R` / `R/tidy.R` / `R/summary.R`, tested
-> in `test-unconditional.R`. Chunk 2 (categorical / ordinal / continuous-GAM
-> exposures + book-value oracles) and Chunk 3 (Mantel-Haenszel + RBG variance)
-> remain to do.
+> rejection) and Chunk 2 (categorical / ordinal / GAM-confounder exposures via a
+> pluggable `model_fn` + `esoph` book-value oracle) shipped in
+> `R/unconditional.R` / `R/tidy.R` / `R/summary.R`, tested in
+> `test-unconditional.R`. Chunk 3 (Mantel-Haenszel + RBG variance) remains.
 
 ## Scope
 
@@ -57,11 +57,13 @@ matcha(data, outcome = "case", exposure = "x",
 | binary | logistic | cond. OR | OR | model/sandwich | ✅ done (Chunk 1) |
 | two-level factor | logistic | cond. OR | OR | model | ✅ done (Chunk 1) |
 | continuous (linear) | logistic (GLM) | cond. OR | OR | model | ✅ done (Chunk 1) |
-| categorical k>2 | logistic | cond. OR | OR | model/sandwich | needs-test (Chunk 2) |
-| ordinal (grouped-linear) | logistic | cond. OR/trend | OR | model | needs-test (Chunk 2) |
-| continuous (spline/GAM) | logistic (GAM) | cond. OR | OR | model | needs-test (Chunk 2) |
+| categorical k>2 | logistic | cond. OR | OR | model/sandwich | ✅ done (Chunk 2) |
+| ordinal (numeric score) | logistic | cond. OR/trend | OR | model | ✅ done (Chunk 2) |
+| smooth confounder (GAM via `model_fn`) | logistic (GAM) | cond. OR | OR | model/sandwich | ✅ done (Chunk 2) |
 | binary, stratified | mh | cond. OR | OR | RBG | needs-test (Chunk 3) |
 | logistic | — | RD/RR | — | — | ⛔ `matchatr_unidentified_estimand` (done) |
+| ordered-factor exposure | logistic | — | — | — | ⛔ `matchatr_bad_input` (done, Chunk 2) |
+| smooth-of-exposure (spline OR-curve) | logistic (GAM) | OR(value vs value) | — | — | deferred (value-vs-value contrast) |
 
 ## Implementation plan
 
@@ -95,8 +97,14 @@ here — this is the classical layer.
    `matchatr_unidentified_estimand` and bootstrap with `matchatr_unsupported_variance`;
    `tidy()` / `summary()` render the OR table. Binary, two-level-factor, and plain
    continuous exposures covered. Oracles: `stats::glm`, 2×2 Woolf, cohort DGP truth.
-2. Categorical (k>2) / ordinal trend / continuous spline–GAM exposure handling +
-   book-value tests (esophageal-cancer alcohol ORs, Framingham, oral-contraceptive).
+2. ✅ Categorical (k>2) / ordinal-trend / GAM-confounder exposure handling +
+   book-value test. Implemented: factor exposure → one OR per non-reference level
+   (reference recorded); numeric score → trend OR; pluggable `model_fn`
+   (`stats::glm` default, `mgcv::gam` for smooth confounders) with by-name
+   coefficient extraction; ordered-factor exposure rejected; `datasets::esoph`
+   alcohol ORs reproduce the monotone dose-response (matches `glm`). Smooth-of-
+   exposure (spline OR-curve) deferred. Framingham / oral-contraceptive book
+   values not added (no bundled dataset; `esoph` is the in-base Ch3 oracle).
 3. Mantel-Haenszel closed form + RBG variance + oracle.
 
 ## Deferred items

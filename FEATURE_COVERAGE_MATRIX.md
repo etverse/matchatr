@@ -53,10 +53,11 @@ No estimator engine runs yet; no numeric oracle applies (per PHASE_1 design).
 
 ## Unmatched case-control (PHASE_2)
 
-**Chunk 1 (logistic conditional OR) implemented.** `matcha(estimator = "logistic")`
-fits `stats::glm(family = binomial)`; `contrast(type = "or")` reports the exposure
-conditional odds ratio with a Wald interval, `tidy()` / `summary()` render the OR
-table, and RD / RR are rejected as unidentified without the prevalence q0.
+**Chunks 1–2 (logistic conditional OR, all exposure types) implemented.**
+`matcha(estimator = "logistic")` fits `stats::glm(family = binomial)` (or a
+pluggable `model_fn`, e.g. `mgcv::gam`); `contrast(type = "or")` reports the
+exposure conditional odds ratio(s) with a Wald interval, `tidy()` / `summary()`
+render the OR table, and RD / RR are rejected as unidentified without q0.
 
 | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -64,15 +65,19 @@ table, and RD / RR are rejected as unidentified without the prevalence q0.
 | binary | logistic | cond. OR | OR | sandwich | ✅ vs `sandwich::sandwich` | `test-unconditional.R` |
 | two-level factor | logistic | cond. OR | OR | model | ✅ == 0/1 coding | `test-unconditional.R` |
 | continuous | logistic | cond. OR (per unit) | OR | model | ✅ vs `glm` | `test-unconditional.R` |
+| categorical k>2 | logistic | cond. OR per level | OR | model | ✅ vs `glm`; `esoph` book oracle | `test-unconditional.R` |
+| ordinal (numeric score) | logistic | cond. OR / trend | OR | model | ✅ vs `glm` | `test-unconditional.R` |
+| continuous / smooth confounder | logistic (GAM via `model_fn`) | cond. OR | OR | model/sandwich | ✅ == `glm` (linear) + 🟡 smooth | `test-unconditional.R` |
 | logistic | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-unconditional.R` |
 | logistic OR | — | OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-unconditional.R` |
-| categorical k>2 / ordinal trend | logistic | cond. OR / trend | OR | model | ❌ Chunk 2 | — |
-| continuous (spline / GAM) | logistic (GAM) | cond. OR | OR | model | ❌ Chunk 2 | — |
+| constant / collinear exposure | logistic | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-unconditional.R` |
+| ordered-factor exposure | logistic | — | — | — | ⛔ `matchatr_bad_input` (polynomial contrasts) | `test-unconditional.R` |
 | binary, stratified | mh | cond. OR | OR | RBG | ❌ Chunk 3 | — |
 
 S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
 `robust` SE), `tidy.matchatr_result`, `summary.matchatr_fit`,
-`print.matchatr_result` — all tested in `test-unconditional.R`.
+`print.matchatr_result` — all tested in `test-unconditional.R`. Smooth-of-exposure
+(spline OR-curve) is deferred (the OR is then a value-vs-value contrast).
 
 ## Matched case-control (PHASE_3)
 

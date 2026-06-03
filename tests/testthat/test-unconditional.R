@@ -163,6 +163,128 @@ test_that("a continuous exposure yields the per-unit OR", {
   )
 })
 
+test_that("a categorical (k>2) exposure yields one OR per non-reference level", {
+  df <- make_categorical_cc()
+  fit <- matcha(df, "case", "x", unmatched_cc(), confounders = ~age)
+  res <- contrast(fit, type = "or")
+
+  expect_equal(nrow(res$contrasts), 2L) # k = 3 levels -> 2 contrasts
+  expect_identical(res$contrasts$comparison, c("xmed", "xhigh"))
+  # Each OR is the level vs the recorded reference, matching glm exactly.
+  expect_identical(res$reference, "low")
+  oracle <- stats::glm(case ~ x + age, stats::binomial(), df)
+  expect_equal(
+    res$contrasts$estimate,
+    unname(exp(stats::coef(oracle)[c("xmed", "xhigh")])),
+    tolerance = 1e-10
+  )
+})
+
+test_that("an ordinal numeric exposure yields a single per-step trend OR", {
+  df <- make_categorical_cc()
+  # Integer scores 0/1/2 -> a single trend OR per one-level step.
+  df$score <- as.integer(df$x) - 1L
+  fit <- matcha(df, "case", "score", unmatched_cc(), confounders = ~age)
+  res <- contrast(fit, type = "or")
+  expect_equal(nrow(res$contrasts), 1L)
+  oracle <- stats::glm(case ~ score + age, stats::binomial(), df)
+  expect_equal(
+    res$contrasts$estimate,
+    unname(exp(stats::coef(oracle)["score"])),
+    tolerance = 1e-10
+  )
+})
+
+test_that("an ordered-factor exposure is rejected with guidance", {
+  df <- make_categorical_cc()
+  df$x <- factor(df$x, ordered = TRUE)
+  fit <- matcha(df, "case", "x", unmatched_cc())
+  # Polynomial contrasts are not per-level ORs; refuse and point to the fix.
+  expect_error(contrast(fit, type = "or"), class = "matchatr_bad_input")
+})
+
+test_that("model_fn must be a function", {
+  df <- make_categorical_cc()
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc(), model_fn = "stats::glm"),
+    class = "matchatr_bad_input"
+  )
+})
+
+test_that("model_fn = gam reproduces glm when the confounder is linear", {
+  skip_if_not_installed("mgcv")
+  df <- make_categorical_cc()
+  # gam with no smooth term is the same fit as glm: the exposure OR must match.
+  res_glm <- contrast(
+    matcha(df, "case", "x", unmatched_cc(), confounders = ~age),
+    type = "or"
+  )
+  res_gam <- contrast(
+    matcha(
+      df,
+      "case",
+      "x",
+      unmatched_cc(),
+      confounders = ~age,
+      model_fn = mgcv::gam
+    ),
+    type = "or"
+  )
+  expect_s3_class(res_gam, "matchatr_result")
+  expect_equal(
+    res_gam$contrasts$estimate,
+    res_glm$contrasts$estimate,
+    tolerance = 1e-6
+  )
+})
+
+test_that("model_fn = gam with a smooth confounder runs under both CI methods", {
+  skip_if_not_installed("mgcv")
+  df <- make_categorical_cc()
+  fit <- matcha(
+    df,
+    "case",
+    "x",
+    unmatched_cc(),
+    confounders = ~ s(age),
+    model_fn = mgcv::gam
+  )
+  expect_s3_class(fit$model, "gam")
+  res_m <- contrast(fit, type = "or", ci_method = "model")
+  res_s <- contrast(fit, type = "or", ci_method = "sandwich")
+  expect_equal(nrow(res_m$contrasts), 2L)
+  expect_true(all(is.finite(res_m$contrasts$estimate)))
+  expect_true(all(res_m$contrasts$se > 0))
+  expect_true(all(res_s$contrasts$se > 0))
+})
+
+# Book value: the Ille-et-Vilaine esophageal-cancer case-control data (handbook
+# Ch3). A categorical alcohol exposure adjusted for age and tobacco reproduces
+# the canonical monotone dose-response, matching glm on the same expanded data.
+test_that("the esoph alcohol odds ratios match glm (book-value oracle)", {
+  rows <- expand_esoph()
+  fit <- matcha(
+    rows,
+    "case",
+    "alc",
+    unmatched_cc(),
+    confounders = ~ agegp + tobgp
+  )
+  res <- contrast(fit, type = "or")
+
+  expect_identical(res$reference, "0-39g/day")
+  expect_equal(nrow(res$contrasts), 3L)
+  oracle <- stats::glm(case ~ alc + agegp + tobgp, stats::binomial(), rows)
+  expect_equal(
+    res$contrasts$estimate,
+    unname(exp(stats::coef(oracle)[grep("^alc", names(stats::coef(oracle)))])),
+    tolerance = 1e-8
+  )
+  # Monotone alcohol dose-response (the well-known esoph finding).
+  expect_true(all(diff(res$contrasts$estimate) > 0))
+  expect_gt(res$contrasts$estimate[1], 1) # even the lowest band is harmful
+})
+
 # --- result / table structure -------------------------------------------
 
 test_that("the OR result carries log-scale estimates and OR-scale contrasts", {
@@ -362,4 +484,10 @@ test_that("logistic-contrast rejections read clearly", {
     contrast(fit, type = "or", ci_method = "bootstrap"),
     error = TRUE
   )
+
+  # Ordered-factor exposure: the guidance message is user-facing.
+  dord <- make_categorical_cc()
+  dord$x <- factor(dord$x, ordered = TRUE)
+  fit_ord <- matcha(dord, "case", "x", unmatched_cc())
+  expect_snapshot(contrast(fit_ord, type = "or"), error = TRUE)
 })

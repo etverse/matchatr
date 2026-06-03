@@ -37,6 +37,11 @@
 #'   `"cch"` for case-cohort); the case-control-weighted causal estimators
 #'   `"ccw_gformula"`, `"ccw_ipw"`, `"ccw_aipw"`, `"ccw_tmle"` apply to any
 #'   design but require a prevalence q0 on the design.
+#' @param model_fn Optional model-fitting function for the unmatched
+#'   case-control logistic engine, with a `(formula, family, data)` interface.
+#'   Defaults to [stats::glm()]; pass e.g. `mgcv::gam` to adjust for a confounder
+#'   with a smooth term (`confounders = ~ s(age)`) while keeping the exposure
+#'   parametric. Ignored by the other engines.
 #'
 #' @returns A `matchatr_fit` object: a list with the validated specification
 #'   (`data`, `outcome`, `exposure`, `confounders`, `design`, `estimator`,
@@ -71,7 +76,8 @@ matcha <- function(
   exposure,
   design,
   confounders = NULL,
-  estimator = NULL
+  estimator = NULL,
+  model_fn = NULL
 ) {
   # Record the user's call so the fit can echo it in print().
   call <- match.call()
@@ -96,6 +102,14 @@ matcha <- function(
   check_string(exposure)
   if (!is.null(confounders)) {
     check_formula(confounders)
+  }
+  # `model_fn` is the pluggable logistic fitter (e.g. `stats::glm`, `mgcv::gam`);
+  # it must be a function with a `(formula, family, data)` interface.
+  if (!is.null(model_fn) && !is.function(model_fn)) {
+    rlang::abort(
+      "`model_fn` must be a model-fitting function (e.g. `stats::glm`) or NULL.",
+      class = c("matchatr_bad_input", "matchatr_error")
+    )
   }
   if (identical(outcome, exposure)) {
     rlang::abort(
@@ -179,6 +193,9 @@ matcha <- function(
     cc_weights = NULL,
     design_weights = NULL,
     variance_kind = NULL,
+    # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
+    # engine; e.g. mgcv::gam for smooth confounder adjustment.
+    model_fn = model_fn,
     n_cases = sum(y01 == 1L, na.rm = TRUE),
     n_controls = sum(y01 == 0L, na.rm = TRUE)
   )

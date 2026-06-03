@@ -1,10 +1,10 @@
 #' Fit an unmatched case-control logistic regression
 #'
-#' Wraps [stats::glm()] with a binomial family to estimate the conditional
-#' (adjusted) log odds ratios from an unmatched case-control sample. The fitted
-#' model is `outcome ~ exposure + confounders`; the confounder formula's terms,
-#' including transforms (`poly(age, 2)`) and interactions (`age:smoke`), are
-#' carried through verbatim.
+#' Fits a binomial-family regression to estimate the conditional (adjusted) log
+#' odds ratios from an unmatched case-control sample. The fitted model is
+#' `outcome ~ exposure + confounders`; the confounder formula's terms, including
+#' transforms (`poly(age, 2)`), smooths (`s(age)` under a GAM fitter), and
+#' interactions (`age:smoke`), are carried through verbatim.
 #'
 #' @details
 #' Only the slope coefficients carry over from the cohort logistic model: under
@@ -14,13 +14,20 @@
 #' encoding — a numeric 0/1 column, a logical (`TRUE` = case), or a two-level
 #' factor (second level = case) all reproduce the 0/1 coding of
 #' `resolve_binary_outcome()`. Rows with a missing outcome, exposure, or
-#' confounder are dropped by `glm`'s default `na.action`; a
-#' `matchatr_dropped_rows` warning reports how many.
+#' confounder are dropped by the default `na.action`; a `matchatr_dropped_rows`
+#' warning reports how many.
+#'
+#' The fitter is pluggable via `details$model_fn` (default [stats::glm()]); any
+#' function with a `(formula, family, data)` interface works, e.g.
+#' `mgcv::gam` for a smooth confounder term such as `s(age)`. The exposure is
+#' entered parametrically so its odds ratio stays a single (or per-level) number
+#' regardless of the fitter.
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"glm_logistic"`,
-#'   carrying the analysis `data`, the `outcome` / `exposure` column names, and
-#'   the `confounders` formula (or `NULL`).
-#' @returns A `glm` object, the fitted binomial model.
+#'   carrying the analysis `data`, the `outcome` / `exposure` column names, the
+#'   `confounders` formula (or `NULL`), and `details$model_fn`.
+#' @returns The fitted binomial model object (a `glm`, or whatever `model_fn`
+#'   returns).
 #' @family estimators
 #' @seealso [matcha()], [contrast()]
 #' @noRd
@@ -30,14 +37,21 @@ fit_logistic_cc <- function(fit) {
   } else {
     attr(stats::terms(fit$confounders), "term.labels")
   }
-  # outcome ~ exposure + confounders. reformulate() preserves transforms and
-  # interactions from the confounder formula; the exposure enters as a main
-  # effect so its coefficient(s) identify the conditional log OR.
+  # outcome ~ exposure + confounders. reformulate() preserves transforms,
+  # smooths, and interactions from the confounder formula; the exposure enters
+  # as a main effect so its coefficient(s) identify the conditional log OR.
   model_formula <- stats::reformulate(
     termlabels = c(fit$exposure, conf_terms),
     response = fit$outcome
   )
-  model <- stats::glm(
+  # Pluggable fitter (default stats::glm); a GAM fitter allows smooth confounder
+  # adjustment while the parametric exposure keeps an interpretable OR.
+  model_fn <- if (is.null(fit$details$model_fn)) {
+    stats::glm
+  } else {
+    fit$details$model_fn
+  }
+  model <- model_fn(
     model_formula,
     family = stats::binomial(),
     data = fit$data
@@ -150,7 +164,7 @@ contrast_logistic <- function(
   # Two-sided Wald critical value for the requested confidence level.
   z <- stats::qnorm(1 - (1 - conf_level) / 2)
 
-  idx <- exposure_coef_index(model, fit$exposure, call = call)
+  idx <- exposure_coef_index(model, fit$exposure, fit$data, call = call)
   term_labels <- names(beta)[idx]
   b <- unname(beta[idx])
   # A constant or collinear exposure is aliased to NA by glm: it has no
@@ -184,6 +198,11 @@ contrast_logistic <- function(
   log_lower <- b - z * s
   log_upper <- b + z * s
 
+  # For a factor exposure, each contrast is a level versus the factor's
+  # reference (baseline) level; record it so the OR rows are interpretable.
+  exposure_col <- fit$data[[fit$exposure]]
+  reference <- if (is.factor(exposure_col)) levels(exposure_col)[1] else NULL
+
   estimates <- data.table::data.table(
     term = term_labels,
     estimate = b, # log OR (raw coefficient)
@@ -205,7 +224,7 @@ contrast_logistic <- function(
     type = "or",
     estimand = "conditional OR",
     ci_method = ci_method,
-    reference = NULL,
+    reference = reference,
     # The analysis n is the number of rows glm actually used (complete cases),
     # not the full sample, which may differ when confounders carry NAs.
     n = stats::nobs(model),
@@ -245,34 +264,72 @@ estimable_vcov <- function(model, robust = FALSE) {
 
 #' Locate the coefficient(s) belonging to the exposure term
 #'
-#' Maps the exposure column to its coefficient position(s) in a fitted model via
-#' the model matrix `assign` attribute, so a binary, continuous, or (for later
-#' multi-level support) factor exposure all resolve correctly without parsing
-#' coefficient names. The intercept (`assign == 0`) is therefore never returned.
+#' Maps the exposure column to its coefficient position(s) by NAME, derived from
+#' the exposure's storage type rather than from a model-internal `assign`
+#' attribute, so it works uniformly across fitters (a `glm` and an `mgcv::gam`
+#' do not expose the same `model.matrix` `assign`). A numeric / logical exposure
+#' contributes the single coefficient named after the column; an (unordered)
+#' factor with levels `l1, ..., lk` contributes `paste0(exposure, l2..lk)` (the
+#' reference level `l1` has no coefficient). A binary or continuous exposure is
+#' the one-coefficient special case.
 #'
-#' @param model A fitted model (e.g. `glm`) with a terms object and a model
-#'   matrix carrying an `assign` attribute.
-#' @param exposure Character scalar exposure column name; it must enter the
-#'   model as a main-effect term.
+#' An *ordered* factor is rejected: `glm`/`gam` fit it with polynomial contrasts
+#' (`.L`, `.Q`, ...), whose coefficients are not per-level odds ratios. The
+#' caller should pass a numeric score (for a trend OR) or an unordered factor
+#' (for per-level ORs).
+#'
+#' @param model A fitted model (e.g. `glm`, `mgcv::gam`).
+#' @param exposure Character scalar exposure column name.
+#' @param data The analysis data, used to read the exposure's type / levels.
 #' @param call Caller environment surfaced in the error.
 #' @returns An integer vector of coefficient indices for the exposure term;
-#'   aborts with `matchatr_bad_input` if the exposure is not a main-effect term.
+#'   aborts with `matchatr_bad_input` if the exposure is an ordered factor or
+#'   contributes no coefficient.
 #' @family estimators
 #' @noRd
-exposure_coef_index <- function(model, exposure, call = rlang::caller_env()) {
-  assign <- attr(stats::model.matrix(model), "assign")
-  term_labels <- attr(stats::terms(model), "term.labels")
-  pos <- match(exposure, term_labels)
-  if (is.na(pos)) {
+exposure_coef_index <- function(
+  model,
+  exposure,
+  data,
+  call = rlang::caller_env()
+) {
+  exposure_col <- data[[exposure]]
+  if (is.factor(exposure_col) && is.ordered(exposure_col)) {
     rlang::abort(
-      paste0(
-        "Exposure `",
-        exposure,
-        "` is not a main-effect term in the fitted model."
+      c(
+        paste0(
+          "Exposure `",
+          exposure,
+          "` is an ordered factor, which is fit with polynomial contrasts ",
+          "(not per-level odds ratios)."
+        ),
+        i = "Pass a numeric score for a trend OR, or an unordered factor for per-level ORs."
       ),
       class = c("matchatr_bad_input", "matchatr_error"),
       call = call
     )
   }
-  which(assign == pos)
+
+  coef_names <- names(stats::coef(model))
+  # Coefficient name(s) the exposure column contributes: the bare column name
+  # for numeric / logical, or `paste0(exposure, level)` for each factor level
+  # (the reference level produces no coefficient, so it simply does not match).
+  candidates <- if (is.factor(exposure_col)) {
+    paste0(exposure, levels(exposure_col))
+  } else {
+    exposure
+  }
+  idx <- which(coef_names %in% candidates)
+  if (length(idx) == 0L) {
+    rlang::abort(
+      paste0(
+        "Exposure `",
+        exposure,
+        "` contributes no coefficient to the fitted model."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  idx
 }

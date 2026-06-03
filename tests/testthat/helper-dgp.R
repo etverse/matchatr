@@ -68,6 +68,52 @@ make_cohort_cc <- function(
   sample
 }
 
+# A case-control sample with a THREE-level categorical exposure (low/med/high)
+# and a continuous confounder. The log-ORs versus the "low" reference are
+# beta_med and beta_high, recovered (vs the glm oracle) per non-reference level.
+make_categorical_cc <- function(
+  n = 1500L,
+  beta_med = 0.4,
+  beta_high = 0.9,
+  seed = 7L
+) {
+  withr::with_seed(seed, {
+    lvl <- sample(c("low", "med", "high"), n, replace = TRUE)
+    age <- rnorm(n, 55, 10)
+    b <- c(low = 0, med = beta_med, high = beta_high)
+    lp <- -1 + b[lvl] + 0.02 * (age - 55)
+    case <- rbinom(n, 1L, plogis(lp))
+    data.frame(
+      case = case,
+      x = factor(lvl, levels = c("low", "med", "high")),
+      age = age,
+      stringsAsFactors = FALSE
+    )
+  })
+}
+
+# Expand the grouped Ille-et-Vilaine esophageal-cancer case-control data
+# (datasets::esoph: one row per agegp x alcgp x tobgp cell with case/control
+# counts) into individual-level rows. The alcohol exposure is returned as an
+# UNORDERED factor `alc` (esoph's alcgp is ordered, which would trigger
+# polynomial contrasts); agegp / tobgp are kept as confounders.
+expand_esoph <- function() {
+  es <- datasets::esoph
+  rows <- do.call(
+    rbind,
+    lapply(seq_len(nrow(es)), function(i) {
+      data.frame(
+        case = c(rep(1L, es$ncases[i]), rep(0L, es$ncontrols[i])),
+        agegp = es$agegp[i],
+        tobgp = es$tobgp[i],
+        alcgp = es$alcgp[i]
+      )
+    })
+  )
+  rows$alc <- factor(as.character(rows$alcgp), levels = levels(es$alcgp))
+  rows
+}
+
 # A deterministic 2x2 case-control table as a data frame, for the closed-form
 # odds-ratio / Woolf-variance oracle. With these cell counts the OR is exactly
 # (n11 * n00) / (n10 * n01) = (60 * 70) / (40 * 30) = 3.5, and a saturated
