@@ -106,6 +106,19 @@ Project-specific rules that override / extend the etverse-wide rules at
   variance to the estimable coefficients and align by NAME (see
   `estimable_vcov()`); aliased terms get `NA` SEs. A non-estimable exposure
   (constant / collinear) is `matchatr_unestimable_exposure`.
+- **The McNemar estimator (`estimator = "mcnemar"`) is the 1:1 binary-exposure
+  special case ONLY.** It computes OR = n10/n01 with Var(log OR) = 1/n10 + 1/n01
+  in closed form (no `survival::clogit`) over the discordant pairs; pairs
+  concordant on exposure cancel. A matched set with more than one case or more
+  than one control is M:1 (or richer) matching, which has no two-cell closed
+  form — it is rejected with `matchatr_not_one_to_one` and rerouted to
+  `estimator = "clogit"`. Do NOT flag this rejection as overly strict, and do
+  NOT "generalise" McNemar to M:1. A one-sided / empty set of discordant pairs
+  (n10 = 0 or n01 = 0) is a boundary OR of 0 / Inf and is
+  `matchatr_unestimable_exposure`, not a silent 0 / Inf. The case/control
+  exposures are aligned per set by `order()` on the droplevels'd stratum factor;
+  this is correct under scrambled row order and non-sequential set ids (verified
+  against `clogit`), so do not flag the `order()`-index alignment as a bug.
 - **The odds-ratio interval is Wald on the log scale, exponentiated** (asymmetric
   on the OR scale) — this is correct, not a bug. The OR-scale `se` in a result's
   `contrasts` is the delta-method `OR * SE(log OR)`; it does NOT reconstruct the
