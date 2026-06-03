@@ -28,6 +28,11 @@ Follow-up fixes from an adversarial review of the categorical/GAM exposure work.
   fit. A fitter that ignores `family` and returns, say, an OLS `lm` now aborts
   with `matchatr_bad_model_fit` rather than silently exponentiating a
   linear-probability slope into a bogus "odds ratio".
+- The recorded reference level for a factor exposure is now read from the
+  fitted model's `xlevels` (the baseline actually used), not the factor's first
+  *declared* level. A factor with an unused first level (e.g. declared
+  `absent < med < high` but only `med`/`high` observed) previously mislabeled the
+  contrast as "vs absent"; it now correctly reports "vs med".
 
 ## 2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)
 

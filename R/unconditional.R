@@ -216,9 +216,17 @@ contrast_logistic <- function(
   log_upper <- b + z * s
 
   # For a factor exposure, each contrast is a level versus the factor's
-  # reference (baseline) level; record it so the OR rows are interpretable.
+  # reference (baseline) level; record it so the OR rows are interpretable. Read
+  # it from the model's `xlevels` (the levels actually used in fitting, with
+  # unused declared levels dropped), not from the raw column whose first declared
+  # level may never occur. Fall back to the present levels if `xlevels` is absent.
   exposure_col <- fit$data[[fit$exposure]]
-  reference <- if (is.factor(exposure_col)) levels(exposure_col)[1] else NULL
+  reference <- if (is.factor(exposure_col)) {
+    xl <- model$xlevels[[fit$exposure]]
+    if (is.null(xl)) levels(droplevels(exposure_col))[1] else xl[1]
+  } else {
+    NULL
+  }
 
   estimates <- data.table::data.table(
     term = term_labels,

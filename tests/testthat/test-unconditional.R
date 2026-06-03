@@ -215,6 +215,22 @@ test_that("colliding factor-level coefficient names do not corrupt the OR", {
   expect_false(isTRUE(all.equal(seslow_se[1], seslow_se[2])))
 })
 
+test_that("the reference is the baseline used, not an unused declared level", {
+  withr::with_seed(6, {
+    n <- 1200
+    lvl <- sample(c("med", "high"), n, TRUE)
+    case <- rbinom(n, 1, plogis(-1 + 0.5 * (lvl == "high")))
+  })
+  # 'absent' is declared first but never occurs; glm's baseline is 'med'.
+  df <- data.frame(
+    case = case,
+    x = factor(lvl, levels = c("absent", "med", "high"))
+  )
+  res <- contrast(matcha(df, "case", "x", unmatched_cc()), type = "or")
+  expect_identical(res$reference, "med")
+  expect_identical(res$contrasts$comparison, "xhigh")
+})
+
 test_that("an ordinal numeric exposure yields a single per-step trend OR", {
   df <- make_categorical_cc()
   # Integer scores 0/1/2 -> a single trend OR per one-level step.
