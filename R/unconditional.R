@@ -56,6 +56,23 @@ fit_logistic_cc <- function(fit) {
     family = stats::binomial(),
     data = fit$data
   )
+  # A custom model_fn may ignore `family` and return a non-binomial fit (e.g. an
+  # OLS lm), whose exponentiated slope is not an odds ratio. Verify the fit is
+  # binomial before any OR is reported. Attributed to the user's matcha() call.
+  fitted_family <- tryCatch(
+    stats::family(model)$family,
+    error = function(e) NA_character_
+  )
+  if (!identical(fitted_family, "binomial")) {
+    rlang::abort(
+      c(
+        "`model_fn` did not return a binomial fit.",
+        i = "It must fit a binomial-family logistic model (e.g. `stats::glm`, `mgcv::gam`)."
+      ),
+      class = c("matchatr_bad_model_fit", "matchatr_error"),
+      call = fit$call
+    )
+  }
   # glm's default na.action silently drops rows with a missing outcome,
   # exposure, or confounder. Surface that listwise deletion so a missing-data
   # problem is not mistaken for the full sample.

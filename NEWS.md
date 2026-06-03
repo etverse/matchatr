@@ -22,6 +22,12 @@ Follow-up fixes from an adversarial review of the categorical/GAM exposure work.
   coefficients. Previously the smooth-basis terms (`s(age).1`, ...) were listed
   as rows and, with `exponentiate = TRUE`, their `exp()` was reported as an
   "odds ratio" with a Wald p-value — penalized basis weights are neither.
+- `model_fn` is validated more strictly: it must accept a `family` argument (or
+  `...`) — caught at `matcha()` with a classed `matchatr_bad_input` instead of a
+  raw "unused argument" base error — and the fitted object must be a binomial
+  fit. A fitter that ignores `family` and returns, say, an OLS `lm` now aborts
+  with `matchatr_bad_model_fit` rather than silently exponentiating a
+  linear-probability slope into a bogus "odds ratio".
 
 ## 2026-06-03 — Categorical / ordinal / GAM exposures (PHASE_2 Chunk 2)
 

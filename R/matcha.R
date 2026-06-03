@@ -104,12 +104,25 @@ matcha <- function(
     check_formula(confounders)
   }
   # `model_fn` is the pluggable logistic fitter (e.g. `stats::glm`, `mgcv::gam`);
-  # it must be a function with a `(formula, family, data)` interface.
-  if (!is.null(model_fn) && !is.function(model_fn)) {
-    rlang::abort(
-      "`model_fn` must be a model-fitting function (e.g. `stats::glm`) or NULL.",
-      class = c("matchatr_bad_input", "matchatr_error")
-    )
+  # it must be a function that accepts a `family` argument (it is always called
+  # as `model_fn(formula, family = binomial(), data = )`).
+  if (!is.null(model_fn)) {
+    if (!is.function(model_fn)) {
+      rlang::abort(
+        "`model_fn` must be a model-fitting function (e.g. `stats::glm`) or NULL.",
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
+    fmls <- tryCatch(names(formals(args(model_fn))), error = function(e) NULL)
+    if (length(fmls) > 0L && !any(c("family", "...") %in% fmls)) {
+      rlang::abort(
+        c(
+          "`model_fn` must accept a `family` argument (or `...`).",
+          i = "It is called as `model_fn(formula, family = binomial(), data = )`; use e.g. `stats::glm` or `mgcv::gam`."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
   }
   if (identical(outcome, exposure)) {
     rlang::abort(

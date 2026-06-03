@@ -249,6 +249,28 @@ test_that("model_fn must be a function", {
   )
 })
 
+test_that("model_fn must accept a `family` argument", {
+  df <- make_categorical_cc()
+  no_family <- function(formula, data) {
+    stats::glm(formula, family = stats::binomial(), data = data)
+  }
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc(), model_fn = no_family),
+    class = "matchatr_bad_input"
+  )
+})
+
+test_that("a non-binomial model_fn is rejected, not exponentiated", {
+  df <- make_categorical_cc()
+  # A fitter that ignores `family` and returns an OLS lm: its slope is not a
+  # log odds ratio, so exp() of it must not be passed off as an OR.
+  ols <- function(formula, family, data) stats::lm(formula, data = data)
+  expect_error(
+    matcha(df, "case", "x", unmatched_cc(), model_fn = ols),
+    class = "matchatr_bad_model_fit"
+  )
+})
+
 test_that("model_fn = gam reproduces glm when the confounder is linear", {
   skip_if_not_installed("mgcv")
   df <- make_categorical_cc()
