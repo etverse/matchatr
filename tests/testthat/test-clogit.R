@@ -71,12 +71,14 @@ test_that("the conditional OR recovers the matched-set log-OR (truth-based)", {
   )
   res <- contrast(fit, type = "or")
   # The set-level exposure prevalence is conditioned away, so the CMLE recovers
-  # exp(beta_x) up to sampling error (many sets, fixed seed).
-  expect_equal(
-    log(res$contrasts$estimate),
-    unname(truth["beta_x"]),
-    tolerance = 0.12
-  )
+  # exp(beta_x) up to sampling error. Use a SELF-SCALING band of a few reported
+  # SEs rather than a fixed absolute tolerance: the estimator's Monte-Carlo
+  # sampling SD in this DGP is ~0.128 (a 60-seed check), which matches the
+  # reported log-OR SE, so a fixed 0.12 tolerance would be under one SD and pass
+  # only by luck of the seed. A 3.5-SE band is robust to the seed yet still
+  # rejects any bias above ~0.45 (a sign flip sits ~14 SEs away).
+  se_log <- res$estimates$se
+  expect_lt(abs(log(res$contrasts$estimate) - unname(truth["beta_x"])), 3.5 * se_log)
 })
 
 # --- 1:1 matching: closed-form McNemar OR AND variance (independent oracle) ---
