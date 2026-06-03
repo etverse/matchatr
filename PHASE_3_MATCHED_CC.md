@@ -52,8 +52,8 @@ matcha(pairs, outcome = "case", exposure = "x",
 
 | Matching | Estimator | Estimand | Contrast | Variance | Status |
 |---|---|---|---|---|---|
-| 1:1, binary x | mcnemar | cond. OR | OR | McNemar (1/m10+1/m01) | needs-test |
-| 1:1 / M:1 | clogit | cond. OR | OR | partial-lik info | needs-test |
+| 1:1, binary x | mcnemar | cond. OR | OR | McNemar (1/n10+1/n01) | done |
+| 1:1 / M:1 | clogit | cond. OR | OR | partial-lik info | done |
 | M:1 + covariates | clogit | cond. OR | OR | partial-lik info | needs-test |
 | variable ratio | clogit | cond. OR | OR | partial-lik info | needs-test |
 | with `x:modifier` | clogit | stratum-specific OR | OR | partial-lik info | needs-test |
@@ -62,8 +62,13 @@ matcha(pairs, outcome = "case", exposure = "x",
 ## Implementation plan
 
 - `R/clogit.R` — `fit_clogit()` (wraps `survival::clogit`, building the
-  `case ~ x + cov + strata(set)` formula), McNemar closed form `fit_mcnemar()`,
-  stratum-validity check, uninformative-stratum warning.
+  `case ~ x + cov + strata(set)` formula), stratum-validity check,
+  uninformative-stratum warning.
+- `R/mcnemar.R` — `fit_mcnemar()` + `contrast_mcnemar()`, the 1:1 binary-exposure
+  closed form (OR = n10/n01, Var(log OR) = 1/n10 + 1/n01). Split into its own
+  engine file rather than `clogit.R` to mirror the Mantel-Haenszel closed-form
+  precedent (`R/mantel_haenszel.R`) and keep both files under the length limit;
+  rejects M:1 / richer matching toward `clogit` (`matchatr_not_one_to_one`).
 - S3: `tidy`/`summary`/`print` (conditional OR table). Reuse Phase 2's OR contrast
   assembly on the log scale.
 
@@ -92,7 +97,14 @@ sandwich needed for the conditional fit; cluster-robust is available via `clogit
    conditional OR with the partial-likelihood Wald interval. Validated against
    `survival::clogit` (exact pass-through), the handbook §4.4 induced-abortion
    ORs, and a matched-set DGP built from the conditional likelihood.
-2. McNemar closed form + truth-based OR²-bias demonstration.
+2. McNemar closed form + truth-based OR²-bias demonstration. **(done)** —
+   `R/mcnemar.R` computes OR = n10/n01 with Var(log OR) = 1/n10 + 1/n01 from the
+   discordant-pair counts (no `clogit`), reporting through the shared
+   `matchatr_result`. Validated against `survival::clogit` (exact equality on
+   1:1 binary data), the hand-counted closed form, and a matched-pair DGP; the
+   OR²-bias invariant is pinned by a test showing the unconditional 1:1 MLE is
+   exactly twice the conditional estimate. M:1 / richer matching is rejected
+   (`matchatr_not_one_to_one`), one-sided discordant pairs are unestimable.
 3. Effect modification across strata + variable-ratio handling.
 
 ## Deferred items

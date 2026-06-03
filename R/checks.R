@@ -405,16 +405,22 @@ resolve_binary_outcome <- function(data, outcome, call = rlang::caller_env()) {
 
 #' Coerce a binary exposure to a 0/1 integer vector
 #'
-#' The Mantel-Haenszel summary odds ratio is defined for a binary exposure
-#' (a 2x2 table per stratum). This resolver accepts the same three encodings as
-#' `resolve_binary_outcome()` — logical, a two-level factor (second level =
-#' exposed), or numeric 0/1 — and returns the 0/1 integer vector. A multi-level
-#' or continuous exposure is rejected, pointing to the logistic estimator (which
-#' handles categorical / continuous exposures). Degenerate (single-value)
-#' exposures are left to the estimator's zero-margin guard.
+#' The Mantel-Haenszel summary odds ratio and the 1:1 McNemar odds ratio are
+#' both defined for a binary exposure (a 2x2 table per stratum / pair). This
+#' resolver accepts the same three encodings as `resolve_binary_outcome()` —
+#' logical, a two-level factor (second level = exposed), or numeric 0/1 — and
+#' returns the 0/1 integer vector. A multi-level or continuous exposure is
+#' rejected, pointing to the estimator that handles categorical / continuous
+#' exposures (named by `alternative`). Degenerate (single-value) exposures are
+#' left to the estimator's zero-margin guard.
 #'
 #' @param data A data.frame or data.table.
 #' @param exposure Character scalar naming the exposure column.
+#' @param estimator_label Character scalar naming the estimator in the error
+#'   message (e.g. `"Mantel-Haenszel"`, `"McNemar"`).
+#' @param alternative Character scalar naming the estimator to use instead for a
+#'   non-binary exposure, inserted verbatim into the hint (e.g.
+#'   `"estimator = \"logistic\""`).
 #' @param call Caller environment surfaced in the error.
 #' @returns An integer vector of 0/1 (NA preserved); aborts with class
 #'   `matchatr_bad_input` on a non-binary exposure.
@@ -423,6 +429,8 @@ resolve_binary_outcome <- function(data, outcome, call = rlang::caller_env()) {
 resolve_binary_exposure <- function(
   data,
   exposure,
+  estimator_label = "Mantel-Haenszel",
+  alternative = "estimator = \"logistic\"",
   call = rlang::caller_env()
 ) {
   x <- data[[exposure]]
@@ -430,11 +438,17 @@ resolve_binary_exposure <- function(
     rlang::abort(
       c(
         paste0(
-          "The Mantel-Haenszel estimator requires a binary exposure; `",
+          "The ",
+          estimator_label,
+          " estimator requires a binary exposure; `",
           exposure,
           "` is not binary (logical, two-level factor, or numeric 0/1)."
         ),
-        i = "For a categorical (k>2) or continuous exposure use `estimator = \"logistic\"`."
+        i = paste0(
+          "For a categorical (k>2) or continuous exposure use `",
+          alternative,
+          "`."
+        )
       ),
       class = c("matchatr_bad_input", "matchatr_error"),
       call = call

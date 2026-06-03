@@ -14,8 +14,10 @@ dispatch_table <- function() {
   list(
     unmatched_cc = c(logistic = "glm_logistic", mh = "mantel_haenszel"),
     # Matched CC and NCC share the conditional partial-likelihood engine: a
-    # matched set and a sampled risk set are the same stratum construction.
-    matched_cc = c(clogit = "clogit"),
+    # matched set and a sampled risk set are the same stratum construction. The
+    # McNemar closed form is the 1:1 binary-exposure reduction of that
+    # likelihood, offered as a faster, formula-level alternative for paired data.
+    matched_cc = c(clogit = "clogit", mcnemar = "mcnemar"),
     nested_cc = c(clogit = "clogit"),
     case_cohort = c(cch = "cch"),
     two_phase = c(survey = "survey_twophase"),
@@ -80,6 +82,7 @@ default_contrast_type <- function(engine) {
     glm_logistic = "or",
     mantel_haenszel = "or",
     clogit = "or",
+    mcnemar = "or",
     "difference"
   )
 }
@@ -133,7 +136,10 @@ resolve_engine <- function(design_type, estimator, call = rlang::caller_env()) {
   list(
     engine = unname(allowed[[estimator]]),
     kind = "classical",
-    conditional = identical(estimator, "clogit")
+    # Both the conditional logistic and its 1:1 McNemar reduction condition on
+    # the matched sets, so both want the uninformative-stratum check that the
+    # `conditional` flag triggers in `matcha()`.
+    conditional = estimator %in% c("clogit", "mcnemar")
   )
 }
 
@@ -157,6 +163,7 @@ run_engine <- function(fit) {
     glm_logistic = fit_logistic_cc(fit),
     mantel_haenszel = fit_mh(fit),
     clogit = fit_clogit(fit),
+    mcnemar = fit_mcnemar(fit),
     NULL
   )
 }

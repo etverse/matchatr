@@ -13,6 +13,7 @@ test_that("each design's classical estimator routes to the right engine", {
     "mantel_haenszel"
   )
   expect_identical(resolve_engine("matched_cc", "clogit")$engine, "clogit")
+  expect_identical(resolve_engine("matched_cc", "mcnemar")$engine, "mcnemar")
   expect_identical(resolve_engine("nested_cc", "clogit")$engine, "clogit")
   expect_identical(resolve_engine("case_cohort", "cch")$engine, "cch")
   expect_identical(
@@ -25,8 +26,12 @@ test_that("each design's classical estimator routes to the right engine", {
   )
 })
 
-test_that("the conditional flag is set only for clogit", {
+test_that("the conditional flag is set for the matched-set conditional engines", {
+  # Both the conditional logistic and its 1:1 McNemar reduction condition on the
+  # matched sets, so both carry the flag that triggers the uninformative-stratum
+  # check; the unconditional / non-stratified engines do not.
   expect_true(resolve_engine("matched_cc", "clogit")$conditional)
+  expect_true(resolve_engine("matched_cc", "mcnemar")$conditional)
   expect_true(resolve_engine("nested_cc", "clogit")$conditional)
   expect_false(resolve_engine("unmatched_cc", "logistic")$conditional)
   expect_false(resolve_engine("case_cohort", "cch")$conditional)

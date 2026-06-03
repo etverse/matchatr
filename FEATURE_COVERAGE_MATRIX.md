@@ -86,19 +86,22 @@ S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
 
 ## Matched case-control (PHASE_3)
 
-**Chunk 1 implemented — conditional logistic regression.**
+**Chunks 1–2 implemented — conditional logistic regression + McNemar 1:1.**
 `matcha(design = matched_cc(strata = ...), estimator = "clogit")` fits the
 matched case-control conditional maximum likelihood via `survival::clogit`
 (`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum),
 and `contrast(type = "or")` reports the exposure's conditional odds ratio with a
-partial-likelihood-information Wald interval. The matching variables are
-conditioned away (no estimable coefficient); only the exposure / adjustment ORs
-are reported. McNemar 1:1 closed form (Chunk 2) and effect modification /
-variable-ratio handling (Chunk 3) remain pending.
+partial-likelihood-information Wald interval. `estimator = "mcnemar"` computes the
+1:1 matched-pair OR = n10/n01 with Var(log OR) = 1/n10 + 1/n01 in closed form
+(no `clogit`), rejecting M:1 / richer matching toward `clogit`. The matching
+variables are conditioned away (no estimable coefficient); only the exposure /
+adjustment ORs are reported. Effect modification / explicit variable-ratio
+handling (Chunk 3) remains pending.
 
 | Matching | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
 | 1:1, binary x | clogit | cond. OR | OR | partial-lik info | ✅ closed-form McNemar: OR = n10/n01 **and** Var(log OR) = 1/n10+1/n01 (independent of clogit) | `test-clogit.R` |
+| 1:1, binary x | mcnemar | cond. OR | OR | McNemar 1/n10+1/n01 | ✅ closed form (hand-counted) **and** `survival::clogit` exact equality **and** truth DGP | `test-mcnemar.R` |
 | M:1, binary x | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP (CMLE recovers β within 3.5 SE) + `survival::clogit` pass-through | `test-clogit.R` |
 | variable ratio (mixed 1:1/1:2/1:3) | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP | `test-clogit.R` |
 | continuous exposure (per unit) | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP | `test-clogit.R` |
@@ -106,16 +109,25 @@ variable-ratio handling (Chunk 3) remain pending.
 | M:1 + non-matching covariate | clogit | cond. OR | OR | partial-lik info | ✅ truth DGP (recovers adjusted β) + `survival::clogit` pass-through | `test-clogit.R` |
 | factor exposure (per-level) | clogit | cond. OR per level | OR | partial-lik info | ✅ vs `survival::clogit` (+ reference) | `test-clogit.R` |
 | multi-column strata (frequency matching) | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` (crossed strata) | `test-clogit.R` |
+| unconditional 1:1 MLE (OR² bias) | — | — | — | — | ✅ pins invariant: unconditional β = 2 × conditional (McNemar) β | `test-mcnemar.R` |
 | clogit | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-clogit.R` |
 | clogit OR | — | OR | — | sandwich / bootstrap | ⛔ `matchatr_unsupported_variance` | `test-clogit.R` |
 | exposure constant within strata | clogit | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-clogit.R` |
 | missing exposure / confounder | clogit | cond. OR | OR | partial-lik info | ⚠️ `matchatr_dropped_rows` (complete-case) | `test-clogit.R` |
+| mcnemar, exposure coding (logical / 2-level factor / 0-1) | mcnemar | cond. OR | OR | McNemar | ✅ identical OR across codings | `test-mcnemar.R` |
+| M:1 / variable-ratio / mixed | mcnemar | — | — | — | ⛔ `matchatr_not_one_to_one` (→ clogit) | `test-mcnemar.R` |
+| non-binary exposure | mcnemar | — | — | — | ⛔ `matchatr_bad_input` (→ clogit) | `test-mcnemar.R` |
+| one-sided / no discordant pairs | mcnemar | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-mcnemar.R` |
+| RD / RR · sandwich / bootstrap CI | mcnemar | — | — | — | ⛔ `matchatr_unidentified_estimand` / `matchatr_unsupported_variance` | `test-mcnemar.R` |
+| missing pair member | mcnemar | cond. OR | OR | McNemar | ⚠️ `matchatr_dropped_rows` (complete pairs) | `test-mcnemar.R` |
 
 The conditional OR assembly is shared with the unmatched logistic engine via
 `conditional_or_result()` (exposure coefficient by term position, Wald interval
 on the log scale, exponentiated). `tidy()` renders the per-term OR table (no
-intercept row). McNemar (1:1 closed form), effect modification across strata, and
-explicit variable-ratio handling are pending Chunks 2–3.
+intercept row). The McNemar 1:1 closed form (`estimator = "mcnemar"`) lives in
+its own engine (`R/mcnemar.R`, mirroring the Mantel-Haenszel closed form) and
+reports through the shared `matchatr_result` contract. Effect modification across
+strata and explicit variable-ratio handling are pending Chunk 3.
 
 ## Multiple case / control groups (PHASE_4)
 

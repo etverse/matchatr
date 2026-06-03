@@ -1,5 +1,31 @@
 # matchatr (development version)
 
+## 2026-06-03 — McNemar 1:1 matched-pair odds ratio (PHASE_3 Chunk 2)
+
+Adds the closed-form 1:1 estimator alongside the conditional logistic engine.
+`matcha(design = matched_cc(strata = ...), estimator = "mcnemar")` computes the
+matched-pair odds ratio directly from the discordant-pair counts — `OR = n10/n01`
+with `Var(log OR) = 1/n10 + 1/n01` (McNemar 1947; Breslow & Day 1980) — without
+fitting `survival::clogit`, and `contrast(type = "or")` reports it with a Wald
+interval. Pairs concordant on exposure carry no information and cancel.
+
+- The estimator applies only to genuine 1:1 pairs: a matched set with more than
+  one case or more than one control is M:1 (or richer) matching with no two-cell
+  closed form and is rejected with `matchatr_not_one_to_one`, pointing to
+  `estimator = "clogit"`. A one-sided (or empty) set of discordant pairs gives a
+  boundary OR of 0 / ∞ and aborts with `matchatr_unestimable_exposure`.
+- The exposure must be binary (logical / two-level factor / numeric 0/1); a
+  non-binary exposure is declined (`matchatr_bad_input`) toward `clogit`. RD / RR
+  remain unidentified and `ci_method = "sandwich"` / `"bootstrap"` are declined
+  (`matchatr_unsupported_variance`); a missing pair member drops to complete
+  pairs with a `matchatr_dropped_rows` warning.
+- Validated three ways: exact agreement with `survival::clogit` on the same 1:1
+  binary data (the conditional likelihood reduces to McNemar's), the OR and
+  variance against the hand-counted closed form (independent of clogit), and a
+  matched-pair DGP with a known log-OR (CMLE recovers β within a self-scaling SE
+  band). A dedicated test pins the OR²-bias invariant: the unconditional 1:1 MLE
+  with a parameter per pair is exactly twice the conditional estimate.
+
 ## 2026-06-03 — Matched case-control conditional logistic regression (PHASE_3 Chunk 1)
 
 Opens the matched case-control layer with the conditional maximum-likelihood
