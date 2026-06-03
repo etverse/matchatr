@@ -317,7 +317,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   design,
   confounders = NULL,
   estimator = NULL,
-  model_fn = NULL
+  model_fn = NULL,
+  effect_modifier = NULL
 )
 </code></pre>
 </section>
@@ -380,6 +381,14 @@ Character scalar naming the analysis, or <code>NULL</code> to use the design’s
 Optional model-fitting function for the unmatched case-control logistic engine, with a <code style="white-space: pre;">(formula, family, data)</code> interface. Defaults to <code>stats::glm()</code>; pass e.g.&nbsp;<code>mgcv::gam</code> to adjust for a confounder with a smooth term (<code>confounders = ~ s(age)</code>) while keeping the exposure parametric. Ignored by the other engines.
 </td>
 </tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="effect_modifier">effect_modifier</code>
+</td>
+<td>
+<code>NULL</code> or a character scalar naming a categorical (logical / character / factor) column whose levels modify the exposure effect. When supplied, the conditional logistic engine fits <code>outcome ~ exposure * effect_modifier + confounders + strata(set)</code> and <code>contrast(type = “or”)</code> reports the stratum-specific odds ratio of the exposure within each modifier level (one OR per level, with a Wald interval from the joint partial-likelihood variance). Supported only for <code>estimator = “clogit”</code> with a single-coefficient exposure (binary, continuous, or two-level factor); the modifier may coincide with a matching variable. Defaults to <code>NULL</code> (no effect modification).
+</td>
+</tr>
 </tbody></table>
 </section>
 <section id="details" class="level3">
@@ -389,7 +398,7 @@ Optional model-fitting function for the unmatched case-control logistic engine, 
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_fit</code> object: a list with the validated specification (<code>data</code>, <code>outcome</code>, <code>exposure</code>, <code>confounders</code>, <code>design</code>, <code>estimator</code>, <code>engine</code>), a <code>details</code> list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating <code>call</code>. The <code>model</code> slot holds the fitted estimation object for an implemented engine, or <code>NULL</code> otherwise.</p>
+<p>A <code>matchatr_fit</code> object: a list with the validated specification (<code>data</code>, <code>outcome</code>, <code>exposure</code>, <code>confounders</code>, <code>design</code>, <code>estimator</code>, <code>engine</code>, <code>effect_modifier</code>), a <code>details</code> list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating <code>call</code>. The <code>model</code> slot holds the fitted estimation object for an implemented engine, or <code>NULL</code> otherwise.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
