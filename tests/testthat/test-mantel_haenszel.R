@@ -186,6 +186,28 @@ test_that("a zero exposure-outcome margin is not estimable", {
   )
 })
 
+test_that("n_strata counts informative strata, not all observed levels", {
+  df <- make_stratified_cc(n_strata = 3L)
+  # Add a fourth, non-informative stratum: all controls (contributes r=s=0).
+  extra <- data.frame(
+    case = rep(0L, 20),
+    x = rbinom(20, 1, 0.5),
+    agegrp = factor(4L, levels = 1:4),
+    sex = factor(sample(c("M", "F"), 20, TRUE))
+  )
+  df$agegrp <- factor(df$agegrp, levels = 1:4)
+  combined <- rbind(df, extra)
+  fit <- matcha(
+    combined,
+    "case",
+    "x",
+    unmatched_cc(strata = "agegrp"),
+    estimator = "mh"
+  )
+  # 4 strata observed, but the all-control one is inert.
+  expect_identical(fit$model$n_strata, 3L)
+})
+
 test_that("MH rejection messages read clearly", {
   df <- make_stratified_cc()
   fit <- matcha(

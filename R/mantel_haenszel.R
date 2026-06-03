@@ -88,7 +88,9 @@ fit_mh <- function(fit) {
       or = or_mh,
       log_or = log(or_mh),
       se_log = sqrt(var_log),
-      n_strata = nlevels(stratum),
+      # Informative strata: those contributing to the numerator or denominator
+      # (a concordant or all-one-class stratum has r_i = s_i = 0 and is inert).
+      n_strata = sum(r > 0 | s > 0),
       n = length(y),
       exposure = fit$exposure
     ),
