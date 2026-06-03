@@ -20,10 +20,12 @@
 #' equation's intercept by the log sampling-fraction ratio, so the intercepts
 #' are not baseline risks. Rows with a missing outcome, exposure, or confounder
 #' are dropped by [nnet::multinom()]'s default `na.action`; a
-#' `matchatr_dropped_rows` warning reports how many. A constant exposure is
-#' rejected (`matchatr_unestimable_exposure`) because — unlike [stats::glm()] —
-#' [nnet::multinom()] does not alias a collinear column to `NA`, so it would
-#' otherwise return a silent, degenerate fit.
+#' `matchatr_dropped_rows` warning reports how many. A constant exposure — or
+#' one collinear with the confounders — is rejected
+#' (`matchatr_unestimable_exposure`) because, unlike [stats::glm()],
+#' [nnet::multinom()] does not alias a rank-deficient column to `NA`: it splits
+#' the coefficient across the dependent columns and would otherwise report a
+#' silently attenuated odds ratio (`reject_collinear_exposure()`).
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"multinom"`, carrying
 #'   the analysis `data` (with `outcome` a reference-first factor), the
@@ -34,9 +36,10 @@
 #' @seealso [matcha()], [contrast()]
 #' @noRd
 fit_polytomous <- function(fit) {
-  # nnet::multinom does not alias a collinear predictor to NA (it returns a
-  # degenerate fit with duplicated coefficients), so the constant-exposure case
-  # that glm catches by aliasing must be rejected explicitly here.
+  # nnet::multinom does not alias a collinear predictor to NA the way glm does;
+  # it splits the coefficient across the dependent columns, so a constant
+  # exposure would otherwise yield a silent, degenerate fit. Reject it up front
+  # with a message clearer than the post-fit rank check below would give.
   xcol <- fit$data[[fit$exposure]]
   if (length(unique(stats::na.omit(xcol))) < 2L) {
     rlang::abort(
@@ -64,6 +67,12 @@ fit_polytomous <- function(fit) {
   # reference-first factor (set in matcha()) so the baseline equation is correct.
   model <- nnet::multinom(model_formula, data = fit$data, trace = FALSE)
 
+  # Because multinom never aliases, a confounder collinear with the exposure
+  # silently halves the exposure coefficient instead of being dropped. Detect it
+  # by the design matrix rank and reject, mirroring glm's NA-aliasing (which the
+  # logistic engine turns into matchatr_unestimable_exposure).
+  reject_collinear_exposure(model, fit$exposure, call = fit$call)
+
   # multinom has no nobs() method; the fitted residual matrix has one row per
   # complete case used. Surface listwise deletion so a missing-data problem is
   # not mistaken for the full sample (mirrors the glm engine's report).
@@ -82,6 +91,63 @@ fit_polytomous <- function(fit) {
     )
   }
   model
+}
+
+#' Reject an exposure collinear with the confounders in a multinomial fit
+#'
+#' [nnet::multinom()] does not alias a rank-deficient predictor to `NA` (unlike
+#' [stats::glm()]); it splits the coefficient across the dependent columns,
+#' silently yielding an attenuated, wrong odds ratio. This guard reproduces glm's
+#' protection by the design-matrix rank: if dropping the exposure's column(s)
+#' does not lower the rank by the number of exposure columns, the exposure adds
+#' no independent variation beyond the intercept and confounders, so its odds
+#' ratio is not identified.
+#'
+#' @details
+#' The check compares `rank(model.matrix)` with and without the exposure columns.
+#' Collinearity confined to the confounders (two confounders dependent on each
+#' other) leaves the exposure's rank contribution intact and is *not* rejected —
+#' only collinearity involving the exposure aborts. This mirrors the
+#' `matchatr_unestimable_exposure` path the logistic engine reaches when glm
+#' aliases the exposure coefficient to `NA`.
+#'
+#' @param model A fitted [nnet::multinom()] object.
+#' @param exposure Character scalar exposure column name.
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with `matchatr_unestimable_exposure` when
+#'   the exposure columns are linearly dependent on the rest of the design.
+#' @family estimators
+#' @noRd
+reject_collinear_exposure <- function(
+  model,
+  exposure,
+  call = rlang::caller_env()
+) {
+  ta <- term_assign(model)
+  pos <- match(exposure, ta$labels)
+  # The exposure not appearing as a term is handled (with its own error) by
+  # `multinom_exposure_or()`; nothing to rank-check here.
+  if (is.na(pos)) {
+    return(invisible(NULL))
+  }
+  mm <- stats::model.matrix(model)
+  exp_cols <- which(ta$assign == pos)
+  rank_full <- qr(mm)$rank
+  rank_drop <- qr(mm[, -exp_cols, drop = FALSE])$rank
+  if (rank_full - rank_drop < length(exp_cols)) {
+    rlang::abort(
+      c(
+        paste0("Exposure `", exposure, "` has no estimable effect."),
+        i = paste0(
+          "It is collinear with the confounders (the design matrix is ",
+          "rank-deficient), so its odds ratio is not identified."
+        )
+      ),
+      class = c("matchatr_unestimable_exposure", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Assemble the per-subtype odds-ratio contrast from a multinomial fit
@@ -206,8 +272,8 @@ contrast_polytomous <- function(
 #' @returns A list with `comparison` (character `"<subtype>: <term>"` labels),
 #'   `log_or` (numeric log odds ratios), `se` (their standard errors), and
 #'   `vcov` (their variance sub-matrix). Aborts with `matchatr_bad_input` when
-#'   the exposure is not a parametric term, or `matchatr_unestimable_exposure`
-#'   when an exposure coefficient is `NA`.
+#'   the exposure is not a parametric term (a collinear exposure is already
+#'   rejected at fit time by `reject_collinear_exposure()`).
 #' @family estimators
 #' @noRd
 multinom_exposure_or <- function(
@@ -240,7 +306,9 @@ multinom_exposure_or <- function(
 
   # One OR per (subtype, exposure-column); the variance entry is matched by the
   # "<subtype>:<predictor>" vcov name, so it is robust to the coefficient
-  # ordering rather than assuming a row-major layout.
+  # ordering rather than assuming a row-major layout. The exposure is guaranteed
+  # estimable by `reject_collinear_exposure()` at fit time (multinom never
+  # aliases to NA, so collinearity is caught by the design-matrix rank instead).
   comparison <- character(0)
   log_or <- numeric(0)
   vnames <- character(0)
@@ -250,18 +318,6 @@ multinom_exposure_or <- function(
       log_or <- c(log_or, cf[k, j])
       vnames <- c(vnames, paste0(subtypes[k], ":", predictors[j]))
     }
-  }
-  # A degenerate (e.g. perfectly separated) equation can leave a coefficient NA;
-  # refuse rather than report a silent NA odds ratio.
-  if (anyNA(log_or)) {
-    rlang::abort(
-      c(
-        paste0("Exposure `", exposure, "` has no estimable effect."),
-        i = "It is constant or collinear with the confounders, so its odds ratio is not identified."
-      ),
-      class = c("matchatr_unestimable_exposure", "matchatr_error"),
-      call = call
-    )
   }
   vcov_sel <- vc[vnames, vnames, drop = FALSE]
   list(

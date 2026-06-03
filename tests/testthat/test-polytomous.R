@@ -370,6 +370,51 @@ test_that("a constant exposure is unestimable", {
   )
 })
 
+# Regression: an exposure collinear with a confounder. nnet::multinom does not
+# alias the redundant column to NA (unlike glm); it splits the coefficient and
+# would report a silently halved OR. The design-matrix rank guard
+# (reject_collinear_exposure()) must reject it, while confounder-only
+# collinearity (the exposure still estimable) must NOT be rejected.
+# 2026-06-03 critical-review-loop Issue #1; repro /tmp/matchatr_repro_collinear.R
+test_that("an exposure collinear with a confounder is unestimable", {
+  d <- make_polytomous_cc(n = 1500L, seed = 4L)
+  d$dup <- d$x # confounder identical to the exposure -> rank-deficient design
+  expect_error(
+    matcha(
+      d,
+      outcome = "g",
+      exposure = "x",
+      design = unmatched_cc(),
+      confounders = ~dup,
+      estimator = "polytomous"
+    ),
+    class = "matchatr_unestimable_exposure"
+  )
+
+  # Collinearity confined to the confounders leaves the exposure estimable, so
+  # it must fit and recover the exposure OR rather than over-reject. The guard
+  # rejects only when the exposure itself loses rank.
+  z1 <- withr::with_seed(99L, stats::rnorm(nrow(d)))
+  d$z1 <- z1
+  d$z2 <- z1 # two confounders collinear with each other, but x is orthogonal
+  fit <- matcha(
+    d,
+    outcome = "g",
+    exposure = "x",
+    design = unmatched_cc(),
+    confounders = ~ z1 + z2,
+    estimator = "polytomous"
+  )
+  res <- contrast(fit, type = "or")
+  oracle <- nnet::multinom(g ~ x + z1 + z2, data = d, trace = FALSE)
+  cf <- coef(oracle)
+  expect_equal(
+    res$estimates$estimate,
+    c(cf["caseA", "x"], cf["caseB", "x"]),
+    tolerance = 1e-6
+  )
+})
+
 test_that("an ordered-factor exposure is rejected", {
   d <- make_polytomous_cc(n = 600L, seed = 7L)
   d$xo <- ordered(ifelse(d$x == 1L, "hi", "lo"), levels = c("lo", "hi"))

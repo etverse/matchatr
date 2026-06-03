@@ -21,8 +21,13 @@ the multi-group resolver instead of the binary one.
   to the binary `logistic` / `mh` / `clogit` estimators); an out-of-range
   `reference`, a `reference` on a non-polytomous estimator, an ordered-factor
   exposure, and `effect_modifier` are each `matchatr_bad_input`; a constant
-  exposure is `matchatr_unestimable_exposure` (multinom does not alias it to
-  `NA`, so it is caught explicitly); `polytomous` on a matched design is
+  exposure — or one collinear with a confounder — is
+  `matchatr_unestimable_exposure`. Because `nnet::multinom` (unlike `stats::glm`)
+  does not alias a rank-deficient column to `NA` but splits the coefficient
+  across the dependent columns (a silently attenuated OR),
+  `reject_collinear_exposure()` catches it by the design-matrix rank, mirroring
+  glm's NA-aliasing; collinearity confined to the confounders leaves the
+  exposure estimable and is not rejected. `polytomous` on a matched design is
   `matchatr_bad_estimator`. RD / RR stay `matchatr_unidentified_estimand` and
   sandwich / bootstrap variances are `matchatr_unsupported_variance` (the engine
   reports the multinomial information matrix only).
