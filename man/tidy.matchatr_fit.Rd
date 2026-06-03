@@ -31,7 +31,10 @@ the model information matrix. Default \code{FALSE}.}
 }
 \value{
 A \code{data.table} with columns \code{term}, \code{estimate}, \code{std.error},
-\code{statistic}, \code{p.value}, and (when \code{conf.int}) \code{conf.low}, \code{conf.high}.
+\code{statistic}, \code{p.value}, and (when \code{conf.int}) \code{conf.low}, \code{conf.high}. For a
+polytomous (\code{estimator = "polytomous"}) fit the coefficients form one
+equation per non-reference outcome group, so a leading \code{y.level} column
+names the group each row's contrast is against the reference.
 }
 \description{
 Returns the fitted unmatched case-control logistic regression as a tidy

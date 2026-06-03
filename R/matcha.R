@@ -23,8 +23,10 @@
 #'
 #' @param data A data.frame or data.table. Not mutated; a data.table copy is
 #'   stored on the fit.
-#' @param outcome Character scalar naming the binary case-status column (a
-#'   logical, two-level factor, or numeric 0/1 column).
+#' @param outcome Character scalar naming the case-status column. For the binary
+#'   estimators this is a logical, two-level factor, or numeric 0/1 column; for
+#'   `estimator = "polytomous"` it is a factor or character column with three or
+#'   more groups (multiple case subtypes, or several control groups).
 #' @param exposure Character scalar naming the exposure column.
 #' @param design A `matchatr_design` object from one of the design
 #'   constructors ([unmatched_cc()], [matched_cc()], [nested_cc()],
@@ -52,6 +54,13 @@
 #'   `estimator = "clogit"` with a single-coefficient exposure (binary,
 #'   continuous, or two-level factor); the modifier may coincide with a matching
 #'   variable. Defaults to `NULL` (no effect modification).
+#' @param reference `NULL` or a character scalar naming the reference outcome
+#'   group for `estimator = "polytomous"`. The multinomial logistic contrasts
+#'   every other group against this baseline, so each non-reference equation's
+#'   exposure coefficient is that subtype's log odds ratio versus the reference.
+#'   It must name one of the observed groups; when `NULL` the first factor level
+#'   (or the first level in sorted order, for a character outcome) is used.
+#'   Supplying it for a non-polytomous estimator is an error. Defaults to `NULL`.
 #'
 #' @returns A `matchatr_fit` object: a list with the validated specification
 #'   (`data`, `outcome`, `exposure`, `confounders`, `design`, `estimator`,
@@ -89,7 +98,8 @@ matcha <- function(
   confounders = NULL,
   estimator = NULL,
   model_fn = NULL,
-  effect_modifier = NULL
+  effect_modifier = NULL,
+  reference = NULL
 ) {
   # Record the user's call so the fit can echo it in print().
   call <- match.call()
@@ -206,6 +216,24 @@ matcha <- function(
     }
   }
 
+  # The reference (baseline) outcome group is meaningful only for the polytomous
+  # multinomial fit, whose other arguments stay binary; reject it elsewhere so a
+  # mis-routed reference cannot be silently ignored.
+  if (!is.null(reference) && !identical(routing$outcome_kind, "polytomous")) {
+    rlang::abort(
+      c(
+        "`reference` is only used by the polytomous estimator.",
+        i = paste0(
+          "Use `estimator = \"polytomous\"` with a multi-group outcome; ",
+          "got engine `",
+          routing$engine,
+          "`."
+        )
+      ),
+      class = c("matchatr_bad_input", "matchatr_error")
+    )
+  }
+
   # Case-control weighting reweights the sample to the source population, which
   # is impossible without the marginal prevalence q0.
   if (identical(routing$kind, "ccw") && is.null(design$prevalence)) {
@@ -222,33 +250,60 @@ matcha <- function(
     )
   }
 
-  # Every design in this layer carries a binary case indicator; resolving it
-  # both validates the outcome and yields the 0/1 vector for the strata checks.
-  y01 <- resolve_binary_outcome(dt, outcome)
-
-  # Conditional partial likelihood drops sets without both a case and a
-  # control; warn so a mis-sampled design is not silently thinned.
-  if (isTRUE(routing$conditional) && !is.null(design$strata)) {
-    strata_list <- lapply(design$strata, function(col) dt[[col]])
-    warn_uninformative_strata(strata_list, y01)
+  # Resolve the outcome to the encoding the engine expects. The polytomous
+  # engine wants a multi-group factor (releveled to the chosen reference); every
+  # other engine wants the binary 0/1 case indicator that also feeds the strata
+  # checks. Group counts are recorded per encoding for the fit's summary.
+  if (identical(routing$outcome_kind, "polytomous")) {
+    poly <- resolve_polytomous_outcome(dt, outcome, reference)
+    # Store the reference-first factor so the engine fits the right baseline and
+    # print/summary report the resolved groups; this is the single relevel.
+    dt[[outcome]] <- poly$factor
+    outcome_details <- list(
+      outcome_kind = "polytomous",
+      reference = poly$reference,
+      group_levels = poly$levels,
+      group_counts = poly$counts,
+      n_cases = NA_integer_,
+      n_controls = NA_integer_
+    )
+  } else {
+    # Every binary design carries a 0/1 case indicator; resolving it both
+    # validates the outcome and yields the vector for the strata checks.
+    y01 <- resolve_binary_outcome(dt, outcome)
+    # Conditional partial likelihood drops sets without both a case and a
+    # control; warn so a mis-sampled design is not silently thinned.
+    if (isTRUE(routing$conditional) && !is.null(design$strata)) {
+      strata_list <- lapply(design$strata, function(col) dt[[col]])
+      warn_uninformative_strata(strata_list, y01)
+    }
+    outcome_details <- list(
+      outcome_kind = "binary",
+      reference = NULL,
+      group_levels = NULL,
+      group_counts = NULL,
+      n_cases = sum(y01 == 1L, na.rm = TRUE),
+      n_controls = sum(y01 == 0L, na.rm = TRUE)
+    )
   }
 
-  details <- list(
-    engine = routing$engine,
-    kind = routing$kind,
-    conditional = routing$conditional,
-    # The design declares how weights are to be computed; the realised weight
-    # vectors are filled in by the weighting layer into the distinct slots
-    # below. `variance_kind` records which sampling-variance correction applies.
-    weight_spec = design$weight_spec,
-    cc_weights = NULL,
-    design_weights = NULL,
-    variance_kind = NULL,
-    # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
-    # engine; e.g. mgcv::gam for smooth confounder adjustment.
-    model_fn = model_fn,
-    n_cases = sum(y01 == 1L, na.rm = TRUE),
-    n_controls = sum(y01 == 0L, na.rm = TRUE)
+  details <- c(
+    list(
+      engine = routing$engine,
+      kind = routing$kind,
+      conditional = routing$conditional,
+      # The design declares how weights are to be computed; the realised weight
+      # vectors are filled in by the weighting layer into the distinct slots
+      # below. `variance_kind` records which sampling-variance correction applies.
+      weight_spec = design$weight_spec,
+      cc_weights = NULL,
+      design_weights = NULL,
+      variance_kind = NULL,
+      # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
+      # engine; e.g. mgcv::gam for smooth confounder adjustment.
+      model_fn = model_fn
+    ),
+    outcome_details
   )
 
   fit <- new_matchatr_fit(

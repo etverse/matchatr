@@ -118,6 +118,51 @@ expand_esoph <- function() {
   rows
 }
 
+# Truth-based DGP for the polytomous (multinomial) subtype odds ratios. A cohort
+# is drawn from a baseline-category multinomial model with KNOWN exposure log-ORs
+# for each non-reference outcome group: caseA and caseB each contrast against the
+# "control" reference. The exposure `x` has conditional log-OR `beta_a` in the
+# caseA equation and `beta_b` in the caseB equation; a continuous confounder
+# `age` carries its own per-equation slope. Separate group sampling would offset
+# only the intercepts (the multinomial analogue of Prentice & Pyke 1979), so the
+# slopes are recovered from the cohort itself, which is what the multinom oracle
+# checks. Columns: g (factor: control/caseA/caseB), x (0/1), age. The true
+# exposure log-ORs are returned in the "truth" attribute.
+make_polytomous_cc <- function(
+  n = 4000L,
+  beta_a = log(2.5),
+  beta_b = log(0.5),
+  seed = 23L
+) {
+  sample <- withr::with_seed(seed, {
+    x <- rbinom(n, 1L, 0.4)
+    age <- rnorm(n, 50, 10)
+    # Linear predictors for the two non-reference equations (control = baseline,
+    # linear predictor fixed at 0). Distinct age slopes keep the equations from
+    # collapsing onto each other.
+    lp_a <- -0.4 + beta_a * x + 0.010 * (age - 50)
+    lp_b <- -0.7 + beta_b * x + 0.025 * (age - 50)
+    denom <- 1 + exp(lp_a) + exp(lp_b)
+    p_ctrl <- 1 / denom
+    p_a <- exp(lp_a) / denom
+    u <- runif(n)
+    g <- ifelse(
+      u < p_ctrl,
+      "control",
+      ifelse(u < p_ctrl + p_a, "caseA", "caseB")
+    )
+    data.frame(
+      g = factor(g, levels = c("control", "caseA", "caseB")),
+      x = x,
+      age = age,
+      stringsAsFactors = FALSE
+    )
+  })
+  rownames(sample) <- NULL
+  attr(sample, "truth") <- c(caseA.x = beta_a, caseB.x = beta_b)
+  sample
+}
+
 # A stratified case-control sample with a binary exposure, for the
 # Mantel-Haenszel oracle (cross-checked against stats::mantelhaen.test). Each
 # stratum k has its own baseline log-odds; `x` carries a common log-OR of 0.7.

@@ -29,8 +29,18 @@ on person-period data) wherever possible.
 > β_x + β_{x:level} elsewhere) via `stratum_specific_or_result()`. M:1 and
 > variable-ratio matching need no special handling (the conditional likelihood
 > treats any matched-set composition uniformly). `contrast(type = "or")` reports
-> the OR(s); RD/RR are rejected as unidentified without q0. PHASE_4+ remain
-> `Status: DESIGN`.
+> the OR(s); RD/RR are rejected as unidentified without q0. **PHASE_4 (multiple
+> case/control groups) Chunk 1 is complete**: `matcha(design = unmatched_cc(),
+> estimator = "polytomous", reference = ...)` fits the baseline-category
+> multinomial logistic via `nnet::multinom` for a ≥3-group outcome, and
+> `contrast(type = "or")` reports each non-reference subtype's exposure odds
+> ratio versus the reference (one OR per subtype × exposure-coefficient,
+> information-matrix Wald interval) while `tidy()` adds a `y.level` column; a
+> two-group / numeric / logical outcome is rejected toward the binary estimators
+> (`matchatr_bad_outcome`). The dispatch gained an `outcome_kind` axis so
+> `matcha()` resolves the multi-group outcome (`resolve_polytomous_outcome()`)
+> instead of the binary one. The constrained common-OR fit + homogeneity LRT
+> (PHASE_4 Chunk 2) and PHASE_5+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -76,7 +86,12 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `effect_modification.R` (PHASE_3 Chunk 3 — `stratum_specific_or_result()`
   assembles the per-modifier-level conditional OR from the `exposure * modifier`
   clogit fit via a contrast matrix `C V C'`, plus `interaction_coef_index()`),
-  `polytomous.R` (multiple groups),
+  `polytomous.R` (PHASE_4 Chunk 1 — `fit_polytomous()` wraps `nnet::multinom`
+  for the unmatched ≥3-group multinomial logistic; `contrast_polytomous()` /
+  `multinom_exposure_or()` assemble each subtype's exposure OR by term position +
+  the `level:predictor` `vcov()` names, and `tidy_multinom()` renders the
+  per-equation `y.level` table; the multi-group outcome is resolved by
+  `resolve_polytomous_outcome()` in `checks.R`),
   `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-

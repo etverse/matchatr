@@ -78,16 +78,38 @@ print.matchatr_fit <- function(x, ...) {
   if (!is.null(x$effect_modifier)) {
     cat(" Modifier:   ", x$effect_modifier, "\n", sep = "")
   }
-  cat(
-    " N:          ",
-    nrow(x$data),
-    "  (cases: ",
-    x$details$n_cases,
-    ", controls: ",
-    x$details$n_controls,
-    ")\n",
-    sep = ""
-  )
+  if (identical(x$details$outcome_kind, "polytomous")) {
+    # A multi-group outcome has no single case / control split; report the
+    # per-group counts with the reference (baseline) group flagged.
+    counts <- x$details$group_counts
+    labels <- vapply(
+      names(counts),
+      function(g) {
+        if (identical(g, x$details$reference)) paste0(g, "*") else g
+      },
+      character(1)
+    )
+    cat(
+      " N:          ",
+      nrow(x$data),
+      "  (groups: ",
+      paste0(labels, ": ", as.integer(counts), collapse = ", "),
+      ")\n",
+      sep = ""
+    )
+    cat("             * reference group\n", sep = "")
+  } else {
+    cat(
+      " N:          ",
+      nrow(x$data),
+      "  (cases: ",
+      x$details$n_cases,
+      ", controls: ",
+      x$details$n_controls,
+      ")\n",
+      sep = ""
+    )
+  }
   invisible(x)
 }
 

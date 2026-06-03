@@ -12,15 +12,18 @@ matcha(
   confounders = NULL,
   estimator = NULL,
   model_fn = NULL,
-  effect_modifier = NULL
+  effect_modifier = NULL,
+  reference = NULL
 )
 }
 \arguments{
 \item{data}{A data.frame or data.table. Not mutated; a data.table copy is
 stored on the fit.}
 
-\item{outcome}{Character scalar naming the binary case-status column (a
-logical, two-level factor, or numeric 0/1 column).}
+\item{outcome}{Character scalar naming the case-status column. For the binary
+estimators this is a logical, two-level factor, or numeric 0/1 column; for
+\code{estimator = "polytomous"} it is a factor or character column with three or
+more groups (multiple case subtypes, or several control groups).}
 
 \item{exposure}{Character scalar naming the exposure column.}
 
@@ -54,6 +57,14 @@ from the joint partial-likelihood variance). Supported only for
 \code{estimator = "clogit"} with a single-coefficient exposure (binary,
 continuous, or two-level factor); the modifier may coincide with a matching
 variable. Defaults to \code{NULL} (no effect modification).}
+
+\item{reference}{\code{NULL} or a character scalar naming the reference outcome
+group for \code{estimator = "polytomous"}. The multinomial logistic contrasts
+every other group against this baseline, so each non-reference equation's
+exposure coefficient is that subtype's log odds ratio versus the reference.
+It must name one of the observed groups; when \code{NULL} the first factor level
+(or the first level in sorted order, for a character outcome) is used.
+Supplying it for a non-polytomous estimator is an error. Defaults to \code{NULL}.}
 }
 \value{
 A \code{matchatr_fit} object: a list with the validated specification

@@ -7,9 +7,10 @@ Single source of truth for what works, what's tested, and at what fidelity.
 > design objects, `matcha()` fit verb, `(design, estimator)` dispatch, and
 > input-validation / rejection paths, the unmatched case-control **logistic /
 > Mantel-Haenszel** ORs (PHASE_2) and the matched case-control **conditional
-> logistic** OR (PHASE_3 Chunk 1, `survival::clogit`) run end to end through the
-> shared `contrast()` / `tidy()` OR layer. The remaining estimator cells stay
-> pending until their phases land.
+> logistic** OR (PHASE_3 Chunk 1, `survival::clogit`) and the **polytomous**
+> subtype ORs for multi-group outcomes (PHASE_4 Chunk 1, `nnet::multinom`) run
+> end to end through the shared `contrast()` / `tidy()` OR layer. The remaining
+> estimator cells stay pending until their phases land.
 
 ## Legend
 
@@ -146,6 +147,52 @@ likelihood treats any matched-set composition uniformly (truth-tested in
 `test-clogit.R`).
 
 ## Multiple case / control groups (PHASE_4)
+
+**Chunk 1 implemented — the unconstrained polytomous odds ratios run end to
+end.** `matcha(design = unmatched_cc(), estimator = "polytomous")` fits a
+baseline-category multinomial logistic via `nnet::multinom`
+(`outcome ~ exposure + confounders`) for an outcome with three or more groups
+(`reference =` selects the baseline group, releveled to the front). Each
+non-reference equation's exposure coefficient is that subtype's log odds ratio
+versus the reference; `contrast(type = "or")` reports one OR row per
+(subtype, exposure-coefficient) with an information-matrix Wald interval, and
+`tidy()` renders the full per-equation table with a `y.level` column. RD / RR
+are rejected as unidentified without the source-population prevalences; the
+robust-sandwich and bootstrap variances do not apply. The constrained
+(common-OR) fit and the homogeneity LRT remain Chunk 2 (pending).
+
+| Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|
+| binary, 3-group outcome (saturated) | polytomous | subtype OR | OR | info matrix | ✅ closed-form 2×2 Woolf: OR **and** Var(log OR) per subtype (independent of multinom) | `test-polytomous.R` |
+| binary + confounder | polytomous | subtype OR | OR | info matrix | ✅ truth DGP (recovers per-subtype β within 3.5 SE) + `nnet::multinom` coef/vcov equality | `test-polytomous.R` |
+| continuous exposure (per unit) | polytomous | subtype OR | OR | info matrix | ✅ vs `nnet::multinom` | `test-polytomous.R` |
+| factor exposure (per level) | polytomous | subtype OR per level | OR | info matrix | ✅ vs `nnet::multinom` (+ exposure reference) | `test-polytomous.R` |
+| reference choice / default / character outcome | polytomous | subtype OR | OR | info matrix | ✅ baseline releveled; == explicitly-releveled `multinom` | `test-polytomous.R` |
+| unused outcome level | polytomous | subtype OR | OR | info matrix | ✅ dropped before fitting | `test-polytomous.R` |
+| missing exposure / confounder | polytomous | subtype OR | OR | info matrix | ⚠️ `matchatr_dropped_rows` (complete-case) | `test-polytomous.R` |
+| two-group outcome | polytomous | — | — | — | ⛔ `matchatr_bad_outcome` (→ binary estimators) | `test-polytomous.R` |
+| numeric / logical outcome | polytomous | — | — | — | ⛔ `matchatr_bad_outcome` | `test-polytomous.R` |
+| out-of-range `reference` | polytomous | — | — | — | ⛔ `matchatr_bad_input` | `test-polytomous.R` |
+| `reference` on a non-polytomous estimator | — | — | — | — | ⛔ `matchatr_bad_input` | `test-polytomous.R` |
+| constant exposure | polytomous | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-polytomous.R` |
+| ordered-factor exposure | polytomous | — | — | — | ⛔ `matchatr_bad_input` (polynomial contrasts) | `test-polytomous.R` |
+| effect modifier on polytomous | — | — | — | — | ⛔ `matchatr_bad_input` (clogit-only) | `test-polytomous.R` |
+| polytomous on a matched design | — | — | — | — | ⛔ `matchatr_bad_estimator` | `test-polytomous.R` |
+| polytomous | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-polytomous.R` |
+| polytomous OR | — | OR | — | sandwich / bootstrap | ⛔ `matchatr_unsupported_variance` | `test-polytomous.R` |
+
+The per-subtype OR assembly lives in `R/polytomous.R`
+(`multinom_exposure_or()`): it locates the exposure columns by term position
+(`term_assign()`, shared with the logistic / clogit engines) and reads each
+log-OR's variance by the `level:predictor` name `nnet::multinom` gives its
+`vcov()`, so the lookup never assumes a coefficient ordering. `matcha()`
+resolves the multi-group outcome through `resolve_polytomous_outcome()` (≥3
+groups, reference releveled to the baseline) and routes it via the new
+`outcome_kind` field on the dispatch; `tidy.matchatr_fit` branches to
+`tidy_multinom()` for the matrix-coefficient fit. `nnet` is a recommended
+(zero-dependency) R package, so no skip guards are needed.
+
+### Constrained common-OR fit + homogeneity LRT (PHASE_4 Chunk 2)
 
 _Pending implementation._
 

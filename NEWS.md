@@ -1,5 +1,39 @@
 # matchatr (development version)
 
+## 2026-06-03 — Polytomous logistic for multiple case / control groups (PHASE_4 Chunk 1)
+
+Opens the multiple-case/control-group layer with unconstrained polytomous
+(multinomial) logistic regression. `matcha(design = unmatched_cc(), estimator =
+"polytomous")` fits a baseline-category multinomial model
+(`outcome ~ exposure + confounders`) via `nnet::multinom` for an outcome with
+three or more groups — multiple disease subtypes, or several control groups. The
+new `reference =` argument selects the baseline group (releveled to the front);
+each non-reference equation's exposure coefficient is that subtype's log odds
+ratio versus the reference, so `contrast(type = "or")` reports one OR per
+(subtype, exposure-coefficient) with an information-matrix Wald interval, and
+`tidy()` renders the full per-equation table with a `y.level` column. The new
+`R/polytomous.R` (`fit_polytomous()`, `contrast_polytomous()`,
+`multinom_exposure_or()`, `tidy_multinom()`) and `resolve_polytomous_outcome()`
+carry the engine; the dispatch grew an `outcome_kind` axis so `matcha()` picks
+the multi-group resolver instead of the binary one.
+
+- A two-group, numeric, or logical outcome is `matchatr_bad_outcome` (routed back
+  to the binary `logistic` / `mh` / `clogit` estimators); an out-of-range
+  `reference`, a `reference` on a non-polytomous estimator, an ordered-factor
+  exposure, and `effect_modifier` are each `matchatr_bad_input`; a constant
+  exposure is `matchatr_unestimable_exposure` (multinom does not alias it to
+  `NA`, so it is caught explicitly); `polytomous` on a matched design is
+  `matchatr_bad_estimator`. RD / RR stay `matchatr_unidentified_estimand` and
+  sandwich / bootstrap variances are `matchatr_unsupported_variance` (the engine
+  reports the multinomial information matrix only).
+- Validated against two oracles: the saturated 3-group / binary-exposure
+  multinomial reproduces the closed-form 2×2 Woolf log-OR **and** its variance
+  per subtype (independent of multinom's own `vcov()`), and a truth-based cohort
+  DGP recovers the known per-subtype exposure log-ORs within 3.5 SE, with
+  `nnet::multinom` coefficient / variance equality pinning the adjusted,
+  continuous, and factor-exposure fits. `nnet` is a recommended R package, so it
+  joins `Imports` without adding an install-time dependency.
+
 ## 2026-06-03 — Effect modification in matched case-control (PHASE_3 Chunk 3)
 
 Completes the matched case-control layer with stratum-specific odds ratios.

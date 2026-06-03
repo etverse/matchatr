@@ -31,7 +31,10 @@ generics::tidy
 #'   the model information matrix. Default `FALSE`.
 #' @param ... Unused; present for generic consistency.
 #' @returns A `data.table` with columns `term`, `estimate`, `std.error`,
-#'   `statistic`, `p.value`, and (when `conf.int`) `conf.low`, `conf.high`.
+#'   `statistic`, `p.value`, and (when `conf.int`) `conf.low`, `conf.high`. For a
+#'   polytomous (`estimator = "polytomous"`) fit the coefficients form one
+#'   equation per non-reference outcome group, so a leading `y.level` column
+#'   names the group each row's contrast is against the reference.
 #' @examples
 #' set.seed(1)
 #' df <- data.frame(case = rep(c(1, 0), each = 100), x = rbinom(200, 1, 0.4))
@@ -52,6 +55,28 @@ tidy.matchatr_fit <- function(
   check_conf_level(conf.level)
 
   model <- x$model
+  # A polytomous fit's coefficients form a matrix (one row per non-reference
+  # outcome group), so it is tidied per equation with a `y.level` column rather
+  # than as the single coefficient vector the binary logistic path assumes. Its
+  # variance is the multinomial information matrix; the sandwich does not apply.
+  if (inherits(model, "multinom")) {
+    if (isTRUE(robust)) {
+      rlang::abort(
+        c(
+          "Robust (sandwich) standard errors are not available for the polytomous estimator.",
+          i = "It reports the multinomial information-matrix interval; use `robust = FALSE`."
+        ),
+        class = c("matchatr_unsupported_variance", "matchatr_error")
+      )
+    }
+    return(tidy_multinom(
+      model,
+      conf.int = conf.int,
+      conf.level = conf.level,
+      exponentiate = exponentiate
+    ))
+  }
+
   beta_all <- stats::coef(model)
   # Align the SEs to the coefficient vector by POSITION: coefficient names can
   # collide (factor x level concatenation), and the model vcov keeps aliased

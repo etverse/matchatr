@@ -510,6 +510,119 @@ resolve_binary_outcome <- function(data, outcome, call = rlang::caller_env()) {
   y01
 }
 
+#' Resolve a multi-group outcome for the polytomous estimator
+#'
+#' The polytomous (multinomial) estimator needs an outcome with three or more
+#' groups — multiple disease subtypes, or several control groups. This resolver
+#' accepts a factor or character outcome, drops unused factor levels and
+#' NA-omits, requires at least three observed groups, and relevels the column so
+#' the chosen reference group is the baseline (first) level that
+#' [nnet::multinom()] contrasts every other level against.
+#'
+#' @details
+#' A binary outcome (two groups, or a logical / numeric 0/1 column) is rejected
+#' with `matchatr_bad_outcome`, pointing back to the binary case-control
+#' estimators (`logistic` / `mh` / `clogit`) — the polytomous engine is only for
+#' k >= 3. The reference must name one of the observed levels; an absent
+#' reference is `matchatr_bad_input`. When `reference` is `NULL` the first level
+#' (factor) or the first level in sorted order (character) is used, and the
+#' choice is recorded so it can be echoed.
+#'
+#' @param data A data.frame or data.table.
+#' @param outcome Character scalar naming the multi-group outcome column.
+#' @param reference `NULL` (use the default baseline) or a character scalar
+#'   naming the reference group, which must be one of the observed levels.
+#' @param call Caller environment surfaced in the error.
+#' @returns A list with `factor` (the reference-first factor, same length as
+#'   `nrow(data)`, NA preserved), `levels` (its levels, reference first),
+#'   `reference` (the resolved reference group), and `counts` (a named integer
+#'   vector of per-group counts). Aborts with `matchatr_bad_outcome` for a
+#'   non-categorical or fewer-than-three-group outcome, or `matchatr_bad_input`
+#'   for a reference not among the levels.
+#' @family validators
+#' @noRd
+resolve_polytomous_outcome <- function(
+  data,
+  outcome,
+  reference = NULL,
+  call = rlang::caller_env()
+) {
+  y <- data[[outcome]]
+
+  bad_outcome <- function(msg) {
+    rlang::abort(
+      c(
+        msg,
+        i = paste0(
+          "A two-group outcome is a binary case-control analysis ",
+          "(`estimator = \"logistic\"`, `\"mh\"`, or `\"clogit\"`)."
+        )
+      ),
+      class = c("matchatr_bad_outcome", "matchatr_error"),
+      call = call
+    )
+  }
+
+  # A polytomous outcome is categorical: a factor or character column. A logical
+  # or numeric 0/1 column is a binary outcome routed to the wrong estimator.
+  yf <- if (is.factor(y)) {
+    droplevels(y)
+  } else if (is.character(y)) {
+    factor(y)
+  } else {
+    bad_outcome(paste0(
+      "Outcome `",
+      outcome,
+      "` must be a factor or character column with three or more groups."
+    ))
+  }
+
+  levs <- levels(yf)
+  if (length(levs) < 3L) {
+    bad_outcome(paste0(
+      "Outcome `",
+      outcome,
+      "` has ",
+      length(levs),
+      " group(s); the polytomous estimator needs at least three."
+    ))
+  }
+
+  # Resolve the reference (baseline) group; multinom contrasts every other level
+  # against the first level, so it is releveled to the front below.
+  if (is.null(reference)) {
+    reference <- levs[1]
+  } else {
+    check_string(reference, arg = "reference", call = call)
+    if (!reference %in% levs) {
+      rlang::abort(
+        c(
+          paste0(
+            "`reference` `",
+            reference,
+            "` is not one of the outcome groups."
+          ),
+          i = paste0(
+            "Observed groups: ",
+            paste0("\"", levs, "\"", collapse = ", "),
+            "."
+          )
+        ),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+  }
+  yf <- stats::relevel(yf, ref = reference)
+
+  list(
+    factor = yf,
+    levels = levels(yf),
+    reference = reference,
+    counts = table(yf)
+  )
+}
+
 #' Coerce a binary exposure to a 0/1 integer vector
 #'
 #' The Mantel-Haenszel summary odds ratio and the 1:1 McNemar odds ratio are
