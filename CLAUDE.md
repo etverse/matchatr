@@ -17,15 +17,20 @@ on person-period data) wherever possible.
 > the conditional-OR logistic via `stats::glm` (or a pluggable `model_fn` such as
 > `mgcv::gam`) for binary / continuous / categorical / ordinal-trend exposures,
 > and `estimator = "mh"` computes the Mantel-Haenszel stratified OR with
-> Robins-Breslow-Greenland variance. **PHASE_3 Chunks 1–2 (matched case-control)
-> are in**: `matcha(design = matched_cc(...), estimator = "clogit")` fits the
+> Robins-Breslow-Greenland variance. **PHASE_3 (matched case-control) is
+> complete**: `matcha(design = matched_cc(...), estimator = "clogit")` fits the
 > conditional likelihood via `survival::clogit` and reports the conditional OR
-> through the shared `conditional_or_result()` assembly, and `estimator =
+> through the shared `conditional_or_result()` assembly, `estimator =
 > "mcnemar"` computes the 1:1 matched-pair OR = n10/n01 with Var(log OR) =
 > 1/n10 + 1/n01 in closed form (rejecting M:1 / richer matching toward
-> `clogit`). `contrast(type = "or")` reports the OR(s); RD/RR are rejected as
-> unidentified without q0. The remaining PHASE_3 chunk (effect modification /
-> variable ratio) and PHASE_4+ remain `Status: DESIGN`.
+> `clogit`), and `effect_modifier = "m"` fits `outcome ~ exposure * m + ... +
+> strata(set)` so `contrast(type = "or")` reports the exposure's
+> **stratum-specific** conditional OR per modifier level (β_x at the reference,
+> β_x + β_{x:level} elsewhere) via `stratum_specific_or_result()`. M:1 and
+> variable-ratio matching need no special handling (the conditional likelihood
+> treats any matched-set composition uniformly). `contrast(type = "or")` reports
+> the OR(s); RD/RR are rejected as unidentified without q0. PHASE_4+ remain
+> `Status: DESIGN`.
 
 ## Guide files
 
@@ -67,8 +72,11 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   case-control conditional likelihood + the conditional-OR contrast; NCC
   risk-set handling is its own later phase), `mcnemar.R` (PHASE_3 Chunk 2 —
   `fit_mcnemar()` closed-form 1:1 matched-pair OR = n10/n01 + McNemar variance,
-  mirroring the `mantel_haenszel.R` closed-form precedent), `polytomous.R`
-  (multiple groups),
+  mirroring the `mantel_haenszel.R` closed-form precedent),
+  `effect_modification.R` (PHASE_3 Chunk 3 — `stratum_specific_or_result()`
+  assembles the per-modifier-level conditional OR from the `exposure * modifier`
+  clogit fit via a contrast matrix `C V C'`, plus `interaction_coef_index()`),
+  `polytomous.R` (multiple groups),
   `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-

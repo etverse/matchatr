@@ -11,7 +11,8 @@ matcha(
   design,
   confounders = NULL,
   estimator = NULL,
-  model_fn = NULL
+  model_fn = NULL,
+  effect_modifier = NULL
 )
 }
 \arguments{
@@ -42,11 +43,23 @@ case-control logistic engine, with a \verb{(formula, family, data)} interface.
 Defaults to \code{\link[stats:glm]{stats::glm()}}; pass e.g. \code{mgcv::gam} to adjust for a confounder
 with a smooth term (\code{confounders = ~ s(age)}) while keeping the exposure
 parametric. Ignored by the other engines.}
+
+\item{effect_modifier}{\code{NULL} or a character scalar naming a categorical
+(logical / character / factor) column whose levels modify the exposure
+effect. When supplied, the conditional logistic engine fits
+\code{outcome ~ exposure * effect_modifier + confounders + strata(set)} and
+\code{contrast(type = "or")} reports the stratum-specific odds ratio of the
+exposure within each modifier level (one OR per level, with a Wald interval
+from the joint partial-likelihood variance). Supported only for
+\code{estimator = "clogit"} with a single-coefficient exposure (binary,
+continuous, or two-level factor); the modifier may coincide with a matching
+variable. Defaults to \code{NULL} (no effect modification).}
 }
 \value{
 A \code{matchatr_fit} object: a list with the validated specification
 (\code{data}, \code{outcome}, \code{exposure}, \code{confounders}, \code{design}, \code{estimator},
-\code{engine}), a \code{details} list (resolved engine, weighting scheme, reserved
+\code{engine}, \code{effect_modifier}), a \code{details} list (resolved engine, weighting
+scheme, reserved
 variance / weight slots, case and control counts), and the originating
 \code{call}. The \code{model} slot holds the fitted estimation object for an
 implemented engine, or \code{NULL} otherwise.

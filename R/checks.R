@@ -335,6 +335,113 @@ check_exposure_not_ordered <- function(
   invisible(NULL)
 }
 
+#' Validate an effect-modifier column for stratum-specific odds ratios
+#'
+#' Effect modification in a matched case-control analysis is expressed as the
+#' `exposure x modifier` interaction in the conditional logistic model
+#' (`outcome ~ exposure * modifier + strata(set)`); `contrast()` then reports
+#' the exposure odds ratio within each modifier level (the stratum-specific OR).
+#' This validator enforces the two structural requirements: the modifier must be
+#' categorical (so "per level" is well defined), and the exposure must
+#' contribute a single coefficient (binary, continuous, or two-level factor) so
+#' each modifier level's OR is the single linear combination
+#' `beta_x + beta_{x:level}`.
+#'
+#' @details
+#' A continuous modifier has no discrete levels, so it is rejected with a hint
+#' to bin it or wrap it in `factor()`. A factor exposure with three or more
+#' levels contributes several coefficients, turning effect modification into a
+#' grid of level-by-level interactions rather than one OR per modifier level, so
+#' it is rejected (`matchatr_unsupported_combination`). The modifier may coincide
+#' with a matching / design column or a confounder — assessing whether the
+#' exposure OR differs across the matching variable is the canonical use — but it
+#' must be a distinct column from the outcome and the exposure.
+#'
+#' @param data A data.frame or data.table.
+#' @param effect_modifier Character scalar naming the modifier column.
+#' @param outcome Character scalar outcome column name.
+#' @param exposure Character scalar exposure column name.
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_input` for a
+#'   missing / mis-typed / role-colliding modifier, or
+#'   `matchatr_unsupported_combination` for a multi-level factor exposure.
+#' @family validators
+#' @noRd
+check_effect_modifier <- function(
+  data,
+  effect_modifier,
+  outcome,
+  exposure,
+  call = rlang::caller_env()
+) {
+  check_string(effect_modifier, arg = "effect_modifier", call = call)
+  check_cols_exist(data, effect_modifier, arg = "effect_modifier", call = call)
+  # The modifier is a covariate, so it may overlap a matching / design column or
+  # a confounder, but it cannot double as the outcome or the exposure.
+  if (effect_modifier %in% c(outcome, exposure)) {
+    rlang::abort(
+      c(
+        paste0(
+          "`effect_modifier` column `",
+          effect_modifier,
+          "` must differ from the outcome and the exposure."
+        ),
+        i = "It enters the model as `exposure * effect_modifier`; the exposure is already the term of interest."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  # A categorical modifier defines the levels the per-level OR is reported over;
+  # a continuous modifier has none, so the OR would have to be reported at chosen
+  # values (out of scope here).
+  modcol <- data[[effect_modifier]]
+  if (!(is.factor(modcol) || is.character(modcol) || is.logical(modcol))) {
+    rlang::abort(
+      c(
+        paste0(
+          "`effect_modifier` `",
+          effect_modifier,
+          "` must be categorical (logical, character, or factor)."
+        ),
+        i = "Bin a continuous modifier or wrap it in `factor()` to report one odds ratio per level."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  # Each modifier level's OR is the single linear combination
+  # beta_x + beta_{x:level}, which presumes the exposure contributes ONE
+  # coefficient. A 3+-level factor exposure contributes several, making effect
+  # modification a level-by-level grid rather than one OR per modifier level.
+  xcol <- data[[exposure]]
+  x_levels <- if (is.factor(xcol)) {
+    nlevels(droplevels(xcol))
+  } else if (is.character(xcol)) {
+    length(unique(stats::na.omit(xcol)))
+  } else {
+    NA_integer_
+  }
+  if (!is.na(x_levels) && x_levels > 2L) {
+    rlang::abort(
+      c(
+        paste0(
+          "Effect modification is supported for a single-coefficient exposure ",
+          "(binary, continuous, or two-level factor), but `",
+          exposure,
+          "` has ",
+          x_levels,
+          " levels."
+        ),
+        i = "Report per-level odds ratios for a multi-level exposure without an effect modifier, or dichotomise it."
+      ),
+      class = c("matchatr_unsupported_combination", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Coerce a case-status column to a 0/1 integer vector
 #'
 #' Case-control, nested case-control, and case-cohort designs all have a

@@ -75,6 +75,9 @@ print.matchatr_fit <- function(x, ...) {
     deparse1(x$confounders)
   }
   cat(" Confounders: ", conf_label, "\n", sep = "")
+  if (!is.null(x$effect_modifier)) {
+    cat(" Modifier:   ", x$effect_modifier, "\n", sep = "")
+  }
   cat(
     " N:          ",
     nrow(x$data),

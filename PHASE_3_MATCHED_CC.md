@@ -1,6 +1,9 @@
 # Phase 3 — Matched Case-Control: Conditional Logistic Regression
 
-> **Status: DESIGN**
+> **Status: IMPLEMENTED (Chunks 1–3).** Conditional logistic regression
+> (`survival::clogit`), the 1:1 McNemar closed form, and effect modification
+> (`exposure x modifier` → stratum-specific conditional ORs) all run end to end
+> through `matcha()` / `contrast(type = "or")`.
 > Book chapters: 4 (Matched Case-Control Studies).
 
 ## Scope
@@ -54,9 +57,12 @@ matcha(pairs, outcome = "case", exposure = "x",
 |---|---|---|---|---|---|
 | 1:1, binary x | mcnemar | cond. OR | OR | McNemar (1/n10+1/n01) | done |
 | 1:1 / M:1 | clogit | cond. OR | OR | partial-lik info | done |
-| M:1 + covariates | clogit | cond. OR | OR | partial-lik info | needs-test |
-| variable ratio | clogit | cond. OR | OR | partial-lik info | needs-test |
-| with `x:modifier` | clogit | stratum-specific OR | OR | partial-lik info | needs-test |
+| M:1 + covariates | clogit | cond. OR | OR | partial-lik info | done |
+| variable ratio | clogit | cond. OR | OR | partial-lik info | done |
+| with `x:modifier` | clogit | stratum-specific OR | OR | partial-lik info | done |
+| `x:modifier`, multi-level factor x | clogit | — | — | — | ⛔ `matchatr_unsupported_combination` |
+| `effect_modifier` on a non-clogit engine | — | — | — | — | ⛔ `matchatr_bad_input` |
+| continuous `effect_modifier` | clogit | — | — | — | ⛔ `matchatr_bad_input` |
 | clogit | — | RD/RR/marginal | — | — | ⛔ `matchatr_unidentified_estimand` |
 
 ## Implementation plan
@@ -105,7 +111,25 @@ sandwich needed for the conditional fit; cluster-robust is available via `clogit
    OR²-bias invariant is pinned by a test showing the unconditional 1:1 MLE is
    exactly twice the conditional estimate. M:1 / richer matching is rejected
    (`matchatr_not_one_to_one`), one-sided discordant pairs are unestimable.
-3. Effect modification across strata + variable-ratio handling.
+3. Effect modification across strata + variable-ratio handling. **(done)** —
+   `matcha(..., effect_modifier = "m", estimator = "clogit")` fits
+   `outcome ~ exposure * m + confounders + strata(set)` and
+   `contrast(type = "or")` reports the exposure's stratum-specific conditional
+   OR within each modifier level: `beta_x` at the reference level,
+   `beta_x + beta_{x:level}` elsewhere, with Wald intervals from the joint
+   partial-likelihood variance (`R/effect_modification.R`,
+   `stratum_specific_or_result()`). The modifier must be categorical and the
+   exposure single-coefficient (binary / continuous / two-level factor); a
+   multi-level factor exposure is `matchatr_unsupported_combination`, a
+   continuous modifier or a non-clogit engine is `matchatr_bad_input`, and an
+   aliased per-level interaction is `matchatr_unestimable_exposure`. Validated
+   against the within-level 1:1 McNemar closed form (point AND variance,
+   independent of `clogit`), hand-built `survival::clogit` linear combinations
+   (forwarding, labels, multi-level ordering), and a truth DGP with known
+   per-level conditional log-ORs. The M:1-with-covariates and variable-ratio
+   cells were already truth-tested by Chunk 1's `clogit` engine (the conditional
+   likelihood handles any matched-set composition), so Chunk 3 adds the effect-
+   modification contrast on top of them.
 
 ## Deferred items
 

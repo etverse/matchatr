@@ -42,10 +42,21 @@
 #'   Defaults to [stats::glm()]; pass e.g. `mgcv::gam` to adjust for a confounder
 #'   with a smooth term (`confounders = ~ s(age)`) while keeping the exposure
 #'   parametric. Ignored by the other engines.
+#' @param effect_modifier `NULL` or a character scalar naming a categorical
+#'   (logical / character / factor) column whose levels modify the exposure
+#'   effect. When supplied, the conditional logistic engine fits
+#'   `outcome ~ exposure * effect_modifier + confounders + strata(set)` and
+#'   `contrast(type = "or")` reports the stratum-specific odds ratio of the
+#'   exposure within each modifier level (one OR per level, with a Wald interval
+#'   from the joint partial-likelihood variance). Supported only for
+#'   `estimator = "clogit"` with a single-coefficient exposure (binary,
+#'   continuous, or two-level factor); the modifier may coincide with a matching
+#'   variable. Defaults to `NULL` (no effect modification).
 #'
 #' @returns A `matchatr_fit` object: a list with the validated specification
 #'   (`data`, `outcome`, `exposure`, `confounders`, `design`, `estimator`,
-#'   `engine`), a `details` list (resolved engine, weighting scheme, reserved
+#'   `engine`, `effect_modifier`), a `details` list (resolved engine, weighting
+#'   scheme, reserved
 #'   variance / weight slots, case and control counts), and the originating
 #'   `call`. The `model` slot holds the fitted estimation object for an
 #'   implemented engine, or `NULL` otherwise.
@@ -77,7 +88,8 @@ matcha <- function(
   design,
   confounders = NULL,
   estimator = NULL,
-  model_fn = NULL
+  model_fn = NULL,
+  effect_modifier = NULL
 ) {
   # Record the user's call so the fit can echo it in print().
   call <- match.call()
@@ -171,6 +183,29 @@ matcha <- function(
   check_string(estimator)
   routing <- resolve_engine(design$type, estimator)
 
+  # Effect modification is the `exposure x modifier` interaction in the
+  # conditional logistic model: validate the modifier (categorical, distinct
+  # from outcome/exposure, single-coefficient exposure) and restrict it to the
+  # conditional logistic engine, where the matched-set conditioning makes the
+  # per-level odds ratio the design-faithful contrast.
+  if (!is.null(effect_modifier)) {
+    check_effect_modifier(dt, effect_modifier, outcome, exposure)
+    if (!identical(routing$engine, "clogit")) {
+      rlang::abort(
+        c(
+          "`effect_modifier` is supported only for the conditional logistic estimator.",
+          i = paste0(
+            "Use `estimator = \"clogit\"` with a matched (or nested) ",
+            "case-control design; got engine `",
+            routing$engine,
+            "`."
+          )
+        ),
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
+  }
+
   # Case-control weighting reweights the sample to the source population, which
   # is impossible without the marginal prevalence q0.
   if (identical(routing$kind, "ccw") && is.null(design$prevalence)) {
@@ -225,6 +260,7 @@ matcha <- function(
     design = design,
     estimator = estimator,
     engine = routing$engine,
+    effect_modifier = effect_modifier,
     details = details,
     call = call
   )

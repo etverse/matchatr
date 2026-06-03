@@ -28,11 +28,14 @@ test_that("new_matchatr_fit builds the documented slot layout", {
       "design",
       "estimator",
       "engine",
+      "effect_modifier",
       "details",
       "call"
     )
   )
   expect_null(fit$model)
+  # No effect modifier supplied -> the slot is reserved as NULL.
+  expect_null(fit$effect_modifier)
   expect_s3_class(fit$design, "matchatr_design")
   # The variance correction is reserved (NULL) until an inference engine runs.
   expect_true("variance_kind" %in% names(fit$details))
