@@ -26,13 +26,17 @@ make_cc_data <- function(n_sets = 30L, ratio = 2L, seed = 101L) {
 }
 
 # A tiny matched sample whose set 2 holds only cases (no control), so the
-# conditional likelihood would drop it -- used to exercise the
-# uninformative-stratum warning.
+# conditional likelihood drops it -- used to exercise the uninformative-stratum
+# warning. Sets 1 and 3 are informative discordant pairs pointing in OPPOSITE
+# directions (case exposed in set 1, unexposed in set 3), so the conditional
+# MLE on the remaining sets is finite (beta -> 0) and clogit converges cleanly:
+# the warning under test is the uninformative-stratum one, not an incidental
+# non-convergence warning from a single separating pair.
 make_uninformative_cc <- function() {
   data.frame(
-    case = c(1L, 0L, 1L, 1L),
-    x = c(1L, 0L, 1L, 0L),
-    set = c(1L, 1L, 2L, 2L)
+    case = c(1L, 0L, 1L, 1L, 1L, 0L),
+    x = c(1L, 0L, 1L, 0L, 0L, 1L),
+    set = c(1L, 1L, 2L, 2L, 3L, 3L)
   )
 }
 
@@ -135,6 +139,46 @@ make_stratified_cc <- function(n_strata = 5L, beta_x = 0.7, seed = 10L) {
         )
       })
     )
+  })
+}
+
+# Truth-based DGP for the matched case-control conditional OR. Each of `n_sets`
+# matched sets has `ratio` controls and exactly one case, generated from the
+# CONDITIONAL likelihood itself: `ratio + 1` exposures are drawn at a set-level
+# exposure prevalence (the matched-away nuisance), then the case is selected
+# with probability proportional to exp(x * beta_x) (Breslow & Day 1980, the
+# 1:M conditional-likelihood construction). The CMLE of `x` therefore recovers
+# exp(beta_x) regardless of the set-level baseline. A binary nuisance covariate
+# `z` (non-matching confounder) is carried for adjustment tests. Sets whose
+# exposure is constant are uninformative and dropped by `clogit` (harmless).
+# Columns: case (0/1), x (0/1 exposure), z (0/1 covariate), set (matched-set id).
+make_matched_cc <- function(
+  n_sets = 250L,
+  ratio = 3L,
+  beta_x = log(2.5),
+  seed = 11L
+) {
+  withr::with_seed(seed, {
+    m <- ratio + 1L
+    parts <- lapply(seq_len(n_sets), function(i) {
+      # Set-level exposure prevalence: the matching variable's effect, removed
+      # by conditioning on the set, so it never biases the CMLE.
+      p_i <- stats::plogis(stats::rnorm(1, 0, 1))
+      x <- stats::rbinom(m, 1L, p_i)
+      z <- stats::rbinom(m, 1L, 0.5)
+      # Conditional-likelihood case selection: exactly one case per set, drawn
+      # with weight exp(x * beta_x). This is the matched-CC analogue of the
+      # risk-set sampling that makes clogit the design-faithful estimator.
+      w <- exp(x * beta_x)
+      case_idx <- sample.int(m, 1L, prob = w)
+      case <- integer(m)
+      case[case_idx] <- 1L
+      data.frame(case = case, x = x, z = z, set = i)
+    })
+    out <- do.call(rbind, parts)
+    rownames(out) <- NULL
+    attr(out, "truth") <- c(beta_x = beta_x)
+    out
   })
 }
 

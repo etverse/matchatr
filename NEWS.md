@@ -1,5 +1,36 @@
 # matchatr (development version)
 
+## 2026-06-03 — Matched case-control conditional logistic regression (PHASE_3 Chunk 1)
+
+Opens the matched case-control layer with the conditional maximum-likelihood
+odds ratio. `matcha(design = matched_cc(strata = ...), estimator = "clogit")`
+(the design's default estimator) fits `survival::clogit` —
+`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum —
+and `contrast(type = "or")` reports the exposure's conditional odds ratio with a
+partial-likelihood-information Wald interval. Conditioning on the matched-set
+totals removes the matching-variable nuisance parameters, so only the exposure /
+adjustment ORs are reported; the matching variables are controlled implicitly.
+
+- The conditional likelihood is the correctness invariant: unconditional logistic
+  regression on matched-set indicators biases the OR (for 1:1 matching its MLE
+  converges to the squared OR; Pike et al. 1980, Breslow & Day 1980).
+- Several matching columns cross into one `strata()` term (frequency matching);
+  a factor exposure reports one OR per level versus its reference; non-matching
+  covariates adjust via `confounders`.
+- RD / RR are rejected as unidentified (shared with the logistic engine). The
+  conditional fit reports the information-matrix interval only, so
+  `ci_method = "sandwich"` / `"bootstrap"` are declined
+  (`matchatr_unsupported_variance`); cluster-robust variance for reused controls
+  is deferred to the risk-set designs. An exposure with no within-stratum
+  variation aborts with `matchatr_unestimable_exposure`.
+- Validated against `survival::clogit` (exact pass-through of coefficients and
+  variance), the handbook §4.4 induced-abortion ORs on `infert`
+  (induced ≈ 4.09, spontaneous ≈ 7.29, OR(2+) ≈ 16.7), and a matched-set DGP
+  built from the conditional likelihood with a known log-OR.
+- The shared `conditional_or_result()` assembly (exposure coefficient by term
+  position, Wald interval on the log scale, exponentiated) now backs both the
+  unmatched logistic and the matched conditional logistic engines.
+
 ## 2026-06-03 — Mantel-Haenszel stratified odds ratio (PHASE_2 Chunk 3)
 
 Completes the unmatched case-control layer with the closed-form Mantel-Haenszel

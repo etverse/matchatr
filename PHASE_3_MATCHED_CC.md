@@ -86,7 +86,12 @@ sandwich needed for the conditional fit; cluster-robust is available via `clogit
 
 ## Chunk plan
 
-1. `fit_clogit()` + clogit oracle on `infert`.
+1. `fit_clogit()` + clogit oracle on `infert`. **(done)** — `R/clogit.R`
+   wraps `survival::clogit` (`outcome ~ exposure + confounders + strata(set)`),
+   reuses the shared `conditional_or_result()` OR assembly, and reports the
+   conditional OR with the partial-likelihood Wald interval. Validated against
+   `survival::clogit` (exact pass-through), the handbook §4.4 induced-abortion
+   ORs, and a matched-set DGP built from the conditional likelihood.
 2. McNemar closed form + truth-based OR²-bias demonstration.
 3. Effect modification across strata + variable-ratio handling.
 

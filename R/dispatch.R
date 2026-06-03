@@ -79,6 +79,7 @@ default_contrast_type <- function(engine) {
     engine,
     glm_logistic = "or",
     mantel_haenszel = "or",
+    clogit = "or",
     "difference"
   )
 }
@@ -155,6 +156,7 @@ run_engine <- function(fit) {
     fit$engine,
     glm_logistic = fit_logistic_cc(fit),
     mantel_haenszel = fit_mh(fit),
+    clogit = fit_clogit(fit),
     NULL
   )
 }

@@ -3,12 +3,13 @@
 Single source of truth for what works, what's tested, and at what fidelity.
 **Every PR that changes a feature MUST update this file.**
 
-> **Status: first estimator landed (PHASE_2 Chunk 1).** On top of the PHASE_1
+> **Status: classical odds-ratio engines landing.** On top of the PHASE_1
 > design objects, `matcha()` fit verb, `(design, estimator)` dispatch, and
-> input-validation / rejection paths, the unmatched case-control **logistic
-> conditional OR** now runs end to end (`stats::glm` + the `contrast()` /
-> `tidy()` / `summary()` OR layer). The remaining estimator cells stay pending
-> until their phases land.
+> input-validation / rejection paths, the unmatched case-control **logistic /
+> Mantel-Haenszel** ORs (PHASE_2) and the matched case-control **conditional
+> logistic** OR (PHASE_3 Chunk 1, `survival::clogit`) run end to end through the
+> shared `contrast()` / `tidy()` OR layer. The remaining estimator cells stay
+> pending until their phases land.
 
 ## Legend
 
@@ -85,7 +86,33 @@ S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
 
 ## Matched case-control (PHASE_3)
 
-_Pending implementation._
+**Chunk 1 implemented — conditional logistic regression.**
+`matcha(design = matched_cc(strata = ...), estimator = "clogit")` fits the
+matched case-control conditional maximum likelihood via `survival::clogit`
+(`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum),
+and `contrast(type = "or")` reports the exposure's conditional odds ratio with a
+partial-likelihood-information Wald interval. The matching variables are
+conditioned away (no estimable coefficient); only the exposure / adjustment ORs
+are reported. McNemar 1:1 closed form (Chunk 2) and effect modification /
+variable-ratio handling (Chunk 3) remain pending.
+
+| Matching | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|
+| 1:1 / M:1, binary x | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` (infert) + truth DGP | `test-clogit.R` |
+| infert induced/spontaneous | clogit | cond. OR | OR | partial-lik info | ✅ handbook §4.4 (OR ≈ 4.09, 7.29; OR(2+) ≈ 16.7) | `test-clogit.R` |
+| M:1 + non-matching covariate | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` | `test-clogit.R` |
+| factor exposure (per-level) | clogit | cond. OR per level | OR | partial-lik info | ✅ vs `survival::clogit` (+ reference) | `test-clogit.R` |
+| multi-column strata (frequency matching) | clogit | cond. OR | OR | partial-lik info | ✅ vs `survival::clogit` (crossed strata) | `test-clogit.R` |
+| clogit | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-clogit.R` |
+| clogit OR | — | OR | — | sandwich / bootstrap | ⛔ `matchatr_unsupported_variance` | `test-clogit.R` |
+| exposure constant within strata | clogit | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-clogit.R` |
+| missing exposure / confounder | clogit | cond. OR | OR | partial-lik info | ⚠️ `matchatr_dropped_rows` (complete-case) | `test-clogit.R` |
+
+The conditional OR assembly is shared with the unmatched logistic engine via
+`conditional_or_result()` (exposure coefficient by term position, Wald interval
+on the log scale, exponentiated). `tidy()` renders the per-term OR table (no
+intercept row). McNemar (1:1 closed form), effect modification across strata, and
+explicit variable-ratio handling are pending Chunks 2–3.
 
 ## Multiple case / control groups (PHASE_4)
 

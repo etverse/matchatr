@@ -14,6 +14,7 @@
 #' `CLAUDE.md` at the repository root for the implementation roadmap.
 #'
 #' @keywords internal
+#' @importFrom survival clogit coxph strata Surv
 "_PACKAGE"
 
 ## usethis namespace: start
