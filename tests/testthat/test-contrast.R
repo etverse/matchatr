@@ -11,8 +11,9 @@ test_that("contrast rejects a non-fit argument", {
 
 test_that("contrast on a non-estimated engine aborts with matchatr_not_estimated", {
   df <- make_cc_data(n_sets = 6L)
-  # clogit has no wired estimator yet, so its fit carries model = NULL.
-  fit <- suppressWarnings(matcha(df, "case", "x", matched_cc(strata = "set")))
+  # The counter-matched weighted-Cox engine has no wired estimator yet, so its
+  # fit carries model = NULL (the clogit engine, by contrast, now estimates).
+  fit <- matcha(df, "case", "x", counter_matched(strata = "set", time = "t"))
   expect_null(fit$model)
   expect_error(contrast(fit), class = "matchatr_not_estimated")
 })
@@ -73,6 +74,6 @@ test_that("contrast() defaults to the estimand the engine identifies", {
 
 test_that("the not-estimated message reads clearly", {
   df <- make_cc_data(n_sets = 6L)
-  fit <- suppressWarnings(matcha(df, "case", "x", matched_cc(strata = "set")))
+  fit <- matcha(df, "case", "x", counter_matched(strata = "set", time = "t"))
   expect_snapshot(contrast(fit), error = TRUE)
 })

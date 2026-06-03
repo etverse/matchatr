@@ -195,86 +195,19 @@ contrast_logistic <- function(
     )
   }
 
-  model <- fit$model
-  beta <- stats::coef(model)
-  # Two-sided Wald critical value for the requested confidence level.
-  z <- stats::qnorm(1 - (1 - conf_level) / 2)
-
-  idx <- exposure_coef_index(model, fit$exposure, call = call)
-  term_labels <- names(beta)[idx]
-  b <- unname(beta[idx])
-  # A constant or collinear exposure is aliased to NA by glm: it has no
-  # estimable coefficient, so its odds ratio is not identified. Refuse rather
-  # than return a silent NA (mirrors the degenerate-outcome rejection in
-  # resolve_binary_outcome()).
-  if (anyNA(b)) {
-    rlang::abort(
-      c(
-        paste0("Exposure `", fit$exposure, "` has no estimable effect."),
-        i = paste0(
-          "It is constant or collinear with the confounders / intercept, so ",
-          "its odds ratio is not identified."
-        )
-      ),
-      class = c("matchatr_unestimable_exposure", "matchatr_error"),
-      call = call
-    )
-  }
-
-  # Index the variance by POSITION, not coefficient name: names can collide
-  # (factor x level concatenation) and the model vcov keeps aliased rows while
-  # the sandwich drops them. `estimable_vcov()` returns the variance over the
-  # estimable coefficients with their positions (`est_pos`); the exposure
-  # coefficients are non-aliased (guard above), so each maps into that set.
-  ev <- estimable_vcov(model, robust = identical(ci_method, "sandwich"))
-  sel <- match(idx, ev$est_pos)
-  vcov_exp <- ev$vcov[sel, sel, drop = FALSE]
-  dimnames(vcov_exp) <- list(term_labels, term_labels)
-  s <- unname(sqrt(diag(vcov_exp)))
-  log_lower <- b - z * s
-  log_upper <- b + z * s
-
-  # For a factor exposure, each contrast is a level versus the factor's
-  # reference (baseline) level; record it so the OR rows are interpretable. Read
-  # it from the model's `xlevels` (the levels actually used in fitting, with
-  # unused declared levels dropped), not from the raw column whose first declared
-  # level may never occur. Fall back to the present levels if `xlevels` is absent.
-  exposure_col <- fit$data[[fit$exposure]]
-  reference <- if (is.factor(exposure_col)) {
-    xl <- model$xlevels[[fit$exposure]]
-    if (is.null(xl)) levels(droplevels(exposure_col))[1] else xl[1]
-  } else {
-    NULL
-  }
-
-  estimates <- data.table::data.table(
-    term = term_labels,
-    estimate = b, # log OR (raw coefficient)
-    se = s,
-    ci_lower = log_lower,
-    ci_upper = log_upper
-  )
-  contrasts <- data.table::data.table(
-    comparison = term_labels,
-    estimate = exp(b), # OR
-    se = exp(b) * s, # delta-method SE on the OR scale
-    ci_lower = exp(log_lower),
-    ci_upper = exp(log_upper)
-  )
-
-  new_matchatr_result(
-    estimates = estimates,
-    contrasts = contrasts,
-    type = "or",
-    estimand = "conditional OR",
+  # Shared conditional-OR assembly: locate the exposure coefficient(s), form the
+  # Wald interval on the log-odds scale, exponentiate to the OR scale. The
+  # logistic engine offers the model information matrix or the Huber-White
+  # sandwich. The analysis n is the number of rows glm actually used (complete
+  # cases), not the full sample, which may differ when confounders carry NAs.
+  conditional_or_result(
+    fit,
+    model = fit$model,
+    robust = identical(ci_method, "sandwich"),
     ci_method = ci_method,
-    reference = reference,
-    # The analysis n is the number of rows glm actually used (complete cases),
-    # not the full sample, which may differ when confounders carry NAs.
-    n = stats::nobs(model),
-    estimator = fit$estimator,
-    engine = fit$engine,
-    vcov = vcov_exp,
+    conf_level = conf_level,
+    estimand = "conditional OR",
+    n = stats::nobs(fit$model),
     call = call
   )
 }

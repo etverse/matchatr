@@ -1,5 +1,64 @@
 # matchatr (development version)
 
+## 2026-06-03 — McNemar 1:1 matched-pair odds ratio (PHASE_3 Chunk 2)
+
+Adds the closed-form 1:1 estimator alongside the conditional logistic engine.
+`matcha(design = matched_cc(strata = ...), estimator = "mcnemar")` computes the
+matched-pair odds ratio directly from the discordant-pair counts — `OR = n10/n01`
+with `Var(log OR) = 1/n10 + 1/n01` (McNemar 1947; Breslow & Day 1980) — without
+fitting `survival::clogit`, and `contrast(type = "or")` reports it with a Wald
+interval. Pairs concordant on exposure carry no information and cancel.
+
+- The estimator applies only to genuine 1:1 pairs: a matched set with more than
+  one case or more than one control is M:1 (or richer) matching with no two-cell
+  closed form and is rejected with `matchatr_not_one_to_one`, pointing to
+  `estimator = "clogit"`. A one-sided (or empty) set of discordant pairs gives a
+  boundary OR of 0 / ∞ and aborts with `matchatr_unestimable_exposure`.
+- The exposure must be binary (logical / two-level factor / numeric 0/1); a
+  non-binary exposure is declined (`matchatr_bad_input`) toward `clogit`. RD / RR
+  remain unidentified and `ci_method = "sandwich"` / `"bootstrap"` are declined
+  (`matchatr_unsupported_variance`); a missing pair member drops to complete
+  pairs with a `matchatr_dropped_rows` warning.
+- Validated three ways: exact agreement with `survival::clogit` on the same 1:1
+  binary data (the conditional likelihood reduces to McNemar's), the OR and
+  variance against the hand-counted closed form (independent of clogit), and a
+  matched-pair DGP with a known log-OR (CMLE recovers β within a self-scaling SE
+  band). A dedicated test pins the OR²-bias invariant: the unconditional 1:1 MLE
+  with a parameter per pair is exactly twice the conditional estimate.
+
+## 2026-06-03 — Matched case-control conditional logistic regression (PHASE_3 Chunk 1)
+
+Opens the matched case-control layer with the conditional maximum-likelihood
+odds ratio. `matcha(design = matched_cc(strata = ...), estimator = "clogit")`
+(the design's default estimator) fits `survival::clogit` —
+`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum —
+and `contrast(type = "or")` reports the exposure's conditional odds ratio with a
+partial-likelihood-information Wald interval. Conditioning on the matched-set
+totals removes the matching-variable nuisance parameters, so only the exposure /
+adjustment ORs are reported; the matching variables are controlled implicitly.
+
+- The conditional likelihood is the correctness invariant: unconditional logistic
+  regression on matched-set indicators biases the OR (for 1:1 matching its MLE
+  converges to the squared OR; Pike et al. 1980, Breslow & Day 1980).
+- Several matching columns cross into one `strata()` term (frequency matching);
+  a factor exposure reports one OR per level versus its reference; non-matching
+  covariates adjust via `confounders`.
+- RD / RR are rejected as unidentified (shared with the logistic engine). The
+  conditional fit reports the information-matrix interval only, so
+  `ci_method = "sandwich"` / `"bootstrap"` are declined
+  (`matchatr_unsupported_variance`); cluster-robust variance for reused controls
+  is deferred to the risk-set designs. An exposure with no within-stratum
+  variation aborts with `matchatr_unestimable_exposure`.
+- Validated against an independent closed-form oracle for 1:1 matching (McNemar:
+  OR = n10/n01 and Var(log OR) = 1/n10 + 1/n01, exact and computed without
+  clogit), a matched-set DGP built from the conditional likelihood with a known
+  log-OR (CMLE recovers β for binary, continuous, mixed-ratio, and adjusted
+  cases), `survival::clogit` pass-through, and a regression pin against the
+  canonical `infert` clogit example (induced ≈ 4.09, spontaneous ≈ 7.29).
+- The shared `conditional_or_result()` assembly (exposure coefficient by term
+  position, Wald interval on the log scale, exponentiated) now backs both the
+  unmatched logistic and the matched conditional logistic engines.
+
 ## 2026-06-03 — Mantel-Haenszel stratified odds ratio (PHASE_2 Chunk 3)
 
 Completes the unmatched case-control layer with the closed-form Mantel-Haenszel

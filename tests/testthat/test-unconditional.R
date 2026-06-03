@@ -18,7 +18,9 @@ test_that("matcha fits a binomial glm for the logistic engine", {
 
 test_that("an engine with no wired estimator leaves model NULL", {
   df <- make_cc_data()
-  fit <- suppressWarnings(matcha(df, "case", "x", matched_cc("set")))
+  # The counter-matched weighted-Cox engine is not wired yet, so its fit
+  # carries model = NULL (the clogit engine, by contrast, now estimates).
+  fit <- matcha(df, "case", "x", counter_matched(strata = "set", time = "t"))
   expect_null(fit$model)
 })
 

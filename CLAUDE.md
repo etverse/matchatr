@@ -10,16 +10,22 @@ weighting** (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and
 (g-comp / IPW / AIPW + sandwich/bootstrap variance) and `survatr` (causal survival
 on person-period data) wherever possible.
 
-> **Status: first estimator landed (PHASE_2 Chunk 1).** The PHASE_1 foundation
+> **Status: classical odds-ratio engines landing.** The PHASE_1 foundation
 > (design taxonomy, unified `matchatr_design` S3 object + six constructors, the
 > `matcha()` fit verb, the `(design, estimator)` dispatch + validation layer) is
-> in place, and **PHASE_2 (unmatched case-control) is complete**: `matcha()` fits
+> in place. **PHASE_2 (unmatched case-control) is complete**: `matcha()` fits
 > the conditional-OR logistic via `stats::glm` (or a pluggable `model_fn` such as
 > `mgcv::gam`) for binary / continuous / categorical / ordinal-trend exposures,
 > and `estimator = "mh"` computes the Mantel-Haenszel stratified OR with
-> Robins-Breslow-Greenland variance; `contrast(type = "or")` reports the OR(s),
-> and RD/RR are rejected as unidentified without q0. PHASE_3+ remain
-> `Status: DESIGN`.
+> Robins-Breslow-Greenland variance. **PHASE_3 Chunks 1–2 (matched case-control)
+> are in**: `matcha(design = matched_cc(...), estimator = "clogit")` fits the
+> conditional likelihood via `survival::clogit` and reports the conditional OR
+> through the shared `conditional_or_result()` assembly, and `estimator =
+> "mcnemar"` computes the 1:1 matched-pair OR = n10/n01 with Var(log OR) =
+> 1/n10 + 1/n01 in closed form (rejecting M:1 / richer matching toward
+> `clogit`). `contrast(type = "or")` reports the OR(s); RD/RR are rejected as
+> unidentified without q0. The remaining PHASE_3 chunk (effect modification /
+> variable ratio) and PHASE_4+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -54,10 +60,16 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   the `matchatr_unidentified_estimand` rejection), `mantel_haenszel.R` (PHASE_2
   Chunk 3 — `fit_mh()` closed-form stratified OR + Robins-Breslow-Greenland
   variance), `coef_extract.R` (fitter-agnostic coefficient / variance extraction
-  shared by both — `term_assign()`, `estimable_vcov()`, `exposure_coef_index()`,
-  `parametric_positions()`), `clogit.R` (matched CC / NCC conditional
-  likelihood), `polytomous.R` (multiple groups), `weighted_cox.R` (NCC IPW Cox),
-  `case_cohort.R` (`cch` wrappers).
+  shared across engines — `term_assign()`, `estimable_vcov()`,
+  `exposure_coef_index()`, `parametric_positions()`, plus the shared
+  `conditional_or_result()` OR-assembly used by the logistic and clogit engines),
+  `clogit.R` (PHASE_3 — `fit_clogit()` wraps `survival::clogit` for the matched
+  case-control conditional likelihood + the conditional-OR contrast; NCC
+  risk-set handling is its own later phase), `mcnemar.R` (PHASE_3 Chunk 2 —
+  `fit_mcnemar()` closed-form 1:1 matched-pair OR = n10/n01 + McNemar variance,
+  mirroring the `mantel_haenszel.R` closed-form precedent), `polytomous.R`
+  (multiple groups),
+  `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).
