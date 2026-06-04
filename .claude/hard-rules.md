@@ -124,6 +124,19 @@ Project-specific rules that override / extend the etverse-wide rules at
   `contrasts` is the delta-method `OR * SE(log OR)`; it does NOT reconstruct the
   CI. The reconstructable log-scale SE lives in the result's `estimates`. Do not
   "fix" the asymmetry or flag the se↔CI mismatch.
+- **`nnet::multinom` does NOT alias a rank-deficient predictor to `NA`** the way
+  `stats::glm` does — it splits the coefficient across the collinear columns and
+  returns a finite, silently attenuated odds ratio (verified: a confounder
+  `dup = x` halves the exposure log OR). The polytomous engine guards this at fit
+  time in `reject_collinear_exposure()` (`R/polytomous.R`) by the design-matrix
+  rank: it aborts `matchatr_unestimable_exposure` only when dropping the exposure
+  column(s) fails to lower `qr(model.matrix)$rank` by the number of exposure
+  columns. Collinearity confined to the confounders (the exposure still adds full
+  rank) is deliberately NOT rejected — the exposure OR is still identified. Do
+  not replace this with a raw constant-column check (it misses confounder
+  collinearity), do not rely on an `anyNA(coef)` guard (multinom never returns
+  `NA`, so that branch is dead), and do not flag the non-rejection of
+  confounder-only collinearity as a bug.
 
 ### Review-time heuristics
 
