@@ -231,3 +231,20 @@ _Pending implementation._
 ## Extensions: SCCS, response-selective (PHASE_19, PHASE_20)
 
 _Pending implementation._
+
+## Documentation (website articles)
+
+Every implemented estimator is demonstrated in a rendered Quarto article on the
+[package website](https://etverse.github.io/matchatr/) (sources in
+`vignettes/`). The site style mirrors the other etverse packages (altdoc +
+Quarto, `lumen` theme).
+
+| Article | Covers |
+|---|---|
+| `introduction.qmd` | Design taxonomy, the two orthogonal axes, the two-step `matcha()` / `contrast()` / `tidy()` API, what-is-identified, what-works-today |
+| `unmatched-cc.qmd` | `logistic` (binary / continuous / categorical / trend / GAM-adjusted) and `mh` (Mantel-Haenszel) ORs |
+| `matched-cc.qmd` | `clogit` conditional OR, `mcnemar` 1:1 matched-pair OR, `effect_modifier` stratum-specific ORs |
+| `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, collinearity guard |
+
+Articles document only implemented features; the pending phases above are not
+yet covered.

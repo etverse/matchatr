@@ -1,0 +1,173 @@
+---
+title: "Introduction to matchatr"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to matchatr}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+matchatr is the etverse package for causal inference from **case-control-type
+study designs**: (matched) case-control, nested case-control, and case-cohort
+samples. It provides design-faithful *classical* estimators (conditional
+logistic regression, Mantel-Haenszel, McNemar, weighted Cox, case-cohort
+pseudo-likelihood) and *marginal causal* effects via case-control weighting,
+delegating the heavy lifting to its siblings
+[`causatr`](https://github.com/etverse/causatr) (g-computation / IPW / AIPW) and
+[`survatr`](https://github.com/etverse/survatr) (causal survival).
+
+This vignette introduces the design taxonomy and the two-step API. The
+estimator-specific articles cover the worked examples:
+
+- [Unmatched case-control](unmatched-cc.qmd) — logistic and Mantel-Haenszel
+  odds ratios.
+- [Matched case-control](matched-cc.qmd) — conditional logistic, McNemar, and
+  stratum-specific effect modification.
+- [Multiple groups](multiple-groups.qmd) — polytomous (multinomial) subtype
+  odds ratios.
+
+## Two orthogonal axes: design and estimator
+
+Every matchatr analysis is specified along two independent axes:
+
+- A **`design`** object encodes the *sampling structure* — how the sample was
+  drawn from the source population. It carries the strata / matched-set ids, the
+  time scale (for risk-set designs), the source-population prevalence q0, and the
+  intended weighting scheme.
+- An **`estimator`** chooses the *analysis* — conditional vs marginal, odds
+  ratio vs hazard ratio vs risk difference.
+
+The two are deliberately separate: the same matched case-control sample can be
+analysed by conditional logistic regression (a conditional odds ratio) or, with
+a prevalence q0, by a case-control-weighted g-formula (a marginal risk
+difference). You change the estimand without re-describing the design.
+
+```{r}
+#| message: false
+library(matchatr)
+
+# Six design constructors, one per sampling structure:
+unmatched_cc()                              # independent case / control sampling
+matched_cc(strata = "set", ratio = 2)       # individually / frequency matched
+nested_cc(strata = "set", time = "t")       # risk-set sampling from a cohort
+```
+
+Each returns a `matchatr_design` object that prints its structure:
+
+```{r}
+matched_cc(strata = c("age_grp", "sex"), ratio = 2)
+```
+
+The full set of constructors is `unmatched_cc()`, `matched_cc()`,
+`nested_cc()`, `case_cohort()`, `two_phase()`, and `counter_matched()`.
+
+## The two-step API
+
+matchatr mirrors the etverse verb convention (`causatr::causat()`,
+`survatr::surv_fit()`):
+
+```r
+# Step 1 — fit: resolve the (design, estimator) pair and run the engine.
+fit <- matcha(data, outcome = "case", exposure = "x",
+              design = unmatched_cc(), confounders = ~ age + smoke,
+              estimator = "logistic")
+
+# Step 2 — contrast: report the effect on the requested scale.
+contrast(fit, type = "or")
+```
+
+`matcha()` returns a `matchatr_fit`; `contrast()` returns a `matchatr_result`.
+When you omit `estimator`, the design's canonical default is used; when you omit
+`type`, `contrast()` reports the estimand the design identifies.
+
+## A worked example
+
+We use R's built-in `infert` data — a matched case-control study of prior
+spontaneous / induced abortion and secondary infertility, matched on age and
+parity (the `stratum` column identifies the matched sets).
+
+```{r}
+fit <- matcha(
+  infert,
+  outcome = "case", exposure = "spontaneous",
+  design = matched_cc(strata = "stratum"),
+  confounders = ~ induced, estimator = "clogit"
+)
+fit
+```
+
+The fit echoes the resolved engine and the case / control counts. The second
+step reports the exposure's conditional odds ratio:
+
+```{r}
+contrast(fit, type = "or")
+```
+
+Each prior spontaneous abortion multiplies the conditional odds of infertility
+by about 7, adjusting for induced abortions and the matched design.
+
+## Inspecting a fit
+
+A `matchatr_fit` works with the broom-style generics. `tidy()` returns the
+coefficient table (log-odds scale, or the odds-ratio scale with
+`exponentiate = TRUE`); `summary()` prints the model summary.
+
+```{r}
+tidy(fit, exponentiate = TRUE)
+```
+
+`contrast()` results also tidy to a one-row-per-contrast table:
+
+```{r}
+tidy(contrast(fit, type = "or"))
+```
+
+## What is identified depends on the design
+
+From a case-control sample the marginal outcome frequency is fixed by the
+sampling, so only the **odds ratio** is identified without extra information.
+Asking for a risk difference or risk ratio aborts with an informative,
+classed error pointing to the prevalence q0 you would need:
+
+```{r}
+#| error: true
+contrast(fit, type = "difference")
+```
+
+Supplying the source-population prevalence on the design
+(`unmatched_cc(prevalence = 0.02)`) unlocks the case-control-weighted marginal
+contrasts — that layer is on the roadmap below.
+
+## What works today
+
+matchatr is built phase by phase against the *Handbook of Statistical Methods
+for Case-Control Studies* (Borgan et al., 2018). The classical odds-ratio
+engines are implemented:
+
+| Design | Estimator | Estimand | Article |
+|---|---|---|---|
+| Unmatched case-control | `"logistic"` | conditional OR (any exposure type) | [Unmatched CC](unmatched-cc.qmd) |
+| Unmatched case-control | `"mh"` | Mantel-Haenszel stratified OR | [Unmatched CC](unmatched-cc.qmd) |
+| Matched case-control | `"clogit"` | conditional OR (+ effect modification) | [Matched CC](matched-cc.qmd) |
+| Matched case-control | `"mcnemar"` | 1:1 matched-pair OR | [Matched CC](matched-cc.qmd) |
+| Multi-group outcome | `"polytomous"` | per-subtype OR vs reference | [Multiple groups](multiple-groups.qmd) |
+
+The time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC)
+and the marginal causal layer (case-control-weighting g-formula / IPW / AIPW /
+TMLE, design-weighted causal survival) are designed but not yet implemented; see
+`FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every cell.
+
+## References
+
+Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). *Handbook
+of Statistical Methods for Case-Control Studies*. Chapman & Hall/CRC.
+
+Rose S, van der Laan MJ (2009). Why match? Investigating matched case-control
+study designs with causal effect estimation. *The International Journal of
+Biostatistics* 5(1).

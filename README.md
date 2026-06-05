@@ -17,10 +17,18 @@ delegating estimation to [`causatr`](https://github.com/etverse/causatr)
 [`survatr`](https://github.com/etverse/survatr) (causal survival on
 person-period data).
 
-> **Status: early development.** The package scaffold and the full
-> `PHASE_*.md` design roadmap are in place; estimator implementations
-> are being built phase by phase. The API below is the planned interface
-> (fixed in `PHASE_1`).
+> **Status: classical odds-ratio engines landing.** The design taxonomy,
+> the two-step `matcha()` / `contrast()` API, and the
+> `(design, estimator)` dispatch (`PHASE_1`) are in place, and the
+> classical odds-ratio engines now run end to end: the **unmatched**
+> case-control logistic and Mantel-Haenszel ORs (`PHASE_2`), the
+> **matched** case-control conditional-logistic and McNemar ORs with
+> stratum-specific effect modification (`PHASE_3`), and the
+> **polytomous** subtype ORs for multi-group outcomes (`PHASE_4`). See
+> the [articles](https://etverse.github.io/matchatr/) for worked
+> examples. The time-to-event sampling designs and the marginal
+> causal-weighting / survival layer (`PHASE_5`–`PHASE_20`) remain at the
+> design stage.
 
 ## What it does
 
@@ -56,15 +64,34 @@ pak::pak("etverse/matchatr")
 ``` r
 library(matchatr)
 
-# Matched case-control -> conditional odds ratio
+# Matched case-control -> conditional odds ratio (infert: a matched study of
+# spontaneous/induced abortion and infertility, matched on age and parity).
 fit <- matcha(
-  data,
-  outcome = "case", exposure = "x",
-  design = matched_cc(strata = "set"),
-  confounders = ~ age + smoke, estimator = "clogit"
+  infert,
+  outcome = "case", exposure = "spontaneous",
+  design = matched_cc(strata = "stratum"),
+  confounders = ~ induced, estimator = "clogit"
 )
 
-# Marginal causal risk difference from an unmatched case-control sample
+contrast(fit, type = "or")
+#> <matchatr_result>
+#>  Estimator:  clogit  (engine: clogit)
+#>  Estimand:   conditional OR
+#>  Contrast:   Odds ratio
+#>  CI method:  model
+#>  N:          248
+#> 
+#> Contrasts:
+#>     comparison estimate     se ci_lower ci_upper
+#>         <char>    <num>  <num>    <num>    <num>
+#> 1: spontaneous 7.285423 2.5677 3.651357 14.53635
+```
+
+The marginal causal contrasts (case-control weighting) reuse the same
+two-step API once a source-population prevalence q0 is supplied — they
+are part of the roadmap below:
+
+``` r
 fit <- matcha(
   data,
   outcome = "case", exposure = "x",
