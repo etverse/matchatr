@@ -12,7 +12,13 @@
 #' @noRd
 dispatch_table <- function() {
   list(
-    unmatched_cc = c(logistic = "glm_logistic", mh = "mantel_haenszel"),
+    unmatched_cc = c(
+      logistic = "glm_logistic",
+      mh = "mantel_haenszel",
+      # Multiple case / control groups: a multinomial logistic with a shared
+      # reference, each non-reference equation a subtype-vs-reference log OR.
+      polytomous = "multinom"
+    ),
     # Matched CC and NCC share the conditional partial-likelihood engine: a
     # matched set and a sampled risk set are the same stratum construction. The
     # McNemar closed form is the 1:1 binary-exposure reduction of that
@@ -83,8 +89,24 @@ default_contrast_type <- function(engine) {
     mantel_haenszel = "or",
     clogit = "or",
     mcnemar = "or",
+    multinom = "or",
     "difference"
   )
+}
+
+#' Outcome encoding an engine expects
+#'
+#' Most engines analyse a binary case indicator; the polytomous (multinomial)
+#' engine analyses a multi-group outcome instead. [matcha()] reads this to pick
+#' the outcome resolver — `resolve_binary_outcome()` versus
+#' `resolve_polytomous_outcome()`.
+#'
+#' @param engine Character scalar engine key.
+#' @returns `"polytomous"` for the multinomial engine, otherwise `"binary"`.
+#' @family dispatch
+#' @noRd
+engine_outcome_kind <- function(engine) {
+  if (identical(engine, "multinom")) "polytomous" else "binary"
 }
 
 #' Resolve a (design, estimator) pair to an engine
@@ -107,7 +129,12 @@ default_contrast_type <- function(engine) {
 resolve_engine <- function(design_type, estimator, call = rlang::caller_env()) {
   ccw <- ccw_estimators()
   if (estimator %in% ccw) {
-    return(list(engine = estimator, kind = "ccw", conditional = FALSE))
+    return(list(
+      engine = estimator,
+      kind = "ccw",
+      conditional = FALSE,
+      outcome_kind = "binary"
+    ))
   }
 
   allowed <- dispatch_table()[[design_type]]
@@ -133,13 +160,17 @@ resolve_engine <- function(design_type, estimator, call = rlang::caller_env()) {
     )
   }
 
+  engine <- unname(allowed[[estimator]])
   list(
-    engine = unname(allowed[[estimator]]),
+    engine = engine,
     kind = "classical",
     # Both the conditional logistic and its 1:1 McNemar reduction condition on
     # the matched sets, so both want the uninformative-stratum check that the
     # `conditional` flag triggers in `matcha()`.
-    conditional = estimator %in% c("clogit", "mcnemar")
+    conditional = estimator %in% c("clogit", "mcnemar"),
+    # The polytomous engine analyses a multi-group outcome; everything else a
+    # binary case indicator. `matcha()` resolves the outcome accordingly.
+    outcome_kind = engine_outcome_kind(engine)
   )
 }
 
@@ -164,6 +195,7 @@ run_engine <- function(fit) {
     mantel_haenszel = fit_mh(fit),
     clogit = fit_clogit(fit),
     mcnemar = fit_mcnemar(fit),
+    multinom = fit_polytomous(fit),
     NULL
   )
 }

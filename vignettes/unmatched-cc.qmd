@@ -1,0 +1,238 @@
+---
+title: "Unmatched case-control odds ratios"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Unmatched case-control odds ratios}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+In an *unmatched* case-control study, cases and controls are sampled
+independently from the source population — no individual or frequency matching.
+The classical analysis is the **conditional odds ratio**, identified from the
+case-control sample even though the marginal disease frequency is fixed by the
+sampling design. matchatr provides two engines on `unmatched_cc()`:
+
+- `estimator = "logistic"` — logistic regression
+  (`outcome ~ exposure + confounders`), the conditional OR for any exposure
+  type. Because case-control sampling shifts only the intercept (Prentice &
+  Pyke, 1979), the slope ORs equal the source-population ORs.
+- `estimator = "mh"` — the closed-form Mantel-Haenszel stratified OR with a
+  Robins-Breslow-Greenland confidence interval.
+
+```{r}
+#| message: false
+library(matchatr)
+```
+
+## Logistic conditional OR
+
+### A binary exposure
+
+We simulate a cohort with a known log odds ratio, then draw an unmatched
+case-control sample (all cases plus an equal number of controls). The conditional
+OR should recover the cohort log-OR.
+
+```{r}
+set.seed(1)
+n <- 8000
+x <- rbinom(n, 1, 0.4)
+age <- rnorm(n, 50, 10)
+# True conditional log-OR for x is log(2.5).
+lp <- -1 + log(2.5) * x + 0.03 * (age - 50)
+case <- rbinom(n, 1, plogis(lp))
+cohort <- data.frame(case = case, x = x, age = age)
+
+# Unmatched case-control sample: every case + an equal random sample of controls.
+cases <- cohort[cohort$case == 1, ]
+controls <- cohort[cohort$case == 0, ]
+cc <- rbind(cases, controls[sample(nrow(controls), nrow(cases)), ])
+
+fit <- matcha(
+  cc,
+  outcome = "case", exposure = "x",
+  design = unmatched_cc(),
+  confounders = ~ age, estimator = "logistic"
+)
+contrast(fit, type = "or")
+```
+
+The recovered OR is close to the true 2.5 even though the sample is roughly 50%
+cases — the odds ratio is invariant to the case / control sampling fractions.
+
+The full coefficient table is available through `tidy()` (the intercept is
+*not* an interpretable baseline risk under case-control sampling, so treat it as
+a nuisance):
+
+```{r}
+tidy(fit, exponentiate = TRUE)
+```
+
+### A continuous exposure
+
+A continuous exposure yields a single per-unit OR:
+
+```{r}
+set.seed(2)
+n <- 6000
+dose <- rnorm(n)
+case <- rbinom(n, 1, plogis(-1 + 0.8 * dose))
+d_cont <- data.frame(case = case, dose = dose)
+
+fit_cont <- matcha(
+  d_cont,
+  outcome = "case", exposure = "dose",
+  design = unmatched_cc(), estimator = "logistic"
+)
+contrast(fit_cont, type = "or")
+```
+
+### A categorical exposure: the `esoph` dose-response
+
+The built-in `esoph` data is the Ille-et-Vilaine case-control study of
+oesophageal cancer (Breslow & Day, 1980), stored as per-cell case / control
+counts. We expand it to one row per subject so it can enter the logistic engine.
+
+```{r}
+esoph_long <- do.call(rbind, lapply(seq_len(nrow(esoph)), function(i) {
+  with(esoph[i, ], data.frame(
+    case  = c(rep(1L, ncases), rep(0L, ncontrols)),
+    agegp = agegp, alcgp = alcgp, tobgp = tobgp
+  ))
+}))
+# Use alcohol as an unordered factor so we get one OR per consumption band.
+esoph_long$alcgp <- factor(esoph_long$alcgp, ordered = FALSE)
+
+fit_alc <- matcha(
+  esoph_long,
+  outcome = "case", exposure = "alcgp",
+  design = unmatched_cc(),
+  confounders = ~ agegp + tobgp, estimator = "logistic"
+)
+contrast(fit_alc, type = "or")
+```
+
+A factor exposure reports one OR per non-reference level versus the baseline
+(here `0-39g/day`), recovering the canonical monotone alcohol dose-response.
+The reference level used is recorded on the result:
+
+```{r}
+fit_alc_result <- contrast(fit_alc, type = "or")
+fit_alc_result$reference
+```
+
+### An ordinal trend
+
+Entering an ordered exposure as a numeric *score* gives a single per-step trend
+OR instead of per-level contrasts:
+
+```{r}
+esoph_long$alc_score <- as.integer(factor(
+  esoph_long$alcgp,
+  levels = c("0-39g/day", "40-79", "80-119", "120+")
+))
+
+fit_trend <- matcha(
+  esoph_long,
+  outcome = "case", exposure = "alc_score",
+  design = unmatched_cc(),
+  confounders = ~ agegp + tobgp, estimator = "logistic"
+)
+contrast(fit_trend, type = "or")
+```
+
+### Smooth confounder adjustment with `model_fn`
+
+The logistic fitter is pluggable. Pass `model_fn = mgcv::gam` and a smooth term
+in `confounders` to adjust for a confounder flexibly while keeping the exposure
+parametric (so it still has an interpretable OR). The smooth-basis coefficients
+are not reported as odds ratios.
+
+```{r}
+#| eval: !expr requireNamespace("mgcv", quietly = TRUE)
+fit_gam <- matcha(
+  cc,
+  outcome = "case", exposure = "x",
+  design = unmatched_cc(),
+  confounders = ~ s(age), model_fn = mgcv::gam, estimator = "logistic"
+)
+contrast(fit_gam, type = "or")
+```
+
+## Mantel-Haenszel stratified OR
+
+When confounding is controlled by *stratification* rather than a model, the
+Mantel-Haenszel estimator pools the per-stratum 2×2 odds ratios in closed form.
+Declare the stratifying variable(s) on the design and select `estimator = "mh"`.
+
+```{r}
+set.seed(3)
+n <- 8000
+agegrp <- sample(c("30s", "40s", "50s", "60s"), n, replace = TRUE)
+x <- rbinom(n, 1, 0.4)
+# True OR for x is 3, with an age-group main effect (confounding).
+lp <- -1 + log(3) * x + 0.2 * as.integer(factor(agegrp))
+case <- rbinom(n, 1, plogis(lp))
+d_mh <- data.frame(case = case, x = x, agegrp = agegrp)
+
+fit_mh <- matcha(
+  d_mh,
+  outcome = "case", exposure = "x",
+  design = unmatched_cc(strata = "agegrp"), estimator = "mh"
+)
+contrast(fit_mh, type = "or")
+```
+
+The reported interval is the Robins-Breslow-Greenland (1986) variance, valid in
+both the sparse-data and large-stratum limits. The MH estimator needs a 2×2
+table per stratum, so the exposure must be binary; a categorical (k > 2) or
+continuous exposure is routed to `estimator = "logistic"` with a classed error.
+With no `strata`, `"mh"` reduces to the crude single-table OR.
+
+## What the design does and does not identify
+
+Only the odds ratio is identified from an unmatched case-control sample. Risk
+differences and risk ratios require the source-population prevalence q0 and a
+case-control-weighted estimator:
+
+```{r}
+#| error: true
+contrast(fit, type = "difference")
+```
+
+## Covered combinations
+
+**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.
+
+| Exposure | Estimator | Estimand | Variance | Status |
+|---|---|---|---|---|
+| Binary | `logistic` | conditional OR | model / sandwich | ✅ |
+| Continuous | `logistic` | per-unit OR | model / sandwich | ✅ |
+| Categorical (k>2) | `logistic` | per-level OR | model / sandwich | ✅ |
+| Ordinal score | `logistic` | per-step trend OR | model / sandwich | ✅ |
+| Any (GAM-adjusted) | `logistic` + `model_fn` | conditional OR | model | ✅ |
+| Binary | `mh` | Mantel-Haenszel OR | Robins-Breslow-Greenland | ✅ |
+| Ordered factor | `logistic` | — | — | ⛔ use a numeric score |
+| Categorical / continuous | `mh` | — | — | ⛔ use `logistic` |
+| Any | `logistic` / `mh` | RD / RR | — | ⛔ need q0 |
+
+See `FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every
+combination.
+
+## References
+
+Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:
+The Analysis of Case-Control Studies*. IARC.
+
+Prentice RL, Pyke R (1979). Logistic disease incidence models and case-control
+studies. *Biometrika* 66(3):403-411.
+
+Robins J, Breslow N, Greenland S (1986). Estimators of the Mantel-Haenszel
+variance consistent in both sparse data and large-strata limiting models.
+*Biometrics* 42(2):311-323.

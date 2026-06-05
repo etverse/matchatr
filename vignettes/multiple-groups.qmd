@@ -1,0 +1,138 @@
+---
+title: "Multiple case / control groups"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Multiple case / control groups}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Some case-control studies have more than two outcome groups: several *disease
+subtypes* (does the exposure act differently on each?), or several *control
+groups*. The design-faithful analysis is **baseline-category multinomial
+logistic regression**, fit by `nnet::multinom`. Each non-reference equation's
+exposure coefficient is that subtype's log odds ratio versus the reference, so
+`contrast(type = "or")` reports one OR per (subtype, exposure coefficient).
+
+```{r}
+#| message: false
+library(matchatr)
+```
+
+## A three-group outcome
+
+We simulate an outcome with a control group and two disease subtypes, where the
+binary exposure raises the odds of subtype A by a factor of 2 and subtype B by a
+factor of 4 (versus control).
+
+```{r}
+set.seed(5)
+n <- 6000
+x <- rbinom(n, 1, 0.4)
+# Baseline-category logits relative to "control": OR_A = 2, OR_B = 4.
+eta <- cbind(
+  control = 0,
+  A       = -1.0 + log(2) * x,
+  B       = -1.5 + log(4) * x
+)
+prob <- exp(eta) / rowSums(exp(eta))
+subtype <- apply(prob, 1, function(p) sample(c("control", "A", "B"), 1, prob = p))
+d_poly <- data.frame(subtype = subtype, x = x)
+table(d_poly$subtype)
+```
+
+Select `estimator = "polytomous"` and name the baseline group with `reference`.
+The outcome must be a factor or character column with three or more groups (a
+two-group, numeric, or logical outcome is routed back to the binary estimators).
+
+```{r}
+fit <- matcha(
+  d_poly,
+  outcome = "subtype", exposure = "x",
+  design = unmatched_cc(),
+  estimator = "polytomous", reference = "control"
+)
+fit
+```
+
+The fit prints the per-group counts and flags the reference group. The contrast
+reports each subtype's exposure OR versus the reference, recovering the true 2
+and 4:
+
+```{r}
+contrast(fit, type = "or")
+```
+
+## The full per-equation table
+
+`tidy()` renders the whole multinomial model, one equation per non-reference
+group, with a leading `y.level` column naming the group each row contrasts
+against the reference:
+
+```{r}
+tidy(fit, exponentiate = TRUE)
+```
+
+The interval is the multinomial information matrix; the Huber-White sandwich is
+not defined for this fit, so `robust = TRUE` / `ci_method = "sandwich"` are
+declined.
+
+## Choosing the reference and adjusting for confounders
+
+The `reference` group is releveled to the front before fitting, so it can be any
+observed group. Confounders enter the same way as in the binary engines, holding
+the exposure ORs adjusted:
+
+```{r}
+set.seed(6)
+d_poly$age <- rnorm(n, 50, 10)
+
+fit_adj <- matcha(
+  d_poly,
+  outcome = "subtype", exposure = "x",
+  design = unmatched_cc(),
+  confounders = ~ age,
+  estimator = "polytomous", reference = "control"
+)
+contrast(fit_adj, type = "or")
+```
+
+## A note on collinearity
+
+Unlike `stats::glm`, `nnet::multinom` does not alias a rank-deficient exposure
+column to `NA` — it splits the coefficient across the outcome equations, which
+would silently attenuate the OR. matchatr guards against this by checking the
+design-matrix rank up front: an exposure that is constant, or collinear with a
+confounder, is rejected with a classed `matchatr_unestimable_exposure` error
+rather than returning a misleading number. Collinearity confined to the
+confounders leaves the exposure estimable and is not rejected.
+
+## Covered combinations
+
+**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.
+
+| Outcome | Estimator | Estimand | Status |
+|---|---|---|---|
+| ≥3-group factor / character | `polytomous` | per-subtype OR vs reference | ✅ |
+| ≥3-group (confounder-adjusted) | `polytomous` | adjusted per-subtype OR | ✅ |
+| 2-group / numeric / logical | `polytomous` | — | ⛔ use `logistic` / `clogit` |
+| matched design | `polytomous` | — | ⛔ unsupported |
+| any | `polytomous` | RD / RR | ⛔ need q0 |
+| any | `polytomous` | sandwich / bootstrap variance | ⛔ information matrix only |
+
+See `FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every
+combination.
+
+## References
+
+Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). *Handbook
+of Statistical Methods for Case-Control Studies*, Chapter 5. Chapman & Hall/CRC.
+
+Venables WN, Ripley BD (2002). *Modern Applied Statistics with S*, 4th ed.
+Springer. (The `nnet::multinom` fitter.)

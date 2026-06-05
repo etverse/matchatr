@@ -37,7 +37,7 @@
     Condition
       Error in `matcha()`:
       ! Estimator `bogus` is not available for design `unmatched_cc`.
-      i Supported estimators for this design: "logistic", "mh", "ccw_gformula", "ccw_ipw", "ccw_aipw", "ccw_tmle".
+      i Supported estimators for this design: "logistic", "mh", "polytomous", "ccw_gformula", "ccw_ipw", "ccw_aipw", "ccw_tmle".
 
 ---
 

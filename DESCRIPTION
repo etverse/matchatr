@@ -25,6 +25,7 @@ Imports:
     causatr,
     data.table (>= 1.14.0),
     generics,
+    nnet,
     numDeriv,
     rlang (>= 1.0.0),
     sandwich,

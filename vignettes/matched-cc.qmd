@@ -1,0 +1,187 @@
+---
+title: "Matched case-control odds ratios"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Matched case-control odds ratios}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+In a *matched* case-control study each case is matched to one or more controls
+sharing the values of the matching variable(s). The design-faithful analysis is
+**conditional logistic regression** (conditional maximum likelihood): it
+conditions on the matched-set totals, which removes the matching-variable
+nuisance parameters. Fitting matched-set indicators by ordinary logistic
+regression instead biases the odds ratio — for 1:1 matching its estimate
+converges to the *squared* OR (Breslow & Day, 1980) — so matchatr never does
+that.
+
+matchatr provides three tools on `matched_cc()`:
+
+- `estimator = "clogit"` — the conditional logistic OR for any matched-set
+  composition (1:1, m:1, variable-ratio).
+- `estimator = "mcnemar"` — the closed-form 1:1 matched-pair OR.
+- `effect_modifier = ` — stratum-specific conditional ORs from an
+  `exposure × modifier` interaction.
+
+```{r}
+#| message: false
+library(matchatr)
+```
+
+## Conditional logistic regression
+
+We use the built-in `infert` data: a matched case-control study of secondary
+infertility and prior abortion, with cases matched to controls on age and parity
+(`stratum` identifies the matched sets).
+
+```{r}
+fit <- matcha(
+  infert,
+  outcome = "case", exposure = "spontaneous",
+  design = matched_cc(strata = "stratum"),
+  confounders = ~ induced, estimator = "clogit"
+)
+fit
+```
+
+Conditioning on the matched-set totals controls the matching variables (age,
+parity) implicitly, so only the exposure and adjustment ORs are reported:
+
+```{r}
+contrast(fit, type = "or")
+```
+
+The interval is the partial-likelihood information-matrix Wald interval.
+`"clogit"` is the design's default estimator, so `estimator = "clogit"` may be
+omitted. m:1 and variable-ratio matching need no special handling — the
+conditional likelihood treats any matched-set composition uniformly.
+
+## McNemar's 1:1 matched-pair OR
+
+For genuine 1:1 pairs there is a closed form: with `n10` pairs where only the
+case is exposed and `n01` where only the control is exposed, the matched-pair
+odds ratio is `OR = n10 / n01` with `Var(log OR) = 1/n10 + 1/n01` (McNemar,
+1947). Pairs concordant on exposure carry no information and cancel.
+
+We simulate matched pairs from the conditional likelihood with a known
+conditional OR of 3:
+
+```{r}
+set.seed(4)
+n_pairs <- 1200
+OR_true <- 3
+# Each pair is exposure-discordant with probability 0.4; among discordant pairs
+# the case (rather than the control) is the exposed member with probability
+# OR/(1 + OR), so n10/n01 estimates the conditional OR.
+discordant <- rbinom(n_pairs, 1, 0.4)
+p_case_exposed <- OR_true / (1 + OR_true)
+case_exposed <- ifelse(discordant == 1, rbinom(n_pairs, 1, p_case_exposed),
+                       rbinom(n_pairs, 1, 0.5))
+ctrl_exposed <- ifelse(discordant == 1, 1L - case_exposed, case_exposed)
+
+pairs <- data.frame(
+  set    = rep(seq_len(n_pairs), each = 2),
+  case   = rep(c(1L, 0L), times = n_pairs),
+  smoker = as.vector(rbind(case_exposed, ctrl_exposed))
+)
+
+fit_mn <- matcha(
+  pairs,
+  outcome = "case", exposure = "smoker",
+  design = matched_cc(strata = "set"), estimator = "mcnemar"
+)
+contrast(fit_mn, type = "or")
+```
+
+This is exact, not a model fit. And because the conditional likelihood *reduces*
+to McNemar's for 1:1 binary data, `clogit` on the same pairs gives an identical
+point estimate and interval:
+
+```{r}
+fit_cl <- matcha(
+  pairs,
+  outcome = "case", exposure = "smoker",
+  design = matched_cc(strata = "set"), estimator = "clogit"
+)
+contrast(fit_cl, type = "or")
+```
+
+`"mcnemar"` applies only to genuine 1:1 pairs with a binary exposure: a richer
+matched set (m:1) is rejected with a pointer to `"clogit"`, as is a non-binary
+exposure.
+
+## Stratum-specific effect modification
+
+To ask whether the exposure effect *differs* across the levels of a categorical
+modifier, pass `effect_modifier =`. The conditional logistic engine then fits
+`outcome ~ exposure * modifier + confounders + strata(set)`, and
+`contrast(type = "or")` reports the exposure's conditional OR *within each
+modifier level* — the main coefficient at the reference level and the linear
+combination β_x + β_{x:level} elsewhere — with Wald intervals from the joint
+partial-likelihood variance (so each per-level SE accounts for the
+main–interaction covariance).
+
+Here we split `infert` by maternal age and ask whether the spontaneous-abortion
+OR differs between younger and older women:
+
+```{r}
+infert2 <- infert
+infert2$age_grp <- factor(ifelse(infert2$age < 31, "younger", "older"))
+
+fit_em <- matcha(
+  infert2,
+  outcome = "case", exposure = "spontaneous",
+  design = matched_cc(strata = "stratum"), estimator = "clogit",
+  effect_modifier = "age_grp"
+)
+contrast(fit_em, type = "or")
+```
+
+The modifier may coincide with a matching variable — that is the canonical use
+(does the exposure effect vary across the matching factor?). Effect modification
+is supported for a single-coefficient exposure (binary, continuous, or two-level
+factor) crossed with a categorical modifier; a 3+-level factor exposure or a
+numeric modifier is rejected with a classed error.
+
+## What the design does and does not identify
+
+As with the unmatched design, only the odds ratio is identified; risk
+differences and risk ratios need a source-population prevalence q0 and a
+case-control-weighted estimator. The conditional fit reports the
+information-matrix interval only, so `ci_method = "sandwich"` / `"bootstrap"`
+are declined for these engines.
+
+## Covered combinations
+
+**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.
+
+| Matching | Estimator | Estimand | Status |
+|---|---|---|---|
+| 1:1 / m:1 / variable-ratio | `clogit` | conditional OR | ✅ |
+| 1:1 (binary exposure) | `mcnemar` | matched-pair OR | ✅ |
+| any | `clogit` + `effect_modifier` | stratum-specific OR | ✅ |
+| m:1 (or richer) | `mcnemar` | — | ⛔ use `clogit` |
+| non-binary exposure | `mcnemar` | — | ⛔ use `clogit` |
+| any | `clogit` / `mcnemar` | RD / RR | ⛔ need q0 |
+
+See `FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every
+combination.
+
+## References
+
+Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:
+The Analysis of Case-Control Studies*. IARC.
+
+McNemar Q (1947). Note on the sampling error of the difference between
+correlated proportions or percentages. *Psychometrika* 12(2):153-157.
+
+Pike MC, Hill AP, Smith PG (1980). Bias and efficiency in logistic analyses of
+stratified case-control studies. *International Journal of Epidemiology*
+9(1):89-95.
