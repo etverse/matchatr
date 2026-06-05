@@ -162,13 +162,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Reference</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Getting started</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Classical odds ratios</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/unmatched-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unmatched case-control odds ratios</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/matched-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Matched case-control odds ratios</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/multiple-groups.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multiple case / control groups</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../man/case_cohort.html" class="sidebar-item-text sidebar-link">
@@ -318,7 +364,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   confounders = NULL,
   estimator = NULL,
   model_fn = NULL,
-  effect_modifier = NULL
+  effect_modifier = NULL,
+  reference = NULL
 )
 </code></pre>
 </section>
@@ -338,7 +385,7 @@ A data.frame or data.table. Not mutated; a data.table copy is stored on the fit.
 <code id="outcome">outcome</code>
 </td>
 <td>
-Character scalar naming the binary case-status column (a logical, two-level factor, or numeric 0/1 column).
+Character scalar naming the case-status column. For the binary estimators this is a logical, two-level factor, or numeric 0/1 column; for <code>estimator = “polytomous”</code> it is a factor or character column with three or more groups (multiple case subtypes, or several control groups).
 </td>
 </tr>
 <tr>
@@ -387,6 +434,14 @@ Optional model-fitting function for the unmatched case-control logistic engine, 
 </td>
 <td>
 <code>NULL</code> or a character scalar naming a categorical (logical / character / factor) column whose levels modify the exposure effect. When supplied, the conditional logistic engine fits <code>outcome ~ exposure * effect_modifier + confounders + strata(set)</code> and <code>contrast(type = “or”)</code> reports the stratum-specific odds ratio of the exposure within each modifier level (one OR per level, with a Wald interval from the joint partial-likelihood variance). Supported only for <code>estimator = “clogit”</code> with a single-coefficient exposure (binary, continuous, or two-level factor); the modifier may coincide with a matching variable. Defaults to <code>NULL</code> (no effect modification).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="reference">reference</code>
+</td>
+<td>
+<code>NULL</code> or a character scalar naming the reference outcome group for <code>estimator = “polytomous”</code>. The multinomial logistic contrasts every other group against this baseline, so each non-reference equation’s exposure coefficient is that subtype’s log odds ratio versus the reference. It must name one of the observed groups; when <code>NULL</code> the first factor level (or the first level in sorted order, for a character outcome) is used. Supplying it for a non-polytomous estimator is an error. Defaults to <code>NULL</code>.
 </td>
 </tr>
 </tbody></table>

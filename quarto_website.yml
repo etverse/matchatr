@@ -19,7 +19,19 @@ website:
     contents:
       - text: Home
         file: index.md
-      - section: $ALTDOC_VIGNETTE_BLOCK
+      # Single-item sections need the explicit text:/file: form.
+      # altdoc serializes the sidebar via yaml::as.yaml(), which
+      # collapses a one-item `- foo.qmd` sequence into the scalar
+      # `contents: foo.qmd` and breaks Quarto's sidebar link.
+      - section: Getting started
+        contents:
+          - text: "Introduction"
+            file: vignettes/introduction.qmd
+      - section: Classical odds ratios
+        contents:
+          - vignettes/unmatched-cc.qmd
+          - vignettes/matched-cc.qmd
+          - vignettes/multiple-groups.qmd
       - section: $ALTDOC_MAN_BLOCK
       - text: News
         file: $ALTDOC_NEWS

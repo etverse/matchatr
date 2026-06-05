@@ -163,12 +163,58 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
- <span class="menu-text">Reference</span></a>
+ <span class="menu-text">Getting started</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Classical odds ratios</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/unmatched-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unmatched case-control odds ratios</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/matched-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Matched case-control odds ratios</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/multiple-groups.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multiple case / control groups</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./man/case_cohort.html" class="sidebar-item-text sidebar-link">
@@ -307,7 +353,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><a href="https://github.com/etverse/matchatr/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/etverse/matchatr/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <!-- badges: end --></p>
 <p><strong>matchatr</strong> provides causal inference for <strong>(matched) case-control, nested case-control (NCC), and case-cohort</strong> study designs. It pairs design-faithful classical estimators with marginal causal effects, and integrates with the <a href="https://github.com/etverse">etverse</a> ecosystem — delegating estimation to <a href="https://github.com/etverse/causatr"><code>causatr</code></a> (g-computation / IPW / AIPW with sandwich and bootstrap variance) and <a href="https://github.com/etverse/survatr"><code>survatr</code></a> (causal survival on person-period data).</p>
 <blockquote class="blockquote">
-<p><strong>Status: early development.</strong> The package scaffold and the full <code>PHASE_*.md</code> design roadmap are in place; estimator implementations are being built phase by phase. The API below is the planned interface (fixed in <code>PHASE_1</code>).</p>
+<p><strong>Status: classical odds-ratio engines landing.</strong> The design taxonomy, the two-step <code>matcha()</code> / <code>contrast()</code> API, and the <code>(design, estimator)</code> dispatch (<code>PHASE_1</code>) are in place, and the classical odds-ratio engines now run end to end: the <strong>unmatched</strong> case-control logistic and Mantel-Haenszel ORs (<code>PHASE_2</code>), the <strong>matched</strong> case-control conditional-logistic and McNemar ORs with stratum-specific effect modification (<code>PHASE_3</code>), and the <strong>polytomous</strong> subtype ORs for multi-group outcomes (<code>PHASE_4</code>). See the <a href="https://etverse.github.io/matchatr/">articles</a> for worked examples. The time-to-event sampling designs and the marginal causal-weighting / survival layer (<code>PHASE_5</code>–<code>PHASE_20</code>) remain at the design stage.</p>
 </blockquote>
 <section id="what-it-does" class="level2">
 <h2 class="anchored" data-anchor-id="what-it-does">What it does</h2>
@@ -360,22 +406,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="example">Example</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Matched case-control -&gt; conditional odds ratio</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  data,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>),</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age <span class="sc">+</span> smoke, <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Marginal causal risk difference from an unmatched case-control sample</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  data,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> <span class="fl">0.02</span>),   <span class="co"># source-population prevalence q0</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age <span class="sc">+</span> smoke, <span class="at">estimator =</span> <span class="st">"ccw_gformula"</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>, <span class="at">ci_method =</span> <span class="st">"sandwich"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Matched case-control -&gt; conditional odds ratio (infert: a matched study of</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># spontaneous/induced abortion and infertility, matched on age and parity).</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  infert,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"spontaneous"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"stratum"</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> induced, <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_result&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimator:  clogit  (engine: clogit)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimand:   conditional OR</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Contrast:   Odds ratio</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  CI method:  model</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N:          248</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Contrasts:</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     comparison estimate     se ci_lower ci_upper</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         &lt;char&gt;    &lt;num&gt;  &lt;num&gt;    &lt;num&gt;    &lt;num&gt;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: spontaneous 7.285423 2.5677 3.651357 14.53635</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The marginal causal contrasts (case-control weighting) reuse the same two-step API once a source-population prevalence q0 is supplied — they are part of the roadmap below:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  data,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> <span class="fl">0.02</span>),   <span class="co"># source-population prevalence q0</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age <span class="sc">+</span> smoke, <span class="at">estimator =</span> <span class="st">"ccw_gformula"</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>, <span class="at">ci_method =</span> <span class="st">"sandwich"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="roadmap" class="level2">
 <h2 class="anchored" data-anchor-id="roadmap">Roadmap</h2>

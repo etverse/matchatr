@@ -128,12 +128,58 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
- <span class="menu-text">Reference</span></a>
+ <span class="menu-text">Getting started</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Classical odds ratios</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/unmatched-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Unmatched case-control odds ratios</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/matched-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Matched case-control odds ratios</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/multiple-groups.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multiple case / control groups</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./man/case_cohort.html" class="sidebar-item-text sidebar-link">
@@ -250,6 +296,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" id="toc-polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" class="nav-link" data-scroll-target="#polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1">2026-06-03 — Polytomous logistic for multiple case / control groups (PHASE_4 Chunk 1)</a></li>
   <li><a href="#effect-modification-in-matched-case-control-phase_3-chunk-3" id="toc-effect-modification-in-matched-case-control-phase_3-chunk-3" class="nav-link" data-scroll-target="#effect-modification-in-matched-case-control-phase_3-chunk-3">2026-06-03 — Effect modification in matched case-control (PHASE_3 Chunk 3)</a></li>
   <li><a href="#mcnemar-11-matched-pair-odds-ratio-phase_3-chunk-2" id="toc-mcnemar-11-matched-pair-odds-ratio-phase_3-chunk-2" class="nav-link" data-scroll-target="#mcnemar-11-matched-pair-odds-ratio-phase_3-chunk-2">2026-06-03 — McNemar 1:1 matched-pair odds ratio (PHASE_3 Chunk 2)</a></li>
   <li><a href="#matched-case-control-conditional-logistic-regression-phase_3-chunk-1" id="toc-matched-case-control-conditional-logistic-regression-phase_3-chunk-1" class="nav-link" data-scroll-target="#matched-case-control-conditional-logistic-regression-phase_3-chunk-1">2026-06-03 — Matched case-control conditional logistic regression (PHASE_3 Chunk 1)</a></li>
@@ -273,6 +320,14 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" class="level2">
+<h2 class="anchored" data-anchor-id="polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1">2026-06-03 — Polytomous logistic for multiple case / control groups (PHASE_4 Chunk 1)</h2>
+<p>Opens the multiple-case/control-group layer with unconstrained polytomous (multinomial) logistic regression. <code>matcha(design = unmatched_cc(), estimator = "polytomous")</code> fits a baseline-category multinomial model (<code>outcome ~ exposure + confounders</code>) via <code>nnet::multinom</code> for an outcome with three or more groups — multiple disease subtypes, or several control groups. The new <code>reference =</code> argument selects the baseline group (releveled to the front); each non-reference equation’s exposure coefficient is that subtype’s log odds ratio versus the reference, so <code>contrast(type = "or")</code> reports one OR per (subtype, exposure-coefficient) with an information-matrix Wald interval, and <code>tidy()</code> renders the full per-equation table with a <code>y.level</code> column. The new <code>R/polytomous.R</code> (<code>fit_polytomous()</code>, <code>contrast_polytomous()</code>, <code>multinom_exposure_or()</code>, <code>tidy_multinom()</code>) and <code>resolve_polytomous_outcome()</code> carry the engine; the dispatch grew an <code>outcome_kind</code> axis so <code>matcha()</code> picks the multi-group resolver instead of the binary one.</p>
+<ul>
+<li>A two-group, numeric, or logical outcome is <code>matchatr_bad_outcome</code> (routed back to the binary <code>logistic</code> / <code>mh</code> / <code>clogit</code> estimators); an out-of-range <code>reference</code>, a <code>reference</code> on a non-polytomous estimator, an ordered-factor exposure, and <code>effect_modifier</code> are each <code>matchatr_bad_input</code>; a constant exposure — or one collinear with a confounder — is <code>matchatr_unestimable_exposure</code>. Because <code>nnet::multinom</code> (unlike <code>stats::glm</code>) does not alias a rank-deficient column to <code>NA</code> but splits the coefficient across the dependent columns (a silently attenuated OR), <code>reject_collinear_exposure()</code> catches it by the design-matrix rank, mirroring glm’s NA-aliasing; collinearity confined to the confounders leaves the exposure estimable and is not rejected. <code>polytomous</code> on a matched design is <code>matchatr_bad_estimator</code>. RD / RR stay <code>matchatr_unidentified_estimand</code> and sandwich / bootstrap variances are <code>matchatr_unsupported_variance</code> (the engine reports the multinomial information matrix only).</li>
+<li>Validated against two oracles: the saturated 3-group / binary-exposure multinomial reproduces the closed-form 2×2 Woolf log-OR <strong>and</strong> its variance per subtype (independent of multinom’s own <code>vcov()</code>), and a truth-based cohort DGP recovers the known per-subtype exposure log-ORs within 3.5 SE, with <code>nnet::multinom</code> coefficient / variance equality pinning the adjusted, continuous, and factor-exposure fits. <code>nnet</code> is a recommended R package, so it joins <code>Imports</code> without adding an install-time dependency.</li>
+</ul>
+</section>
 <section id="effect-modification-in-matched-case-control-phase_3-chunk-3" class="level2">
 <h2 class="anchored" data-anchor-id="effect-modification-in-matched-case-control-phase_3-chunk-3">2026-06-03 — Effect modification in matched case-control (PHASE_3 Chunk 3)</h2>
 <p>Completes the matched case-control layer with stratum-specific odds ratios. Passing <code>effect_modifier = "m"</code> to <code>matcha(estimator = "clogit")</code> fits <code>outcome ~ exposure * m + confounders + strata(set)</code>, and <code>contrast(type = "or")</code> reports the exposure’s conditional odds ratio within each modifier level — the exposure main coefficient <code>beta_x</code> at the modifier’s reference level and the linear combination <code>beta_x + beta_{x:level}</code> elsewhere — with Wald intervals from the joint partial-likelihood variance (so the per-level SE accounts for the main–interaction covariance). The new <code>R/effect_modification.R</code> (<code>stratum_specific_or_result()</code>) assembles the per-level ORs via a contrast matrix <code>C V C'</code>; the modifier may coincide with a matching variable, which is the canonical use (does the exposure effect differ across the matching factor?).</p>
