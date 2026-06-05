@@ -2,7 +2,13 @@
 on:
   push:
     branches: [main, master]
+    paths-ignore:
+      - "altdoc/**"
+      - "docs/**"
   pull_request:
+    paths-ignore:
+      - "altdoc/**"
+      - "docs/**"
 
 name: R-CMD-check.yaml
 
@@ -29,6 +35,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      # The quarto vignette engine spawns a fresh R process that, on Windows,
+      # does not inherit the check library path, so `library(matchatr)` in a
+      # vignette fails with "there is no package called 'matchatr'". Build the
+      # vignettes only on the non-Windows runners (where quarto is set up) and
+      # check the package without vignettes on Windows.
+      - uses: quarto-dev/quarto-actions/setup@v2
+        if: runner.os != 'Windows'
       - uses: r-lib/actions/setup-pandoc@v2
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -43,3 +56,11 @@ jobs:
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+        if: runner.os != 'Windows'
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--no-build-vignettes")'
+          args: 'c("--no-manual", "--as-cran", "--no-vignettes")'
+          error-on: '"error"'
+        if: runner.os == 'Windows'
