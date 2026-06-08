@@ -70,7 +70,12 @@ test_that("a tied co-case is in the risk set (incidence-density semantics)", {
   # for one case includes the tied co-case. This pins the Langholz/Borgan
   # convention, which the continuous-time cohorts never exercise (and where the
   # behaviour diverges from Epi::ccwc's tied-failure grouping).
-  coh <- data.frame(id = 1:5, t = c(2, 2, 5, 8, 9), d = c(1, 1, 0, 0, 0), x = 1:5)
+  coh <- data.frame(
+    id = 1:5,
+    t = c(2, 2, 5, 8, 9),
+    d = c(1, 1, 0, 0, 0),
+    x = 1:5
+  )
   # Case in row 1 (t = 2): the tied co-case in row 2 (t = 2) is at risk (t >= 2).
   pool <- eligible_controls(1L, tvec = coh$t, entryvec = NULL, match_key = NULL)
   expect_true(2L %in% pool)
