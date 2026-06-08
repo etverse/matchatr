@@ -29,6 +29,10 @@ generate-then-analyse loop opened by Chunk 1.
   an uninformative analysis stratum, which `clogit` merely drops with a warning.
   A late failure time with fewer than `m` eligible controls keeps all of them (a
   smaller set), which is correct, not an error.
+- **`match` strata are crossed with collision-proof `interaction()` codes**, and a
+  missing value in a `match` column is rejected up front (`matchatr_bad_input`):
+  an undefined stratum must not silently merge with the literal string `"NA"` nor
+  match anyone.
 - Validated by structural invariants (one case per set, controls genuinely at
   risk, no within-set reuse), the `Epi::ccwc` risk-set-definition cross-check, a
   cohort DGP whose known Cox log-HR the sampled subsample recovers within 3.5 SE

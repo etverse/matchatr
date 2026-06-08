@@ -186,6 +186,36 @@ test_that("additional matching confines each control to the case's stratum", {
   expect_true(is.finite(contrast(fit)$contrasts$estimate))
 })
 
+test_that("matching crosses several columns into one stratum exactly", {
+  # Two match columns must be crossed jointly, not merged: every set is constant
+  # on BOTH simultaneously. Guards against a string-key collision conflating two
+  # distinct (s1, s2) tuples into one stratum.
+  co <- make_ncc_cohort(n = 1500L, beta_x = log(2))
+  co$s1 <- factor(ifelse(co$z > 0, "hi", "lo"))
+  co$s2 <- factor(ifelse(co$id %% 2L == 0L, "even", "odd"))
+  ncc <- withr::with_seed(
+    9L,
+    sample_ncc(co, time = "t", event = "d", m = 2L, match = ~ s1 + s2)
+  )
+  by_set <- tapply(seq_len(nrow(ncc)), ncc$set, function(ix) {
+    length(unique(paste(ncc$s1[ix], ncc$s2[ix]))) == 1L
+  })
+  expect_true(all(by_set))
+})
+
+test_that("a missing value in a match column is rejected", {
+  # A missing matching value leaves the stratum undefined; it must not silently
+  # merge with the literal string "NA" or match anyone, so it is rejected up
+  # front rather than producing a quietly mis-stratified sample.
+  co <- make_ncc_cohort(n = 200L)
+  co$s <- factor(ifelse(co$z > 0, "hi", "lo"))
+  co$s[1] <- NA
+  expect_error(
+    sample_ncc(co, time = "t", event = "d", m = 2L, match = ~s),
+    class = "matchatr_bad_input"
+  )
+})
+
 # --- delayed entry / left truncation -------------------------------------
 
 test_that("delayed entry excludes subjects not yet under observation", {

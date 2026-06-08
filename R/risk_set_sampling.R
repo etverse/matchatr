@@ -184,16 +184,40 @@ sample_ncc <- function(cohort, time, event, m = 1, match = NULL, entry = NULL) {
   # and independent of the input row order.
   case_rows <- case_rows[order(tvec[case_rows], case_rows)]
 
-  # A single per-row matching key (several match columns crossed) lets the
-  # eligibility test be one vector comparison per case. "\r" cannot appear in a
-  # printed value, so it is a safe separator that keeps c("1","23") distinct
-  # from c("12","3").
+  # A single per-row stratum code (the match columns crossed) lets the
+  # eligibility test be one vector comparison per case. A missing matching value
+  # leaves the stratum undefined -- it must not silently merge with the literal
+  # string "NA" (which a pasted character key would do), nor match anyone -- so
+  # NA in a match column is rejected up front.
   match_key <- NULL
   if (length(match_vars) > 0L) {
-    match_key <- do.call(
-      paste,
-      c(lapply(match_vars, function(v) as.character(df[[v]])), sep = "\r")
-    )
+    na_cols <- match_vars[vapply(
+      match_vars,
+      function(v) anyNA(df[[v]]),
+      logical(1)
+    )]
+    if (length(na_cols) > 0L) {
+      rlang::abort(
+        c(
+          paste0(
+            "`match` column(s) ",
+            paste0("`", na_cols, "`", collapse = ", "),
+            " contain missing values, so the matching stratum is undefined."
+          ),
+          i = "Drop or impute the missing strata before sampling."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+    # interaction() crosses the match columns into one factor; its integer codes
+    # compare exactly, with no separator a value could collide on (unlike a
+    # pasted string key). unname() + do.call spreads the columns as the factors
+    # interaction() expects.
+    match_key <- as.integer(do.call(
+      interaction,
+      c(unname(df[match_vars]), list(drop = TRUE))
+    ))
   }
 
   # Pass 1 -- eligibility only, no random draws. Computing every case's eligible
@@ -251,8 +275,8 @@ sample_ncc <- function(cohort, time, event, m = 1, match = NULL, entry = NULL) {
 #' @param case_row Integer row index of the case in the cohort.
 #' @param tvec Numeric vector of exit / event times.
 #' @param entryvec `NULL` (no delayed entry) or a numeric vector of entry times.
-#' @param match_key `NULL` (no matching) or a character vector of per-row
-#'   crossed matching keys.
+#' @param match_key `NULL` (no matching) or an integer vector of per-row crossed
+#'   stratum codes (from `interaction()`), compared exactly to the case's code.
 #' @returns An integer vector of eligible control row indices (possibly empty).
 #' @family estimators
 #' @seealso [sample_ncc()]
