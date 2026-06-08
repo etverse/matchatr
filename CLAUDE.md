@@ -207,8 +207,13 @@ Shell: `air format .` (format all R files).
 - Truth-based simulation tests mandatory for new features (cohort DGP with known truth,
   then sample a CC / NCC / case-cohort from it)
 - External oracle cross-checks: `survival::clogit` / `survival::cch` (classical),
-  `multipleNCC` (NCC IPW), `causatr`/`survatr` on the explicitly reweighted
-  pseudo-cohort (CCW), R `tmle`/`tmle3` (CCW-TMLE)
+  `Epi::ccwc` (risk-set sampling), `multipleNCC` (NCC IPW), `causatr`/`survatr` on
+  the explicitly reweighted pseudo-cohort (CCW), R `tmle`/`tmle3` (CCW-TMLE)
+- Python cross-language oracles via `statsmodels` for every implemented classical
+  estimator (committed data + result CSVs under `tests/testthat/fixtures/python/`,
+  compared in `test-python-oracle.R`, `skip_if(!file.exists())`-guarded so CI
+  needs no Python). `statsmodels` for the classical MLEs; `delicatessen` is
+  reserved for the causal / sandwich estimands of the later CCW phases.
 - Update `FEATURE_COVERAGE_MATRIX.md` in the same PR as test changes
 
 ## Cost discipline

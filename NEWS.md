@@ -1,5 +1,26 @@
 # matchatr (development version)
 
+## 2026-06-08 — Python cross-language oracles for the classical estimators
+
+Adds an independent **Python (`statsmodels`) cross-language oracle** for every
+implemented classical estimator, so a bug shared between matchatr and its R
+engine cannot hide behind a same-package comparison. Each oracle reads the same
+committed dataset both languages share and compares against a committed Python
+result CSV; tests never invoke Python, so CI needs no Python toolchain (each is
+guarded with `skip_if(!file.exists(...))`). The fixtures and a regeneration
+recipe live in `tests/testthat/fixtures/python/`; the comparisons are in
+`test-python-oracle.R`.
+
+- Covered: the unmatched logistic OR (vs `Logit`), the matched conditional OR and
+  the nested case-control HR (vs `ConditionalLogit`), the Mantel–Haenszel summary
+  OR with the Robins–Breslow–Greenland interval (vs `StratifiedTable`), the
+  polytomous subtype ORs (vs `MNLogit`), and the homogeneity Wald χ² + GLS pooled
+  common OR (hand-built from `MNLogit`'s coefficients and covariance).
+- `statsmodels` anchors these maximum-likelihood estimators; `delicatessen`
+  (M-estimation + sandwich) is reserved for the causal / sandwich estimands of
+  the later case-control-weighting phases.
+- Test-only change: no user-facing behaviour is affected.
+
 ## 2026-06-08 — Risk-set control sampling: `sample_ncc()` (PHASE_5 Chunk 2)
 
 Adds the exported `sample_ncc()`, which generates a nested case-control dataset
