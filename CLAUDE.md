@@ -99,8 +99,11 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   runs the resolved engine via `run_engine()`), `dispatch.R` (the
   `(design, estimator)` → engine table + `resolve_engine()` + `run_engine()`),
   `contrast.R` (the second-step `contrast()` verb; dispatches per engine),
-  `constructors.R` (`new_matchatr_fit()` / `new_matchatr_result()`), `checks.R`
-  (shared validators + classed-error helpers), `print.R`, `tidy.R`, `summary.R`.
+  `constructors.R` (`new_matchatr_fit()` / `new_matchatr_result()`), the
+  validator layer (`checks.R` primitive argument validators, `checks_design.R`
+  analysis-role / exposure / effect-modifier / strata-informativeness checks,
+  `resolve.R` outcome / exposure / event column coercions — all classed
+  `matchatr_*` errors), `print.R`, `tidy.R`, `summary.R`.
   `risk_set_sampling.R` (PHASE_5 Chunk 2 — `sample_ncc()`: native risk-set
   control sampling from a cohort, with population-stratum matching, delayed
   entry, and the `matchatr_empty_risk_set` hard error; counter-matching to
