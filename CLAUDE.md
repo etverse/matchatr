@@ -61,9 +61,20 @@ on person-period data) wherever possible.
 > arithmetic is identical). Each conditional design identifies exactly one scale,
 > so requesting an OR from a risk-set design (or an HR from a matched design) is
 > `matchatr_unidentified_estimand`; the design's `time` column records the
-> sampling but the conditional likelihood reads the risk set from `strata`. NCC
-> control sampling (`sample_ncc()`) and counter-matching remain later chunks;
-> PHASE_6+ remain `Status: DESIGN`.
+> sampling but the conditional likelihood reads the risk set from `strata`.
+> **PHASE_5 Chunk 2 is complete**: the exported `sample_ncc(cohort, time, event,
+> m, match, entry)` (`R/risk_set_sampling.R`) generates an analysis-ready NCC
+> dataset from a cohort by risk-set (incidence-density) control sampling —
+> appending `set`, the per-set `case` indicator, and `risk_time` — with optional
+> population-stratum matching and delayed entry. The sampler is native (base
+> R/data.table, deterministically seedable via the ambient RNG); `Epi::ccwc` is a
+> test oracle, not a runtime dependency (matchatr delegates only to Imports-tier
+> *estimation* engines and hand-rolls sampling / closed forms). A case left with
+> no eligible control aborts `matchatr_empty_risk_set` (a generation-path failure,
+> unlike an uninformative analysis stratum, which `clogit` drops); a late failure
+> time with fewer than `m` eligible controls yields a smaller set, not an error.
+> The test-only `sample_ncc_riskset()` fixture now delegates to `sample_ncc()`.
+> Counter-matching remains a later chunk; PHASE_6+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -90,9 +101,11 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `contrast.R` (the second-step `contrast()` verb; dispatches per engine),
   `constructors.R` (`new_matchatr_fit()` / `new_matchatr_result()`), `checks.R`
   (shared validators + classed-error helpers), `print.R`, `tidy.R`, `summary.R`.
-  Still to come: `weights_cc.R` (case-control / q₀ weights), `weights_design.R`
-  (Samuelsen / Borgan inclusion-probability weights), `risk_set_sampling.R` (NCC
-  control sampling + counter-matching).
+  `risk_set_sampling.R` (PHASE_5 Chunk 2 — `sample_ncc()`: native risk-set
+  control sampling from a cohort, with population-stratum matching, delayed
+  entry, and the `matchatr_empty_risk_set` hard error; counter-matching to
+  come). Still to come: `weights_cc.R` (case-control / q₀ weights),
+  `weights_design.R` (Samuelsen / Borgan inclusion-probability weights).
 - **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
   wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and
   the `matchatr_unidentified_estimand` rejection), `mantel_haenszel.R` (PHASE_2

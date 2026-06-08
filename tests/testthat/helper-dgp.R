@@ -404,36 +404,23 @@ make_ncc_cohort <- function(
   cohort
 }
 
-# Risk-set (incidence-density) NCC sampler. For each case (d == 1) at its failure
-# time t_case, the risk set is everyone still at risk then (t >= t_case, no left
-# truncation), the case included; `m` controls are sampled WITHOUT replacement
-# from that set, excluding the case. A subject sampled as a control may itself
-# fail later in the cohort (it serves as a control before its own event) -- the
-# classical NCC structure. Each sampled set becomes a stratum (`set`) with a
-# per-set `case` indicator (NOT the cohort's `d`, since the controls are
-# non-cases AT the sampled time). Columns: the cohort columns plus case (per-set
-# 0/1), set (stratum id), risk_time (the case's failure time). A risk set with
-# fewer than `m` eligible controls keeps all that are available (a smaller set).
+# Risk-set (incidence-density) NCC sampler used as a deterministic test fixture.
+# Delegates to the exported sample_ncc() (the production risk-set sampler) under a
+# fixed seed, so the analysis-path tests exercise the real generator rather than a
+# parallel copy. For each case (d == 1) at its failure time, sample_ncc() draws m
+# controls without replacement from those at risk then (t >= t_case, no left
+# truncation); a subject sampled as a control may itself fail later in the cohort
+# (the classical NCC structure), so `case` is the per-set indicator, not the
+# cohort's `d`. Returns a data.frame in the historical column order: the cohort
+# columns, then case (per-set 0/1), set (stratum id), risk_time (the failure time).
 sample_ncc_riskset <- function(cohort, m = 2L, seed = 71L) {
-  out <- withr::with_seed(seed, {
-    cases <- cohort[cohort$d == 1L, , drop = FALSE]
-    # Per-case sampling; order by failure time (then id) for a stable set index.
-    cases <- cases[order(cases$t, cases$id), , drop = FALSE]
-    sets <- lapply(seq_len(nrow(cases)), function(k) {
-      tc <- cases$t[k]
-      cid <- cases$id[k]
-      # Eligible controls: at risk at the case's failure time, case excluded.
-      elig <- cohort$id[cohort$t >= tc & cohort$id != cid]
-      # sample.int on indices avoids sample()'s length-1 "sample from 1:x" trap.
-      take <- if (length(elig) > m) elig[sample.int(length(elig), m)] else elig
-      rows <- cohort[cohort$id %in% c(cid, take), , drop = FALSE]
-      rows$case <- as.integer(rows$id == cid)
-      rows$set <- k
-      rows$risk_time <- tc
-      rows
-    })
-    do.call(rbind, sets)
-  })
+  out <- withr::with_seed(
+    seed,
+    sample_ncc(cohort, time = "t", event = "d", m = m)
+  )
+  out <- as.data.frame(out)
+  added <- c("case", "set", "risk_time")
+  out <- out[, c(setdiff(names(out), added), added), drop = FALSE]
   rownames(out) <- NULL
   out
 }
