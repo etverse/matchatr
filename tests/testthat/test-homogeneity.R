@@ -419,14 +419,17 @@ test_that("tidy returns one row per exposure term with the test columns", {
     confounders = ~age,
     estimator = "polytomous"
   )
-  td <- tidy(test_homogeneity(fit))
+  h <- test_homogeneity(fit)
+  td <- tidy(h)
   expect_true(data.table::is.data.table(td))
   expect_equal(nrow(td), 1L)
+  # Broom column convention, shared with tidy.matchatr_result.
   expect_setequal(
     names(td),
     c(
       "term",
-      "common_or",
+      "estimate",
+      "std.error",
       "conf.low",
       "conf.high",
       "statistic",
@@ -435,6 +438,9 @@ test_that("tidy returns one row per exposure term with the test columns", {
     )
   )
   expect_identical(td$term, "x")
+  # `estimate` is the common OR; `std.error` the OR-scale delta-method SE.
+  expect_equal(td$estimate, h$homogeneity$common_or)
+  expect_equal(td$std.error, h$homogeneity$se)
 })
 
 # ---- Rejection paths --------------------------------------------------------
@@ -503,7 +509,7 @@ test_that("a singular subtype covariance is matchatr_unestimable_exposure", {
   expect_error(
     homogeneity_one_term(
       beta = c(0.5, 0.5),
-      vcov = matrix(c(1, 1, 1, 1), 2, 2),
+      vmat = matrix(c(1, 1, 1, 1), 2, 2),
       term = "x",
       z = 1.96
     ),

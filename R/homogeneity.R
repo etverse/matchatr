@@ -34,9 +34,12 @@
 #'
 #' Each exposure term is tested separately (one "risk factor" per column): a
 #' binary or continuous exposure contributes one row, an unordered factor
-#' exposure one row per non-reference level. The fit must be the polytomous
-#' multinomial engine (three or more outcome groups); any other engine — or a
-#' fit that produced no model — is rejected.
+#' exposure one row per non-reference level. There is no omnibus test across the
+#' levels of a multi-level factor exposure — it yields one independent
+#' homogeneity test per level, so adjust for multiple comparisons if several
+#' levels are screened. The fit must be the polytomous multinomial engine (three
+#' or more outcome groups); any other engine — or a fit that produced no model —
+#' is rejected.
 #'
 #' @param fit A `matchatr_fit` returned by [matcha()] whose `engine` is
 #'   `"multinom"` (i.e. `estimator = "polytomous"`).
@@ -132,14 +135,14 @@ test_homogeneity <- function(fit, conf_level = 0.95) {
   }
 
   # One homogeneity test + pooled OR per exposure column (each a separate "risk
-  # factor"). Column c's M subtype entries are at flat positions c, c + n_cols,
-  # c + 2 n_cols, ... (subtype-major layout).
-  rows <- lapply(seq_len(n_cols), function(c) {
-    idx <- seq(c, by = n_cols, length.out = n_sub)
+  # factor"). Column `col`'s M subtype entries are at flat positions col,
+  # col + n_cols, col + 2 n_cols, ... (subtype-major layout).
+  rows <- lapply(seq_len(n_cols), function(col) {
+    idx <- seq(col, by = n_cols, length.out = n_sub)
     homogeneity_one_term(
       beta = ex$log_or[idx],
-      vcov = ex$vcov[idx, idx, drop = FALSE],
-      term = ex$predictors[c],
+      vmat = ex$vcov[idx, idx, drop = FALSE],
+      term = ex$predictors[col],
       z = z,
       call = call
     )
@@ -149,6 +152,7 @@ test_homogeneity <- function(fit, conf_level = 0.95) {
     data.table::data.table(
       term = r$term,
       common_or = r$common_or,
+      se = r$se,
       ci_lower = r$ci_lower,
       ci_upper = r$ci_upper,
       statistic = r$statistic,
@@ -199,18 +203,20 @@ test_homogeneity <- function(fit, conf_level = 0.95) {
 #'
 #' @param beta Numeric vector of the M subtype log odds ratios for this exposure
 #'   column.
-#' @param vcov Their `M x M` covariance sub-matrix (from the multinomial
-#'   information matrix).
+#' @param vmat Their `M x M` covariance sub-matrix (from the multinomial
+#'   information matrix). Named `vmat` rather than `vcov` to avoid shadowing the
+#'   [stats::vcov()] generic.
 #' @param term Character label for the exposure column.
 #' @param z Numeric Wald critical value for the common-OR interval.
 #' @param call Caller environment surfaced in any error.
-#' @returns A list with `term`, `common_or`, `ci_lower`, `ci_upper`,
-#'   `statistic` (the Wald chi-squared), `df`, and `p.value`.
+#' @returns A list with `term`, `common_or`, `se` (the delta-method standard
+#'   error on the odds-ratio scale), `ci_lower`, `ci_upper`, `statistic` (the
+#'   Wald chi-squared), `df`, and `p.value`.
 #' @family estimators
 #' @noRd
 homogeneity_one_term <- function(
   beta,
-  vcov,
+  vmat,
   term,
   z,
   call = rlang::caller_env()
@@ -244,7 +250,7 @@ homogeneity_one_term <- function(
   # consecutive-difference contrast is used.
   cmat <- homogeneity_contrast_matrix(m)
   cb <- cmat %*% beta
-  cvc <- cmat %*% vcov %*% t(cmat)
+  cvc <- cmat %*% vmat %*% t(cmat)
   if (!invertible(cvc)) {
     unestimable()
   }
@@ -253,18 +259,22 @@ homogeneity_one_term <- function(
   p_value <- stats::pchisq(statistic, df = df, lower.tail = FALSE)
 
   # GLS / inverse-variance pooled common log OR (the restricted estimator).
-  if (!invertible(vcov)) {
+  if (!invertible(vmat)) {
     unestimable()
   }
-  vinv <- solve(vcov)
+  vinv <- solve(vmat)
   ones <- rep(1, m)
   denom <- as.numeric(t(ones) %*% vinv %*% ones)
   common_log_or <- as.numeric(t(ones) %*% vinv %*% beta) / denom
   se_common <- sqrt(1 / denom)
+  common_or <- exp(common_log_or)
 
   list(
     term = term,
-    common_or = exp(common_log_or),
+    common_or = common_or,
+    # Delta-method SE on the OR scale (OR * SE(log OR)); the interval below is
+    # Wald on the log scale, exponentiated, so it is asymmetric on the OR scale.
+    se = common_or * se_common,
     ci_lower = exp(common_log_or - z * se_common),
     ci_upper = exp(common_log_or + z * se_common),
     statistic = statistic,
@@ -352,13 +362,17 @@ print.matchatr_homogeneity <- function(x, ...) {
 #'
 #' Returns the per-exposure homogeneity results carried by a
 #' `matchatr_homogeneity` object as a tidy `data.table`, one row per exposure
-#' term, with the common (pooled) odds ratio, its confidence bounds, and the
-#' homogeneity Wald chi-squared statistic, degrees of freedom, and p-value.
+#' term, following the broom column convention shared with
+#' [tidy.matchatr_result()]: `estimate` is the common (pooled) odds ratio,
+#' `std.error` its delta-method standard error on the odds-ratio scale,
+#' `conf.low` / `conf.high` its Wald bounds, and `statistic` / `df` / `p.value`
+#' the homogeneity Wald chi-squared test.
 #'
 #' @param x A `matchatr_homogeneity` object returned by [test_homogeneity()].
 #' @param ... Unused; present for generic consistency.
-#' @returns A `data.table` with columns `term`, `common_or`, `conf.low`,
-#'   `conf.high`, `statistic`, `df`, and `p.value`.
+#' @returns A `data.table` with columns `term`, `estimate` (the common odds
+#'   ratio), `std.error`, `conf.low`, `conf.high`, `statistic`, `df`, and
+#'   `p.value`.
 #' @examples
 #' set.seed(5)
 #' n <- 2000
@@ -377,7 +391,8 @@ print.matchatr_homogeneity <- function(x, ...) {
 tidy.matchatr_homogeneity <- function(x, ...) {
   out <- data.table::data.table(
     term = x$homogeneity$term,
-    common_or = x$homogeneity$common_or,
+    estimate = x$homogeneity$common_or, # the common (pooled) odds ratio
+    std.error = x$homogeneity$se, # delta-method SE on the OR scale
     conf.low = x$homogeneity$ci_lower,
     conf.high = x$homogeneity$ci_upper,
     statistic = x$homogeneity$statistic,

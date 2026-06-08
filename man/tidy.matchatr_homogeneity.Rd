@@ -12,14 +12,18 @@
 \item{...}{Unused; present for generic consistency.}
 }
 \value{
-A \code{data.table} with columns \code{term}, \code{common_or}, \code{conf.low},
-\code{conf.high}, \code{statistic}, \code{df}, and \code{p.value}.
+A \code{data.table} with columns \code{term}, \code{estimate} (the common odds
+ratio), \code{std.error}, \code{conf.low}, \code{conf.high}, \code{statistic}, \code{df}, and
+\code{p.value}.
 }
 \description{
 Returns the per-exposure homogeneity results carried by a
 \code{matchatr_homogeneity} object as a tidy \code{data.table}, one row per exposure
-term, with the common (pooled) odds ratio, its confidence bounds, and the
-homogeneity Wald chi-squared statistic, degrees of freedom, and p-value.
+term, following the broom column convention shared with
+\code{\link[=tidy.matchatr_result]{tidy.matchatr_result()}}: \code{estimate} is the common (pooled) odds ratio,
+\code{std.error} its delta-method standard error on the odds-ratio scale,
+\code{conf.low} / \code{conf.high} its Wald bounds, and \code{statistic} / \code{df} / \code{p.value}
+the homogeneity Wald chi-squared test.
 }
 \examples{
 set.seed(5)

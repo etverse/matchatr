@@ -55,9 +55,12 @@ error is smaller than each pooled term's.
 
 Each exposure term is tested separately (one "risk factor" per column): a
 binary or continuous exposure contributes one row, an unordered factor
-exposure one row per non-reference level. The fit must be the polytomous
-multinomial engine (three or more outcome groups); any other engine — or a
-fit that produced no model — is rejected.
+exposure one row per non-reference level. There is no omnibus test across the
+levels of a multi-level factor exposure — it yields one independent
+homogeneity test per level, so adjust for multiple comparisons if several
+levels are screened. The fit must be the polytomous multinomial engine (three
+or more outcome groups); any other engine — or a fit that produced no model —
+is rejected.
 }
 \examples{
 set.seed(5)

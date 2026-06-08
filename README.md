@@ -24,11 +24,12 @@ person-period data).
 > case-control logistic and Mantel-Haenszel ORs (`PHASE_2`), the
 > **matched** case-control conditional-logistic and McNemar ORs with
 > stratum-specific effect modification (`PHASE_3`), and the
-> **polytomous** subtype ORs for multi-group outcomes (`PHASE_4`). See
-> the [articles](https://etverse.github.io/matchatr/) for worked
-> examples. The time-to-event sampling designs and the marginal
-> causal-weighting / survival layer (`PHASE_5`–`PHASE_20`) remain at the
-> design stage.
+> **polytomous** subtype ORs for multi-group outcomes, with a
+> `test_homogeneity()` Wald test of whether the exposure OR is constant
+> across subtypes plus the pooled common OR (`PHASE_4`). See the
+> [articles](https://etverse.github.io/matchatr/) for worked examples.
+> The time-to-event sampling designs and the marginal causal-weighting /
+> survival layer (`PHASE_5`–`PHASE_20`) remain at the design stage.
 
 ## What it does
 
