@@ -1,5 +1,37 @@
 # matchatr (development version)
 
+## 2026-06-08 — Counter-matched NCC sampler and weighted partial likelihood (PHASE_5 Chunk 3)
+
+Adds `sample_ncc_counter_matched()` and the `weighted_cox` engine for the
+Langholz-Borgan (1995) counter-matched partial likelihood.
+
+- **`sample_ncc_counter_matched(cohort, time, event, surrogate, m, match, entry)`**
+  generates a counter-matched NCC dataset: at each event time the case is matched
+  to `m` controls drawn from the *opposite* surrogate stratum. The output appends
+  `set`, `case`, `risk_time`, and `log_w` (the log-sampling-weight for the
+  weighted partial likelihood). Optional population-stratum matching (`match =`) and
+  delayed entry (`entry =`) are supported, mirroring `sample_ncc()`. A case with no
+  eligible control in the opposite stratum aborts with `matchatr_empty_risk_set`.
+- **`matcha(design = counter_matched(strata, time, weights = "log_w"), estimator =
+  "weighted_cox")`** fits `survival::coxph` with the log-weights as a Cox offset
+  (`outcome ~ exposure + confounders + strata(set) + offset(log_w)`) and
+  `contrast()` reports the hazard ratio (`type = "hr"`). `survival::coxph` is used
+  directly (not the `clogit()` wrapper) because `clogit` does not pass `offset`
+  through to its internal coxph call.
+- The log-weight formula: the case represents its entire same-stratum risk set
+  (log_w = log(n_same + 1)); each sampled control represents the opposite stratum
+  divided by the controls drawn (log_w = log(n_opp / m_take)). This is the key
+  correction that makes the weighted partial likelihood consistent for the Cox HR,
+  while the unweighted clogit on counter-matched data is biased.
+- `type = "or"`, `"difference"`, `"ratio"` and `ci_method = "sandwich"`,
+  `"bootstrap"` are rejected for this estimator.
+- New functions: `sample_ncc_counter_matched()`, `resolve_surrogate()` (in
+  `R/risk_set_sampling.R`); `fit_weighted_cox()`, `contrast_weighted_cox()` (in
+  `R/weighted_cox.R`). Wired in `R/dispatch.R` and `R/contrast.R`.
+- Tests in `tests/testthat/test-weighted_cox.R`: structural invariants, exact
+  log-weight formula check, truth recovery within 3.5 SE, full-cohort coxph
+  oracle, and rejection paths.
+
 ## 2026-06-08 — Python cross-language oracles for the classical estimators
 
 Adds an independent **Python (`statsmodels`) cross-language oracle** for every

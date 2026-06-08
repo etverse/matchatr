@@ -4,36 +4,47 @@
 \alias{counter_matched}
 \title{Counter-matched design}
 \usage{
-counter_matched(strata, time, ratio = NULL)
+counter_matched(strata, time, weights = NULL, ratio = NULL)
 }
 \arguments{
-\item{strata}{A non-empty character vector naming the counter-matching
-surrogate stratum column(s).}
+\item{strata}{A non-empty character vector naming the column(s) that
+identify the sampled risk sets (the matched-set id, e.g. \code{"set"}). Same
+role as the \code{strata} argument of \code{\link[=nested_cc]{nested_cc()}}.}
 
-\item{time}{A single character string naming the event/entry time column
-that defines the risk sets.}
+\item{time}{A single character string naming the risk-time column that
+defines the failure time for each set (e.g. \code{"risk_time"}).}
+
+\item{weights}{\code{NULL} or a single character string naming the log-weight
+column in the data. \code{sample_ncc_counter_matched()} appends a \code{"log_w"}
+column carrying \code{log(n_stratum / m_stratum)} for each sampled subject;
+supply its name here so the analysis engine can enter it as a Cox offset.
+Required for \code{matcha()} to fit the weighted partial likelihood.}
 
 \item{ratio}{\code{NULL} or a single whole number >= 1. Controls sampled per
-case within the counter-matched strata.}
+case (from the opposite surrogate stratum).}
 }
 \value{
 A \code{matchatr_design} object of \code{type} \code{"counter_matched"} carrying
-the strata, time, and ratio, with a \code{weight_spec} flagged for
+the strata, time, weights, and ratio, with a \code{weight_spec} flagged for
 counter-matching weights.
 }
 \description{
-Declares a counter-matched nested case-control sample: a stratified
-risk-set design in which controls are sampled to \emph{differ} from the case on
-a surrogate of exposure, balancing each sampled risk set across exposure
-strata. The analysis is a weighted Cox partial likelihood that carries the
-counter-matching inclusion weights.
+Declares a counter-matched nested case-control (NCC) sample: a stratified
+risk-set design in which controls are drawn from the \emph{opposite} surrogate
+stratum to the case, so each sampled risk set is balanced across surrogate
+exposure values. The analysis is a weighted Cox partial likelihood using
+log-sampling-weights as an offset (Langholz & Borgan 1995); the counter-
+matching weights enter as \code{offset(weights)} in \code{survival::coxph}, and the
+result is a hazard ratio.
 }
 \examples{
-counter_matched(strata = "exposure_surrogate", time = "t")
+counter_matched(strata = "set", time = "risk_time", weights = "log_w")
+counter_matched(strata = "set", time = "risk_time", weights = "log_w",
+                ratio = 2L)
 
 }
 \seealso{
-\code{\link[=nested_cc]{nested_cc()}}, \code{\link[=matcha]{matcha()}}
+\code{\link[=nested_cc]{nested_cc()}}, \code{\link[=sample_ncc_counter_matched]{sample_ncc_counter_matched()}}, \code{\link[=matcha]{matcha()}}
 
 Other design constructors: 
 \code{\link{case_cohort}()},
