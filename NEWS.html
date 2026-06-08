@@ -259,6 +259,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/sample_ncc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sample_ncc</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/summary.matchatr_fit.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">summary.matchatr_fit</span></a>
   </div>
@@ -331,6 +337,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#risk-set-control-sampling-sample_ncc-phase_5-chunk-2" id="toc-risk-set-control-sampling-sample_ncc-phase_5-chunk-2" class="nav-link" data-scroll-target="#risk-set-control-sampling-sample_ncc-phase_5-chunk-2">2026-06-08 — Risk-set control sampling: <code>sample_ncc()</code> (PHASE_5 Chunk 2)</a></li>
   <li><a href="#nested-case-control-hazard-ratio-phase_5-chunk-1" id="toc-nested-case-control-hazard-ratio-phase_5-chunk-1" class="nav-link" data-scroll-target="#nested-case-control-hazard-ratio-phase_5-chunk-1">2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)</a></li>
   <li><a href="#homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" id="toc-homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" class="nav-link" data-scroll-target="#homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2">2026-06-08 — Homogeneity test + pooled common OR for disease subtypes (PHASE_4 Chunk 2)</a></li>
   <li><a href="#polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" id="toc-polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" class="nav-link" data-scroll-target="#polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1">2026-06-03 — Polytomous logistic for multiple case / control groups (PHASE_4 Chunk 1)</a></li>
@@ -357,6 +364,17 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="risk-set-control-sampling-sample_ncc-phase_5-chunk-2" class="level2">
+<h2 class="anchored" data-anchor-id="risk-set-control-sampling-sample_ncc-phase_5-chunk-2">2026-06-08 — Risk-set control sampling: <code>sample_ncc()</code> (PHASE_5 Chunk 2)</h2>
+<p>Adds the exported <code>sample_ncc()</code>, which generates a nested case-control dataset from a cohort by risk-set (incidence-density) control sampling. Each event anchors a matched set holding the case and <code>m</code> controls drawn without replacement from the subjects at risk at that failure time; the result is an analysis-ready <code>data.table</code> (the cohort columns plus <code>set</code>, the per-set <code>case</code> indicator, and <code>risk_time</code>) that feeds straight into <code>matcha(design = nested_cc(strata = "set", time = "risk_time"))</code>. This closes the generate-then-analyse loop opened by Chunk 1.</p>
+<ul>
+<li><strong><code>sample_ncc(cohort, time, event, m = 1, match = NULL, entry = NULL)</code>.</strong> <code>match = ~ s1 + s2</code> confines each case’s controls to its own population stratum; <code>entry =</code> supplies a delayed-entry (left-truncation) column so a subject counts as at risk only after entering follow-up. Sampling uses the ambient random stream (wrap in <code>withr::with_seed()</code> / precede with <code>set.seed()</code>), and the input cohort is never mutated.</li>
+<li><strong>Native sampler, <code>Epi::ccwc</code> as an oracle.</strong> Risk-set sampling is implemented natively (base R + data.table) so it is always available and deterministically seedable — consistent with the package’s pattern of delegating only to Imports-tier <em>estimation</em> engines and hand-rolling sampling / closed forms. <code>Epi::ccwc</code> is an external cross-check in the tests (every sampled control must lie in the eligible risk-set pool), not a runtime dependency.</li>
+<li><strong>A case with no eligible control aborts with <code>matchatr_empty_risk_set</code></strong> — in the generation path, producing such a set is a sampling failure (a misspecified time origin/scale, an entry/exit mismatch, or over-fine <code>match</code> strata), unlike an uninformative analysis stratum, which <code>clogit</code> merely drops with a warning. A late failure time with fewer than <code>m</code> eligible controls keeps all of them (a smaller set), which is correct, not an error.</li>
+<li><strong><code>match</code> strata are crossed with collision-proof <code>interaction()</code> codes</strong>, and a missing value in a <code>match</code> column is rejected up front (<code>matchatr_bad_input</code>): an undefined stratum must not silently merge with the literal string <code>"NA"</code> nor match anyone.</li>
+<li>Validated by structural invariants (one case per set, controls genuinely at risk, no within-set reuse), the <code>Epi::ccwc</code> risk-set-definition cross-check, a cohort DGP whose known Cox log-HR the sampled subsample recovers within 3.5 SE and agrees with the full-cohort <code>survival::coxph</code> fit, and the classical <code>(m+1)/m</code> null efficiency. The test-only <code>sample_ncc_riskset()</code> fixture now delegates to <code>sample_ncc()</code>, so the Chunk 1 analysis tests also exercise the exported sampler.</li>
+</ul>
+</section>
 <section id="nested-case-control-hazard-ratio-phase_5-chunk-1" class="level2">
 <h2 class="anchored" data-anchor-id="nested-case-control-hazard-ratio-phase_5-chunk-1">2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)</h2>
 <p>Opens the time-to-event sampling designs with the classical nested case-control (NCC) analysis. <code>matcha(design = nested_cc(strata = ..., time = ...), estimator = "clogit")</code> now fits the risk-set conditional partial likelihood and <code>contrast()</code> reports the exposure’s <strong>hazard ratio</strong> (<code>type = "hr"</code>). The NCC analysis reuses the matched-design <code>clogit</code> engine unchanged — a sampled risk set and a matched set are the same stratum construction (<code>outcome ~ exposure + confounders + strata(set)</code>) — so the value is the design-faithful estimand, not new estimation machinery.</p>

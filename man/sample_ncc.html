@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>print.matchatr_design – matchatr</title>
+<title>sample_ncc – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_design.html">print.matchatr_design</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/sample_ncc.html">sample_ncc</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -270,7 +270,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
   </div>
 </li>
@@ -294,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/sample_ncc.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/sample_ncc.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">sample_ncc</span></a>
   </div>
 </li>
@@ -370,11 +370,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#print-a-matchatr-design" id="toc-print-a-matchatr-design" class="nav-link active" data-scroll-target="#print-a-matchatr-design">Print a matchatr design</a>
+  <li><a href="#draw-a-nested-case-control-sample-from-a-cohort-by-risk-set-sampling" id="toc-draw-a-nested-case-control-sample-from-a-cohort-by-risk-set-sampling" class="nav-link active" data-scroll-target="#draw-a-nested-case-control-sample-from-a-cohort-by-risk-set-sampling">Draw a nested case-control sample from a cohort by risk-set sampling</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
@@ -383,21 +384,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_design.html">print.matchatr_design</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/sample_ncc.html">sample_ncc</a></li></ol></nav></header>
 
 
 
 
-<section id="print-a-matchatr-design" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr-design">Print a matchatr design</h2>
+<section id="draw-a-nested-case-control-sample-from-a-cohort-by-risk-set-sampling" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="draw-a-nested-case-control-sample-from-a-cohort-by-risk-set-sampling">Draw a nested case-control sample from a cohort by risk-set sampling</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Displays a compact summary of a matchatr_design object: the sampling structure, the columns it references, the matching ratio and prevalence when present, and the weighting scheme it will use.</p>
+<p>Generates a nested case-control (NCC) dataset from a full cohort by risk-set (incidence-density) sampling: at each event time the failing subject (the case) is matched to <code>m</code> controls drawn at random from the subjects still at risk at that instant. Each case and its sampled controls form one matched set (a sampled risk set), which is the stratum the conditional partial likelihood conditions on. The result feeds straight into <code>matcha(design = nested_cc(strata = “set”, time = “risk_time”))</code>, whose conditional logistic fit reports the hazard ratio (OR = HR exactly under risk-set sampling; Prentice &amp; Breslow 1978).</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">## S3 method for class 'matchatr_design'
-print(x, ...)
+<pre><code class="language-R">sample_ncc(cohort, time, event, m = 1, match = NULL, entry = NULL)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -405,49 +405,114 @@ print(x, ...)
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
+<code id="cohort">cohort</code>
 </td>
 <td>
-A <code>matchatr_design</code> object.
+A data.frame or data.table with one row per subject. Copied, never mutated.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
+<code id="time">time</code>
 </td>
 <td>
-Unused; present for S3 consistency.
+A single character string naming the exit / event-time column (the time scale on which risk sets are formed). Must be numeric.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="event">event</code>
+</td>
+<td>
+A single character string naming the cohort event indicator (logical, a two-level factor, or numeric 0/1); at least one event must occur.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="m">m</code>
+</td>
+<td>
+A single whole number &gt;= 1, the number of controls sampled per case (default 1).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="match">match</code>
+</td>
+<td>
+<code>NULL</code> (no additional matching) or a one-sided formula naming population-stratum column(s) controls must share with the case (e.g.&nbsp;<code>~ sex + birth_cohort</code>).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="entry">entry</code>
+</td>
+<td>
+<code>NULL</code> (everyone enters at the time origin) or a single character string naming a delayed-entry / left-truncation column. Must be numeric when supplied; a subject is at risk at <code>tc</code> only if <code>entry &lt; tc</code>.
 </td>
 </tr>
 </tbody></table>
 </section>
+<section id="details" class="level3">
+<h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>The risk set at a failure time <code>tc</code> is the set of subjects under observation then: those who have entered follow-up and not yet left, i.e. <code style="white-space: pre;">entry &lt; tc &lt;= time</code> (with <code>entry</code> taken as the origin when not supplied, so the condition reduces to <code>time &gt;= tc</code>). The case is excluded from its own control pool, and <code>min(m, n_eligible)</code> controls are sampled without replacement; a late failure time with fewer than <code>m</code> eligible controls yields a smaller set rather than an error, mirroring real NCC sampling. A subject sampled as a control may itself fail later in the cohort — it serves as a control before its own event — so the per-set <code>case</code> indicator is distinct from the cohort-wide <code>event</code> column.</p>
+<p>Additional matching (<code>match = ~ s1 + s2</code>) restricts each case’s control pool to subjects sharing the case’s values on the named population-stratum variables (e.g.&nbsp;sex, birth cohort). Sampling uses the ambient random-number stream, so wrap the call in <code>withr::with_seed()</code> or precede it with <code>set.seed()</code> for reproducibility.</p>
+<p>The sampler is implemented natively (base R + data.table) so it is always available and deterministically seedable; <code>Epi::ccwc()</code> is an equivalent external implementation used as a cross-check in the package’s tests.</p>
+<p>A case whose risk set contains no eligible control carries no conditional-likelihood information and signals a sampling failure (a misspecified time origin/scale, an entry/exit mismatch, or over-fine <code>match</code> strata), so it aborts with <code>matchatr_empty_risk_set</code> rather than silently producing a singleton set.</p>
+</section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>Invisibly returns <code>x</code>.</p>
+<p>A <code>data.table</code> with one row per sampled subject: the selected rows of <code>cohort</code> (all original columns) plus <code>set</code> (integer matched-set id), <code>case</code> (per-set 0/1 indicator, 1 for the case), and <code>risk_time</code> (the set’s failure time). Aborts with <code>matchatr_empty_risk_set</code> when any case has no eligible control.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>unmatched_cc()</code>, <code>matched_cc()</code>, <code>nested_cc()</code>, <code>case_cohort()</code></p>
+<p><code>nested_cc()</code>, <code>matcha()</code>, <code>Epi::ccwc()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">ratio =</span> <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># A small cohort with event times; draw 2 controls per case.</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">t  =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">1</span>, <span class="dv">8</span>, <span class="dv">3</span>, <span class="dv">9</span>, <span class="dv">4</span>, <span class="dv">7</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">d  =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">x  =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">2</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>ncc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Matched case-control
- Strata:     set
- Ratio:      2:1
- Weights:    none</code></pre>
+<pre><code>      id     t     d     x   set  case risk_time
+   &lt;int&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;int&gt; &lt;int&gt;     &lt;num&gt;
+1:     3     1     1     1     1     1         1
+2:     1     2     1     1     1     0         1
+3:     5     3     1     0     1     0         1
+4:     1     2     1     1     2     1         2
+5:     2     5     0     0     2     0         2
+6:     4     8     0     0     2     0         2
+7:     5     3     1     0     3     1         3
+8:     8     7     0     1     3     0         3
+9:     6     9     0     1     3     0         3</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> <span class="fl">0.02</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyse it: each sampled risk set is a stratum -&gt; hazard ratio.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">estimator =</span> <span class="st">"clogit"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Unmatched case-control
- Prevalence: 0.02 (q0)
- Weights:    case-control (q0)</code></pre>
+<pre><code>&lt;matchatr_result&gt;
+ Estimator:  clogit  (engine: clogit)
+ Estimand:   hazard ratio
+ Contrast:   Hazard ratio
+ CI method:  model
+ N:          9
+
+Contrasts:
+   comparison estimate       se  ci_lower ci_upper
+       &lt;char&gt;    &lt;num&gt;    &lt;num&gt;     &lt;num&gt;    &lt;num&gt;
+1:          x 1.686141 2.174996 0.1345573 21.12907</code></pre>
 </div>
 </div>
 
