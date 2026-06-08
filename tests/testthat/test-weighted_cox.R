@@ -16,9 +16,16 @@ test_that("a counter-matched sample has one case and m opposite-stratum controls
   co <- make_ncc_cohort(n = 1200L)
   co$z_bin <- co$x
   m <- 2L
-  ncc <- withr::with_seed(11L, sample_ncc_counter_matched(
-    co, time = "t", event = "d", surrogate = "z_bin", m = m
-  ))
+  ncc <- withr::with_seed(
+    11L,
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = m
+    )
+  )
 
   expect_s3_class(ncc, "data.table")
   # One set per cohort event, exactly one case per set.
@@ -30,10 +37,14 @@ test_that("a counter-matched sample has one case and m opposite-stratum controls
   expect_true(all(set_sizes >= 2L & set_sizes <= m + 1L))
   # Every control must be from the opposite surrogate stratum to the case.
   by_set <- split(as.data.frame(ncc), ncc$set)
-  all_opposite <- all(vapply(by_set, function(s) {
-    z_case <- s$z_bin[s$case == 1L]
-    all(s$z_bin[s$case == 0L] != z_case)
-  }, logical(1)))
+  all_opposite <- all(vapply(
+    by_set,
+    function(s) {
+      z_case <- s$z_bin[s$case == 1L]
+      all(s$z_bin[s$case == 0L] != z_case)
+    },
+    logical(1)
+  ))
   expect_true(all_opposite)
   # The output carries a finite log_w column.
   expect_true("log_w" %in% names(ncc))
@@ -58,15 +69,22 @@ test_that("log_w values match the Langholz-Borgan formula exactly", {
   #   log_w_case = log(3+1) = log(4)
   #   log_w_ctrl = log(2/1) = log(2)
   micro <- data.frame(
-    id    = 1:7,
-    t     = c(1, 3, 5, 5, 5, 5, 5),
-    d     = c(1, 1, 0, 0, 0, 0, 0),
-    x     = c(0, 1, 0, 0, 1, 1, 1),
+    id = 1:7,
+    t = c(1, 3, 5, 5, 5, 5, 5),
+    d = c(1, 1, 0, 0, 0, 0, 0),
+    x = c(0, 1, 0, 0, 1, 1, 1),
     z_bin = c(0, 1, 0, 0, 1, 1, 1)
   )
-  ncc <- withr::with_seed(1L, sample_ncc_counter_matched(
-    micro, time = "t", event = "d", surrogate = "z_bin", m = 1L
-  ))
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc_counter_matched(
+      micro,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = 1L
+    )
+  )
   s1 <- as.data.frame(ncc[ncc$set == 1L, ])
   expect_equal(s1$log_w[s1$case == 1L], log(3), tolerance = 1e-12)
   expect_equal(s1$log_w[s1$case == 0L], log(4), tolerance = 1e-12)
@@ -80,9 +98,16 @@ test_that("sample_ncc_counter_matched does not mutate the input cohort", {
   co <- make_ncc_cohort(n = 300L)
   co$z_bin <- co$x
   before <- data.table::copy(data.table::as.data.table(co))
-  withr::with_seed(1L, sample_ncc_counter_matched(
-    co, time = "t", event = "d", surrogate = "z_bin", m = 1L
-  ))
+  withr::with_seed(
+    1L,
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = 1L
+    )
+  )
   expect_identical(data.table::as.data.table(co), before)
 })
 
@@ -92,10 +117,17 @@ test_that("a control that is a later case may appear in the counter-matched samp
   # large-enough cohort this must happen (any control with t > risk_time and
   # d == 1 is such a subject).
   co <- make_ncc_cohort(n = 1000L)
-  co$z_bin <- as.integer(co$z > 0)  # surrogate independent of x
-  ncc <- withr::with_seed(3L, sample_ncc_counter_matched(
-    co, time = "t", event = "d", surrogate = "z_bin", m = 1L
-  ))
+  co$z_bin <- as.integer(co$z > 0) # surrogate independent of x
+  ncc <- withr::with_seed(
+    3L,
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = 1L
+    )
+  )
   ctrl <- as.data.frame(ncc[ncc$case == 0L, ])
   expect_true(any(ctrl$d == 1L))
 })
@@ -105,17 +137,24 @@ test_that("a smaller set is returned when fewer than m opposite-stratum controls
   # m=2 is requested: the sampler returns the single available control, not an
   # error. This mirrors the sample_ncc() contract for thin risk sets.
   coh <- data.frame(
-    id    = 1:5,
-    t     = c(4, 5, 6, 7, 8),
-    d     = c(0, 1, 0, 0, 0),
-    x     = c(0, 1, 1, 1, 0),
+    id = 1:5,
+    t = c(4, 5, 6, 7, 8),
+    d = c(0, 1, 0, 0, 0),
+    x = c(0, 1, 1, 1, 0),
     z_bin = c(0, 1, 1, 1, 0)
   )
   # Case at t=5 (row 2, z_bin=1): at-risk = rows 3,4,5; opp (z_bin=0): row 5 only
-  ncc <- withr::with_seed(1L, sample_ncc_counter_matched(
-    coh, time = "t", event = "d", surrogate = "z_bin", m = 2L
-  ))
-  expect_equal(nrow(ncc), 2L)   # case + 1 control (not 2)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc_counter_matched(
+      coh,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = 2L
+    )
+  )
+  expect_equal(nrow(ncc), 2L) # case + 1 control (not 2)
   expect_equal(sum(ncc$case), 1L)
 })
 
@@ -123,9 +162,14 @@ test_that("a smaller set is returned when fewer than m opposite-stratum controls
 
 test_that("a continuous surrogate is rejected", {
   co <- make_ncc_cohort(n = 200L)
-  co$z_cont <- co$z  # continuous: not binary
+  co$z_cont <- co$z # continuous: not binary
   expect_error(
-    sample_ncc_counter_matched(co, time = "t", event = "d", surrogate = "z_cont"),
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_cont"
+    ),
     class = "matchatr_bad_input"
   )
 })
@@ -134,7 +178,12 @@ test_that("a numeric surrogate with more than two distinct values is rejected", 
   co <- make_ncc_cohort(n = 200L)
   co$z_tri <- sample(0:2, nrow(co), replace = TRUE)
   expect_error(
-    sample_ncc_counter_matched(co, time = "t", event = "d", surrogate = "z_tri"),
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_tri"
+    ),
     class = "matchatr_bad_input"
   )
 })
@@ -143,7 +192,12 @@ test_that("a three-level factor surrogate is rejected", {
   co <- make_ncc_cohort(n = 200L)
   co$z_fac <- factor(sample(c("a", "b", "c"), nrow(co), replace = TRUE))
   expect_error(
-    sample_ncc_counter_matched(co, time = "t", event = "d", surrogate = "z_fac"),
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_fac"
+    ),
     class = "matchatr_bad_input"
   )
 })
@@ -153,7 +207,12 @@ test_that("NA in the surrogate column is rejected", {
   co$z_bin <- co$x
   co$z_bin[1L] <- NA_integer_
   expect_error(
-    sample_ncc_counter_matched(co, time = "t", event = "d", surrogate = "z_bin"),
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin"
+    ),
     class = "matchatr_bad_input"
   )
 })
@@ -164,14 +223,19 @@ test_that("no eligible opposite-stratum control aborts with matchatr_empty_risk_
   # case's surrogate value. The opposite-stratum pool is therefore empty, so the
   # sampler must abort rather than return a singleton set.
   bad <- data.frame(
-    id    = 1:4,
-    t     = c(1, 3, 8, 9),
-    d     = c(0, 1, 0, 0),
-    x     = c(0, 1, 1, 1),
+    id = 1:4,
+    t = c(1, 3, 8, 9),
+    d = c(0, 1, 0, 0),
+    x = c(0, 1, 1, 1),
     z_bin = c(0L, 1L, 1L, 1L)
   )
   expect_error(
-    sample_ncc_counter_matched(bad, time = "t", event = "d", surrogate = "z_bin"),
+    sample_ncc_counter_matched(
+      bad,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin"
+    ),
     class = "matchatr_empty_risk_set"
   )
 })
@@ -181,7 +245,12 @@ test_that("a log_w column clash is rejected", {
   co$z_bin <- co$x
   co$log_w <- 0
   expect_error(
-    sample_ncc_counter_matched(co, time = "t", event = "d", surrogate = "z_bin"),
+    sample_ncc_counter_matched(
+      co,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin"
+    ),
     class = "matchatr_bad_input"
   )
 })
@@ -207,7 +276,9 @@ test_that("the counter-matched weighted HR recovers the cohort Cox log-HR (truth
   ncc <- sample_ncc_counter_matched_fixture(cohort = co, m = 1L)
 
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     confounders = ~z,
     estimator = "weighted_cox"
@@ -239,7 +310,9 @@ test_that("the counter-matched weighted HR agrees with the full-cohort coxph", {
   co$z_bin <- co$x
   ncc <- sample_ncc_counter_matched_fixture(cohort = co, m = 1L)
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     confounders = ~z,
     estimator = "weighted_cox"
@@ -256,18 +329,22 @@ test_that("the counter-matched weighted HR agrees with the full-cohort coxph", {
 test_that("default contrast type is 'hr' for counter_matched", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )
-  res <- contrast(fit)  # no type = argument
+  res <- contrast(fit) # no type = argument
   expect_equal(res$type, "hr")
 })
 
 test_that("contrast(type = 'hr') returns finite bounded estimates", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )
@@ -284,17 +361,24 @@ test_that("contrast(type = 'hr') returns finite bounded estimates", {
 test_that("contrast(type = 'or') is rejected as unidentified", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )
-  expect_error(contrast(fit, type = "or"), class = "matchatr_unidentified_estimand")
+  expect_error(
+    contrast(fit, type = "or"),
+    class = "matchatr_unidentified_estimand"
+  )
 })
 
 test_that("contrast(type = 'difference') is rejected as unidentified", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )
@@ -307,7 +391,9 @@ test_that("contrast(type = 'difference') is rejected as unidentified", {
 test_that("ci_method = 'sandwich' is rejected for counter-matched", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )
@@ -320,7 +406,9 @@ test_that("ci_method = 'sandwich' is rejected for counter-matched", {
 test_that("ci_method = 'bootstrap' is rejected for counter-matched", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )
@@ -339,8 +427,10 @@ test_that("a counter-matched design with no weights column aborts at fit time", 
   ncc <- sample_ncc_counter_matched_fixture()
   expect_error(
     matcha(
-      ncc, "case", "x",
-      counter_matched(strata = "set", time = "risk_time"),  # no weights =
+      ncc,
+      "case",
+      "x",
+      counter_matched(strata = "set", time = "risk_time"), # no weights =
       estimator = "weighted_cox"
     ),
     class = "matchatr_bad_design"
@@ -351,11 +441,19 @@ test_that("a counter-matched design with no weights column aborts at fit time", 
 
 test_that("the empty-opposite-stratum error reads clearly", {
   bad <- data.frame(
-    id = 1:4, t = c(1, 3, 8, 9), d = c(0, 1, 0, 0),
-    x = c(0, 1, 1, 1), z_bin = c(0L, 1L, 1L, 1L)
+    id = 1:4,
+    t = c(1, 3, 8, 9),
+    d = c(0, 1, 0, 0),
+    x = c(0, 1, 1, 1),
+    z_bin = c(0L, 1L, 1L, 1L)
   )
   expect_snapshot(
-    sample_ncc_counter_matched(bad, time = "t", event = "d", surrogate = "z_bin"),
+    sample_ncc_counter_matched(
+      bad,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin"
+    ),
     error = TRUE
   )
 })
@@ -364,7 +462,9 @@ test_that("the missing weights column error reads clearly", {
   ncc <- sample_ncc_counter_matched_fixture()
   expect_snapshot(
     matcha(
-      ncc, "case", "x",
+      ncc,
+      "case",
+      "x",
       counter_matched(strata = "set", time = "risk_time"),
       estimator = "weighted_cox"
     ),
@@ -375,7 +475,9 @@ test_that("the missing weights column error reads clearly", {
 test_that("the OR-from-counter-matched error reads clearly", {
   ncc <- sample_ncc_counter_matched_fixture()
   fit <- matcha(
-    ncc, "case", "x",
+    ncc,
+    "case",
+    "x",
     counter_matched(strata = "set", time = "risk_time", weights = "log_w"),
     estimator = "weighted_cox"
   )

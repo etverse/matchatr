@@ -431,15 +431,24 @@ sample_ncc_riskset <- function(cohort, m = 2L, seed = 71L) {
 # the binary surrogate (maximally correlated with the true exposure, so counter-
 # matching concentrates all study resources in the exposure-surrogate boundary).
 # Returns a data.frame (like sample_ncc_riskset) for column-order stability.
-sample_ncc_counter_matched_fixture <- function(cohort = NULL, m = 1L, seed = 83L) {
+sample_ncc_counter_matched_fixture <- function(
+  cohort = NULL,
+  m = 1L,
+  seed = 83L
+) {
   if (is.null(cohort)) {
     cohort <- make_ncc_cohort()
     cohort$z_bin <- cohort$x
   }
   out <- withr::with_seed(
     seed,
-    sample_ncc_counter_matched(cohort, time = "t", event = "d",
-                               surrogate = "z_bin", m = m)
+    sample_ncc_counter_matched(
+      cohort,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = m
+    )
   )
   out <- as.data.frame(out)
   added <- c("case", "set", "risk_time", "log_w")

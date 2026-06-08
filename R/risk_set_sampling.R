@@ -582,7 +582,9 @@ resolve_surrogate <- function(data, surrogate, call = rlang::caller_env()) {
   if (anyNA(sv)) {
     rlang::abort(
       paste0(
-        "`surrogate` column `", surrogate, "` contains missing values. ",
+        "`surrogate` column `",
+        surrogate,
+        "` contains missing values. ",
         "Counter-matching requires a fully observed binary surrogate."
       ),
       class = c("matchatr_bad_input", "matchatr_error"),
