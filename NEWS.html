@@ -337,6 +337,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#python-cross-language-oracles-for-the-classical-estimators" id="toc-python-cross-language-oracles-for-the-classical-estimators" class="nav-link" data-scroll-target="#python-cross-language-oracles-for-the-classical-estimators">2026-06-08 — Python cross-language oracles for the classical estimators</a></li>
   <li><a href="#risk-set-control-sampling-sample_ncc-phase_5-chunk-2" id="toc-risk-set-control-sampling-sample_ncc-phase_5-chunk-2" class="nav-link" data-scroll-target="#risk-set-control-sampling-sample_ncc-phase_5-chunk-2">2026-06-08 — Risk-set control sampling: <code>sample_ncc()</code> (PHASE_5 Chunk 2)</a></li>
   <li><a href="#nested-case-control-hazard-ratio-phase_5-chunk-1" id="toc-nested-case-control-hazard-ratio-phase_5-chunk-1" class="nav-link" data-scroll-target="#nested-case-control-hazard-ratio-phase_5-chunk-1">2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)</a></li>
   <li><a href="#homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" id="toc-homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" class="nav-link" data-scroll-target="#homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2">2026-06-08 — Homogeneity test + pooled common OR for disease subtypes (PHASE_4 Chunk 2)</a></li>
@@ -364,6 +365,15 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="python-cross-language-oracles-for-the-classical-estimators" class="level2">
+<h2 class="anchored" data-anchor-id="python-cross-language-oracles-for-the-classical-estimators">2026-06-08 — Python cross-language oracles for the classical estimators</h2>
+<p>Adds an independent <strong>Python (<code>statsmodels</code>) cross-language oracle</strong> for every implemented classical estimator, so a bug shared between matchatr and its R engine cannot hide behind a same-package comparison. Each oracle reads the same committed dataset both languages share and compares against a committed Python result CSV; tests never invoke Python, so CI needs no Python toolchain (each is guarded with <code>skip_if(!file.exists(...))</code>). The fixtures and a regeneration recipe live in <code>tests/testthat/fixtures/python/</code>; the comparisons are in <code>test-python-oracle.R</code>.</p>
+<ul>
+<li>Covered: the unmatched logistic OR (vs <code>Logit</code>), the matched conditional OR and the nested case-control HR (vs <code>ConditionalLogit</code>), the Mantel–Haenszel summary OR with the Robins–Breslow–Greenland interval (vs <code>StratifiedTable</code>), the polytomous subtype ORs (vs <code>MNLogit</code>), and the homogeneity Wald χ² + GLS pooled common OR (hand-built from <code>MNLogit</code>’s coefficients and covariance).</li>
+<li><code>statsmodels</code> anchors these maximum-likelihood estimators; <code>delicatessen</code> (M-estimation + sandwich) is reserved for the causal / sandwich estimands of the later case-control-weighting phases.</li>
+<li>Test-only change: no user-facing behaviour is affected.</li>
+</ul>
+</section>
 <section id="risk-set-control-sampling-sample_ncc-phase_5-chunk-2" class="level2">
 <h2 class="anchored" data-anchor-id="risk-set-control-sampling-sample_ncc-phase_5-chunk-2">2026-06-08 — Risk-set control sampling: <code>sample_ncc()</code> (PHASE_5 Chunk 2)</h2>
 <p>Adds the exported <code>sample_ncc()</code>, which generates a nested case-control dataset from a cohort by risk-set (incidence-density) control sampling. Each event anchors a matched set holding the case and <code>m</code> controls drawn without replacement from the subjects at risk at that failure time; the result is an analysis-ready <code>data.table</code> (the cohort columns plus <code>set</code>, the per-set <code>case</code> indicator, and <code>risk_time</code>) that feeds straight into <code>matcha(design = nested_cc(strata = "set", time = "risk_time"))</code>. This closes the generate-then-analyse loop opened by Chunk 1.</p>
