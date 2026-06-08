@@ -119,6 +119,38 @@ needs a source-population prevalence `q0` and a case-control-weighted estimator,
 and the conditional fit reports the information-matrix interval only, so
 `ci_method = "sandwich"` / `"bootstrap"` are declined.
 
+## Counter-matching: concentrating power near the exposure-surrogate boundary
+
+When a binary **surrogate** (e.g. the measured variant for a gene of interest)
+is correlated with the true exposure, counter-matching draws controls from the
+*opposite* surrogate stratum, concentrating the study in subjects whose
+surrogate value differs from the case. This is more efficient than uniform
+sampling when the surrogate is highly correlated with exposure.
+
+`sample_ncc_counter_matched()` generates the dataset; analysis requires
+`survival::coxph` with the Langholz-Borgan log-weights as an offset (the
+unweighted clogit is biased for this design):
+
+```{r}
+#| eval: false
+cohort$z_bin <- cohort$x          # binary surrogate
+ncc_cm <- sample_ncc_counter_matched(
+  cohort, time = "t", event = "d", surrogate = "z_bin", m = 1L
+)
+fit_cm <- matcha(ncc_cm, "case", "x",
+  design = counter_matched(strata = "set", time = "risk_time",
+                           weights = "log_w"),
+  estimator = "weighted_cox"
+)
+contrast(fit_cm)                   # hazard ratio by default
+```
+
+The log-weights (`log_w`) encode how many subjects each observation represents:
+the case represents its entire same-stratum risk set (log_w = log(n_same + 1)),
+and each control represents the opposite stratum divided by the number of
+controls drawn (log_w = log(n_opp / m_take)). Requesting `type = "or"` or a
+sandwich/bootstrap CI is declined.
+
 ## Covered combinations
 
 **Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.
@@ -132,6 +164,10 @@ and the conditional fit reports the information-matrix interval only, so
 | nested | `clogit` | odds ratio | ⛔ use `type = "hr"` |
 | nested | `clogit` | RD / RR | ⛔ need q0 |
 | nested, non-binary outcome | — | — | ⛔ |
+| `sample_ncc_counter_matched()` draw | — | CM NCC sample | ✅ |
+| counter-matched | `weighted_cox` | conditional hazard ratio | ✅ |
+| counter-matched | `weighted_cox` | odds ratio | ⛔ use `type = "hr"` |
+| counter-matched | `weighted_cox` | sandwich / bootstrap CI | ⛔ |
 
 See `FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every
 combination.
@@ -143,6 +179,9 @@ Prentice RL, Breslow NE (1978). Retrospective studies and failure time models.
 
 Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control
 sampling in the Cox regression model. *Annals of Statistics* 20(4):1903-1928.
+
+Langholz B, Borgan Ø (1995). Counter-matching: a stratified nested case-control
+sampling method. *Biometrika* 82(1):69-79.
 
 Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by
 application to asbestos mining" by Liddell FDK, McDonald JC, Thomas DC.

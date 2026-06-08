@@ -484,13 +484,15 @@ test_that("homogeneity is rejected for the Mantel-Haenszel and clogit engines", 
 })
 
 test_that("homogeneity is rejected for a fit with no estimated model", {
-  df <- data.frame(
-    case = c(1, 0, 1, 0),
-    x = c(1, 0, 1, 0),
-    set = c(1, 1, 2, 2),
-    t = c(2, 3, 1, 4)
+  df <- make_cc_data(n_sets = 6L)
+  # The causal CCW engines are not yet wired; their fit carries model = NULL.
+  fit <- matcha(
+    df,
+    "case",
+    "x",
+    unmatched_cc(prevalence = 0.05),
+    estimator = "ccw_gformula"
   )
-  fit <- matcha(df, "case", "x", counter_matched(strata = "set", time = "t"))
   expect_error(test_homogeneity(fit), class = "matchatr_not_estimated")
 })
 

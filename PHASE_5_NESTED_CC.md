@@ -1,6 +1,6 @@
 # Phase 5 — Nested Case-Control: Risk-Set Sampling and Conditional Partial Likelihood
 
-> **Status: Chunks 1–2 IMPLEMENTED.** Book chapters: 16 (Cohort Sampling
+> **Status: Chunks 1–3 IMPLEMENTED.** Book chapters: 16 (Cohort Sampling
 > Overview), 18 (NCC Counting-Process Approach).
 > Chunk 1 (`fit_clogit()` extended to `nested_cc`, the hazard-ratio contrast via
 > the new `type = "hr"` scale, the survival-outcome rejection, and the cohort /
@@ -10,7 +10,10 @@
 > `matchatr_empty_risk_set` hard error, optional population-stratum matching and
 > delayed entry) is in `R/risk_set_sampling.R` and `test-risk_set_sampling.R`
 > (with the `Epi::ccwc` oracle in `helper-ncc-oracle.R`). Chunk 3
-> (counter-matching) remains `DESIGN`.
+> (counter-matching offset path + sampler) is in `R/risk_set_sampling.R`
+> (`sample_ncc_counter_matched()`, `resolve_surrogate()`) and `R/weighted_cox.R`
+> (`fit_weighted_cox()`, `contrast_weighted_cox()`), wired through `R/dispatch.R`
+> / `R/contrast.R`; tests in `test-weighted_cox.R`.
 
 ## Scope
 

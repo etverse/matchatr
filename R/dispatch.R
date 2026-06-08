@@ -103,6 +103,10 @@ default_contrast_type <- function(engine, design_type = NULL) {
     clogit = "or",
     mcnemar = "or",
     multinom = "or",
+    # Counter-matched partial likelihood identifies the hazard ratio (Langholz &
+    # Borgan 1995), not the OR. The weighted coxph returns exp(beta); the design
+    # fixes the scale.
+    weighted_cox = "hr",
     "difference"
   )
 }
@@ -209,6 +213,7 @@ run_engine <- function(fit) {
     clogit = fit_clogit(fit),
     mcnemar = fit_mcnemar(fit),
     multinom = fit_polytomous(fit),
+    weighted_cox = fit_weighted_cox(fit),
     NULL
   )
 }
@@ -228,6 +233,7 @@ design_columns <- function(design) {
     design$strata,
     design$time,
     design$subcohort,
+    design$weights,
     design$phase1,
     design$phase2
   )

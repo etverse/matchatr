@@ -5,5 +5,5 @@
     Condition
       Error in `contrast()`:
       ! This `matchatr_fit` carries no estimates to contrast.
-      i Its `weighted_cox` estimation engine has not produced a fitted model.
+      i Its `ccw_gformula` estimation engine has not produced a fitted model.
 

@@ -294,3 +294,349 @@ eligible_controls <- function(case_row, tvec, entryvec, match_key) {
   at_risk[case_row] <- FALSE
   which(at_risk)
 }
+
+#' Draw a counter-matched nested case-control sample from a cohort
+#'
+#' @description
+#' Generates a counter-matched nested case-control (NCC) dataset from a full
+#' cohort: at each event time the case is matched to `m` controls drawn
+#' exclusively from the *opposite* surrogate stratum, concentrating study
+#' resources in subjects whose surrogate exposure differs from the case. The
+#' analysis weights (log-sampling-weights) for the Langholz-Borgan (1995)
+#' weighted partial likelihood are appended as a `log_w` column: the case
+#' represents its entire surrogate stratum (log-weight = log(n_same + 1)) and
+#' each control represents the opposite stratum divided by the controls drawn
+#' (log-weight = log(n_other / m)). The result feeds straight into
+#' `matcha(design = counter_matched(strata = "set", time = "risk_time",
+#' weights = "log_w"))`, whose `survival::coxph` fit reports the hazard ratio.
+#'
+#' @details
+#' Controls are drawn without replacement from subjects at risk at the case's
+#' failure time (`entry < tc <= time`) in the *opposite* surrogate stratum.
+#' When fewer than `m` eligible controls exist (late failure times or narrow
+#' strata), the smaller available set is returned rather than an error. A case
+#' with no eligible control in the opposite stratum — which means the entire
+#' at-risk population shares the case's surrogate value — aborts with
+#' `matchatr_empty_risk_set`, signalling a sampling-design failure.
+#'
+#' Additional matching (`match = ~ s1 + s2`) restricts each risk set to
+#' subjects sharing the case's population-stratum values on the named
+#' variables. The eligibility pool is first restricted by the match stratum,
+#' and the surrogate split is then applied within that pool.
+#'
+#' The surrogate column must be binary: logical, numeric 0/1, or a two-level
+#' factor. Missing values abort with `matchatr_bad_input`.
+#'
+#' The log-weights are the key difference from unweighted `sample_ncc()`: with
+#' pure counter-matching the unweighted clogit is biased because the controls
+#' were drawn non-uniformly (opposite-stratum only), so the weighted partial
+#' likelihood (coxph + offset) must be used for analysis.
+#'
+#' @param cohort A data.frame or data.table with one row per subject.
+#' @param time A single character string naming the exit / event-time column.
+#'   Must be numeric.
+#' @param event A single character string naming the event indicator (logical,
+#'   two-level factor, or numeric 0/1); at least one event must occur.
+#' @param surrogate A single character string naming the binary surrogate
+#'   exposure column. Controls are drawn from subjects whose surrogate value
+#'   differs from the case's. Must be logical, numeric 0/1, or a two-level
+#'   factor; no missing values.
+#' @param m A single whole number >= 1, the number of controls sampled per
+#'   case from the opposite surrogate stratum (default 1).
+#' @param match `NULL` (no additional matching) or a one-sided formula naming
+#'   population-stratum column(s) controls must share with the case
+#'   (e.g. `~ sex + birth_cohort`).
+#' @param entry `NULL` (everyone enters at the time origin) or a single
+#'   character string naming a delayed-entry / left-truncation column.
+#'
+#' @returns A `data.table` with one row per sampled subject: the selected rows
+#'   of `cohort` (all original columns) plus `set` (integer matched-set id),
+#'   `case` (per-set 0/1 indicator), `risk_time` (the set's failure time), and
+#'   `log_w` (the log-sampling-weight for the weighted partial likelihood).
+#'   Aborts with `matchatr_empty_risk_set` when any case has no eligible
+#'   control in the opposite surrogate stratum.
+#'
+#' @examples
+#' cohort <- data.frame(
+#'   id  = 1:200,
+#'   t   = rexp(200, 0.05),
+#'   d   = rbinom(200, 1, 0.3),
+#'   x   = rbinom(200, 1, 0.4),
+#'   z   = rbinom(200, 1, 0.5)   # binary surrogate correlated with x
+#' )
+#' set.seed(1)
+#' ncc_cm <- sample_ncc_counter_matched(cohort, time = "t", event = "d",
+#'                                      surrogate = "z", m = 1L)
+#' # Analyse: weighted partial likelihood identifies the HR.
+#' fit <- matcha(ncc_cm, outcome = "case", exposure = "x",
+#'               design = counter_matched(strata = "set", time = "risk_time",
+#'                                        weights = "log_w"),
+#'               estimator = "weighted_cox")
+#' contrast(fit)
+#'
+#' @seealso [counter_matched()], [matcha()], [sample_ncc()]
+#' @export
+sample_ncc_counter_matched <- function(
+  cohort,
+  time,
+  event,
+  surrogate,
+  m = 1L,
+  match = NULL,
+  entry = NULL
+) {
+  call <- rlang::current_env()
+  if (!is.data.frame(cohort)) {
+    rlang::abort(
+      "`cohort` must be a data.frame or data.table.",
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  check_string(time, call = call)
+  check_string(event, call = call)
+  check_string(surrogate, call = call)
+  check_sample_m(m, call = call)
+  if (!is.null(entry)) {
+    check_string(entry, call = call)
+  }
+  match_vars <- character(0)
+  if (!is.null(match)) {
+    check_formula(match, call = call)
+    match_vars <- all.vars(match)
+    if (length(match_vars) == 0L) {
+      rlang::abort(
+        "`match` must name at least one column (e.g. `~ sex`).",
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+  }
+  check_unique_colnames(cohort, call = call)
+  check_cols_exist(cohort, time, arg = "time", call = call)
+  check_cols_exist(cohort, event, arg = "event", call = call)
+  check_cols_exist(cohort, surrogate, arg = "surrogate", call = call)
+  if (!is.null(entry)) {
+    check_cols_exist(cohort, entry, arg = "entry", call = call)
+  }
+  if (length(match_vars) > 0L) {
+    check_cols_exist(cohort, match_vars, arg = "match", call = call)
+  }
+  added <- c("set", "case", "risk_time", "log_w")
+  clash <- intersect(added, names(cohort))
+  if (length(clash) > 0L) {
+    rlang::abort(
+      c(
+        paste0(
+          "`cohort` already has column(s) ",
+          paste0("`", clash, "`", collapse = ", "),
+          ", which `sample_ncc_counter_matched()` appends to the output."
+        ),
+        i = "Rename them so the sampled set id / case indicator / risk time / log-weights are unambiguous."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+
+  df <- as.data.frame(cohort)
+  tvec <- df[[time]]
+  if (!is.numeric(tvec)) {
+    rlang::abort(
+      paste0("`time` column `", time, "` must be numeric."),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  entryvec <- NULL
+  if (!is.null(entry)) {
+    entryvec <- df[[entry]]
+    if (!is.numeric(entryvec)) {
+      rlang::abort(
+        paste0("`entry` column `", entry, "` must be numeric."),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+  }
+
+  # The surrogate must be binary; coerce to integer 0/1 and validate.
+  svec <- resolve_surrogate(df, surrogate, call = call)
+  evec <- resolve_event_indicator(df, event, call = call)
+
+  n <- nrow(df)
+  rid <- seq_len(n)
+  case_rows <- rid[which(evec == 1L)]
+  if (anyNA(tvec[case_rows]) || any(!is.finite(tvec[case_rows]))) {
+    rlang::abort(
+      paste0(
+        "Some case rows have a missing or non-finite `",
+        time,
+        "`, so their risk set cannot be formed."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  case_rows <- case_rows[order(tvec[case_rows], case_rows)]
+
+  match_key <- NULL
+  if (length(match_vars) > 0L) {
+    na_cols <- match_vars[vapply(
+      match_vars,
+      function(v) anyNA(df[[v]]),
+      logical(1)
+    )]
+    if (length(na_cols) > 0L) {
+      rlang::abort(
+        c(
+          paste0(
+            "`match` column(s) ",
+            paste0("`", na_cols, "`", collapse = ", "),
+            " contain missing values, so the matching stratum is undefined."
+          ),
+          i = "Drop or impute the missing strata before sampling."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+    match_key <- as.integer(do.call(
+      interaction,
+      c(unname(df[match_vars]), list(drop = TRUE))
+    ))
+  }
+
+  # Pass 1 — eligibility check without random draws. Identify the opposite-
+  # stratum eligible pool for each case; abort before any RNG is consumed if
+  # any pool is empty.
+  elig_opp_list <- vector("list", length(case_rows))
+  elig_same_list <- vector("list", length(case_rows))
+  for (k in seq_along(case_rows)) {
+    ci <- case_rows[k]
+    zc <- svec[ci]
+    # All at-risk subjects within the population stratum (time / entry / match).
+    pool <- eligible_controls(ci, tvec, entryvec, match_key)
+    elig_opp_list[[k]] <- pool[svec[pool] != zc]
+    elig_same_list[[k]] <- pool[svec[pool] == zc]
+  }
+  empty <- case_rows[lengths(elig_opp_list) == 0L]
+  if (length(empty) > 0L) {
+    reject_empty_risk_set(empty, tvec, call = call)
+  }
+
+  # Pass 2 — sample min(m, n_opp) controls from the opposite surrogate stratum
+  # for each case, compute log-weights, and accumulate output rows.
+  all_rows <- integer(0)
+  set_id <- integer(0)
+  case_ind <- integer(0)
+  risk_t <- numeric(0)
+  log_w_vec <- numeric(0)
+
+  for (k in seq_along(case_rows)) {
+    ci <- case_rows[k]
+    opp <- elig_opp_list[[k]]
+    n_opp <- length(opp)
+    n_same <- length(elig_same_list[[k]])
+    # Draw min(m, n_opp) controls from the opposite stratum.
+    m_take <- min(m, n_opp)
+    ctrl_rows <- if (n_opp > m) opp[sample.int(n_opp, m)] else opp
+
+    members <- c(ci, ctrl_rows)
+    all_rows <- c(all_rows, members)
+    set_id <- c(set_id, rep.int(k, length(members)))
+    case_ind <- c(case_ind, as.integer(members == ci))
+    risk_t <- c(risk_t, rep.int(tvec[ci], length(members)))
+
+    # Langholz & Borgan (1995) sampling weights:
+    #   case: represents all n_same + 1 at-risk in its surrogate stratum
+    #   each control: one of m_take sampled from n_opp opposite-stratum subjects
+    log_w_case <- log(n_same + 1L)
+    log_w_ctrl <- log(n_opp / m_take)
+    log_w_vec <- c(log_w_vec, log_w_case, rep.int(log_w_ctrl, m_take))
+  }
+
+  out <- df[all_rows, , drop = FALSE]
+  out[["set"]] <- set_id
+  out[["case"]] <- case_ind
+  out[["risk_time"]] <- risk_t
+  out[["log_w"]] <- log_w_vec
+  rownames(out) <- NULL
+  data.table::as.data.table(out)
+}
+
+#' Resolve the surrogate column to a binary integer vector
+#'
+#' The counter-matching surrogate must be binary (two distinct non-missing
+#' values): logical, numeric 0/1, or a two-level factor. Missing values abort.
+#' Returns a 0/1 integer vector aligned to the cohort rows.
+#'
+#' @param data data.frame copy of the cohort.
+#' @param surrogate Character scalar column name.
+#' @param call Caller environment for the error.
+#' @returns An integer vector of 0/1 codes.
+#' @family sampling
+#' @noRd
+resolve_surrogate <- function(data, surrogate, call = rlang::caller_env()) {
+  sv <- data[[surrogate]]
+  if (anyNA(sv)) {
+    rlang::abort(
+      paste0(
+        "`surrogate` column `",
+        surrogate,
+        "` contains missing values. ",
+        "Counter-matching requires a fully observed binary surrogate."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+  if (is.logical(sv)) {
+    return(as.integer(sv))
+  }
+  if (is.numeric(sv)) {
+    uv <- sort(unique(sv))
+    if (!identical(uv, c(0, 1)) && !identical(uv, 0:1)) {
+      rlang::abort(
+        paste0(
+          "`surrogate` column `",
+          surrogate,
+          "` must have exactly two distinct values (0 and 1); ",
+          "found: ",
+          paste(uv, collapse = ", "),
+          "."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+    return(as.integer(sv))
+  }
+  if (is.factor(sv)) {
+    lv <- levels(droplevels(sv))
+    if (length(lv) != 2L) {
+      rlang::abort(
+        paste0(
+          "`surrogate` column `",
+          surrogate,
+          "` must be a two-level factor for counter-matching; ",
+          "found ",
+          length(lv),
+          " level(s)."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+    return(as.integer(sv) - 1L)
+  }
+  rlang::abort(
+    paste0(
+      "`surrogate` column `",
+      surrogate,
+      "` must be logical, numeric 0/1, or a two-level factor."
+    ),
+    class = c("matchatr_bad_input", "matchatr_error"),
+    call = call
+  )
+}

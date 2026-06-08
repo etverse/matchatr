@@ -221,37 +221,51 @@ two_phase <- function(phase1, phase2) {
 #' Counter-matched design
 #'
 #' @description
-#' Declares a counter-matched nested case-control sample: a stratified
-#' risk-set design in which controls are sampled to *differ* from the case on
-#' a surrogate of exposure, balancing each sampled risk set across exposure
-#' strata. The analysis is a weighted Cox partial likelihood that carries the
-#' counter-matching inclusion weights.
+#' Declares a counter-matched nested case-control (NCC) sample: a stratified
+#' risk-set design in which controls are drawn from the *opposite* surrogate
+#' stratum to the case, so each sampled risk set is balanced across surrogate
+#' exposure values. The analysis is a weighted Cox partial likelihood using
+#' log-sampling-weights as an offset (Langholz & Borgan 1995); the counter-
+#' matching weights enter as `offset(weights)` in `survival::coxph`, and the
+#' result is a hazard ratio.
 #'
-#' @param strata A non-empty character vector naming the counter-matching
-#'   surrogate stratum column(s).
-#' @param time A single character string naming the event/entry time column
-#'   that defines the risk sets.
+#' @param strata A non-empty character vector naming the column(s) that
+#'   identify the sampled risk sets (the matched-set id, e.g. `"set"`). Same
+#'   role as the `strata` argument of [nested_cc()].
+#' @param time A single character string naming the risk-time column that
+#'   defines the failure time for each set (e.g. `"risk_time"`).
+#' @param weights `NULL` or a single character string naming the log-weight
+#'   column in the data. `sample_ncc_counter_matched()` appends a `"log_w"`
+#'   column carrying `log(n_stratum / m_stratum)` for each sampled subject;
+#'   supply its name here so the analysis engine can enter it as a Cox offset.
+#'   Required for `matcha()` to fit the weighted partial likelihood.
 #' @param ratio `NULL` or a single whole number >= 1. Controls sampled per
-#'   case within the counter-matched strata.
+#'   case (from the opposite surrogate stratum).
 #'
 #' @returns A `matchatr_design` object of `type` `"counter_matched"` carrying
-#'   the strata, time, and ratio, with a `weight_spec` flagged for
+#'   the strata, time, weights, and ratio, with a `weight_spec` flagged for
 #'   counter-matching weights.
 #'
 #' @examples
-#' counter_matched(strata = "exposure_surrogate", time = "t")
+#' counter_matched(strata = "set", time = "risk_time", weights = "log_w")
+#' counter_matched(strata = "set", time = "risk_time", weights = "log_w",
+#'                 ratio = 2L)
 #'
 #' @family design constructors
-#' @seealso [nested_cc()], [matcha()]
+#' @seealso [nested_cc()], [sample_ncc_counter_matched()], [matcha()]
 #' @export
-counter_matched <- function(strata, time, ratio = NULL) {
+counter_matched <- function(strata, time, weights = NULL, ratio = NULL) {
   check_character(strata, class = "matchatr_bad_strata")
   check_string(time)
+  if (!is.null(weights)) {
+    check_string(weights)
+  }
   check_ratio(ratio)
   new_matchatr_design(
     type = "counter_matched",
     strata = strata,
     time = time,
+    weights = weights,
     ratio = ratio,
     weight_spec = list(kind = "counter_match"),
     call = match.call()
@@ -272,6 +286,8 @@ counter_matched <- function(strata, time, ratio = NULL) {
 #' @param ratio Whole-number controls-per-case, or `NULL`.
 #' @param prevalence Marginal prevalence q0, or `NULL`.
 #' @param subcohort Character scalar subcohort-membership column, or `NULL`.
+#' @param weights Character scalar log-weight column for counter-matched
+#'   designs, or `NULL`.
 #' @param phase1 Character vector of phase-1 strata, or `NULL`.
 #' @param phase2 Character scalar phase-2 selection column, or `NULL`.
 #' @param weight_spec Named list describing the intended weighting scheme.
@@ -286,6 +302,7 @@ new_matchatr_design <- function(
   ratio = NULL,
   prevalence = NULL,
   subcohort = NULL,
+  weights = NULL,
   phase1 = NULL,
   phase2 = NULL,
   weight_spec = list(kind = "none"),
@@ -299,6 +316,7 @@ new_matchatr_design <- function(
       ratio = ratio,
       prevalence = prevalence,
       subcohort = subcohort,
+      weights = weights,
       phase1 = phase1,
       phase2 = phase2,
       weight_spec = weight_spec,

@@ -273,8 +273,8 @@ matched design; the only differences are the design→scale mapping (`"hr"` vs
 estimand label. The truth oracle is a cohort with a known Cox log-HR
 (`make_ncc_cohort()`) from which an incidence-density NCC sample is drawn
 (`sample_ncc_riskset()`); the full-cohort `survival::coxph` β is the
-design-faithful HR the subsample recovers. Deferred to later chunks:
-counter-matching offsets (Chunk 3) and `multipleNCC` IPW cross-checks (Phase 7).
+design-faithful HR the subsample recovers. Deferred: `multipleNCC` IPW
+cross-checks (Phase 7).
 
 ### Risk-set control sampling — `sample_ncc()` (PHASE_5 Chunk 2)
 
@@ -311,8 +311,42 @@ so the Chunk 1 analysis tests also exercise the exported sampler.
 `sample_ncc()` lives in `R/risk_set_sampling.R` (with the `@noRd`
 `eligible_controls()` / `resolve_event_indicator()` / `check_sample_m()` /
 `reject_empty_risk_set()` helpers); the `Epi::ccwc` oracle wrapper is
-`tests/testthat/helper-ncc-oracle.R`. Counter-matching (stratified risk-set
-sampling with sampling-weight offsets) is Chunk 3.
+`tests/testthat/helper-ncc-oracle.R`.
+
+### Counter-matched control sampling and weighted partial likelihood (PHASE_5 Chunk 3)
+
+**Implemented.** `sample_ncc_counter_matched(cohort, time, event, surrogate, m,
+match, entry)` generates a counter-matched NCC dataset: at each event time the
+case is matched to `m` controls drawn from the *opposite* surrogate stratum.
+The output appends `set`, `case`, `risk_time`, and `log_w` (the Langholz-Borgan
+1995 log-sampling-weight). `matcha(design = counter_matched(strata = "set",
+time = "risk_time", weights = "log_w"), estimator = "weighted_cox")` fits
+`survival::coxph(outcome ~ exposure + confounders + strata(set) + offset(log_w))`
+and `contrast()` reports the hazard ratio (`type = "hr"`). The weights encode
+that the case represents its entire same-stratum risk set (log_w = log(n_same + 1))
+and each control represents the opposite stratum divided by the controls drawn
+(log_w = log(n_opp / m_take)); the unweighted clogit is biased for this design.
+
+| Feature | Estimand | Status | Test |
+|---|---|---|---|
+| counter-matched draw: one case + ≤m opp-stratum controls per set | CM sample | ✅ structural invariants (one case, controls from opp. stratum) | `test-weighted_cox.R` |
+| log_w formula (case = log(n_same+1), ctrl = log(n_opp/m)) | — | ✅ exact check on controlled micro-cohort with known risk-set counts | `test-weighted_cox.R` |
+| truth recovery: weighted CM HR recovers cohort Cox β | cond. HR | ✅ within 3.5 reported SEs | `test-weighted_cox.R` |
+| full-cohort coxph oracle agreement | cond. HR | ✅ CM β agrees with full-cohort `survival::coxph` β within combined SE | `test-weighted_cox.R` |
+| fewer than m opp-stratum controls → smaller set, no error | CM sample | ✅ structural assertion | `test-weighted_cox.R` |
+| a control may be a later cohort case | CM sample | ✅ asserted | `test-weighted_cox.R` |
+| `type = "or"` or `"difference"` from counter-matched | — | ⛔ `matchatr_unidentified_estimand` | `test-weighted_cox.R` |
+| `ci_method = "sandwich"` / `"bootstrap"` | — | ⛔ `matchatr_unsupported_variance` | `test-weighted_cox.R` |
+| no weights column in design | — | ⛔ `matchatr_bad_design` (at fit time) | `test-weighted_cox.R` |
+| continuous / multi-level / NA surrogate | — | ⛔ `matchatr_bad_input` | `test-weighted_cox.R` |
+| no opposite-stratum controls at risk | — | ⛔ `matchatr_empty_risk_set` (snapshot) | `test-weighted_cox.R` |
+| `log_w` column clash | — | ⛔ `matchatr_bad_input` | `test-weighted_cox.R` |
+| missing surrogate column | — | ⛔ `matchatr_bad_design` | `test-weighted_cox.R` |
+
+`sample_ncc_counter_matched()` and `resolve_surrogate()` live in
+`R/risk_set_sampling.R`; the engine is `R/weighted_cox.R`
+(`fit_weighted_cox()` / `contrast_weighted_cox()`). The test fixture
+`sample_ncc_counter_matched_fixture()` is in `tests/testthat/helper-dgp.R`.
 
 ## Case-cohort (PHASE_6)
 

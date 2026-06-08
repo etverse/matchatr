@@ -424,3 +424,35 @@ sample_ncc_riskset <- function(cohort, m = 2L, seed = 71L) {
   rownames(out) <- NULL
   out
 }
+
+# Counter-matched NCC sampler used as a deterministic test fixture.
+# Delegates to the exported sample_ncc_counter_matched() under a fixed seed.
+# When cohort is NULL, builds from make_ncc_cohort() and attaches z_bin = x as
+# the binary surrogate (maximally correlated with the true exposure, so counter-
+# matching concentrates all study resources in the exposure-surrogate boundary).
+# Returns a data.frame (like sample_ncc_riskset) for column-order stability.
+sample_ncc_counter_matched_fixture <- function(
+  cohort = NULL,
+  m = 1L,
+  seed = 83L
+) {
+  if (is.null(cohort)) {
+    cohort <- make_ncc_cohort()
+    cohort$z_bin <- cohort$x
+  }
+  out <- withr::with_seed(
+    seed,
+    sample_ncc_counter_matched(
+      cohort,
+      time = "t",
+      event = "d",
+      surrogate = "z_bin",
+      m = m
+    )
+  )
+  out <- as.data.frame(out)
+  added <- c("case", "set", "risk_time", "log_w")
+  out <- out[, c(setdiff(names(out), added), added), drop = FALSE]
+  rownames(out) <- NULL
+  out
+}
