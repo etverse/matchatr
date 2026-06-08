@@ -363,3 +363,24 @@ Quarto, `lumen` theme).
 
 Articles document only implemented features; the pending phases above are not
 yet covered.
+
+## Cross-language oracle coverage (Python / statsmodels)
+
+Every implemented classical estimator is additionally cross-checked against an
+independent **Python** (`statsmodels`) fit, so a bug shared between matchatr and
+its R engine cannot hide behind a same-package comparison. Each oracle reads the
+SAME committed dataset both languages share, and the Python output is a committed
+CSV fixture — tests never invoke Python, so CI needs no Python toolchain (each is
+guarded with `skip_if(!file.exists(...))`). Fixtures and the regeneration recipe
+live in `tests/testthat/fixtures/python/` (see its `README.md`); the comparisons
+are in `test-python-oracle.R`. `statsmodels` anchors the classical MLEs;
+`delicatessen` is reserved for the causal / sandwich estimands of later phases.
+
+| Estimator | matchatr | statsmodels oracle | Agreement |
+|---|---|---|---|
+| unmatched logistic OR | `logistic` | `Logit` | ✅ 1e-4 |
+| matched conditional OR | `clogit` | `ConditionalLogit` | ✅ 1e-3 (independent partial-likelihood optimisers) |
+| nested case-control HR | `clogit` | `ConditionalLogit` | ✅ 1e-3 |
+| Mantel–Haenszel summary OR | `mh` | `StratifiedTable` (RBG) | ✅ 1e-4 |
+| polytomous subtype ORs | `polytomous` | `MNLogit` | ✅ 1e-4 |
+| homogeneity Wald χ² + pooled OR | `test_homogeneity` | `MNLogit` + GLS (hand-built) | ✅ 1e-3 |
