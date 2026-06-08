@@ -1,0 +1,148 @@
+---
+title: "Nested case-control hazard ratios"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Nested case-control hazard ratios}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+A *nested* case-control (NCC) study samples controls from inside a cohort by
+**risk-set (incidence-density) sampling**: at each case's failure time, a few
+controls are drawn at random from the subjects still at risk. The design-faithful
+analysis is the **conditional partial likelihood** with each sampled risk set as
+a stratum — exactly the conditional logistic regression matchatr already uses for
+matched case-control data, because a matched set and a sampled risk set are the
+same stratum construction.
+
+The estimand, however, is different. Under proper risk-set sampling the
+conditional estimate is the **hazard ratio**, exactly — there is no rare-disease
+approximation involved (Prentice & Breslow, 1978). So matchatr reports it on the
+hazard-ratio scale (`type = "hr"`), which is the default for `nested_cc()`.
+
+```{r}
+#| message: false
+library(matchatr)
+```
+
+## A cohort and a nested sample
+
+We simulate a cohort with a constant baseline hazard and a known Cox log hazard
+ratio for a binary exposure `x`, then draw a 1:3 risk-set NCC sample from it.
+
+```{r}
+set.seed(51)
+n <- 3000
+x <- rbinom(n, 1, 0.4)
+beta <- log(2.2)                       # the true log hazard ratio for x
+rate <- 0.08 * exp(beta * x)           # PH hazard: baseline times exp(lp)
+time <- rexp(n, rate)
+tau  <- 4                              # administrative censoring
+cohort <- data.frame(
+  id = seq_len(n), t = pmin(time, tau), d = as.integer(time <= tau), x = x
+)
+
+# Incidence-density sampling: for each case, draw 3 controls from those still at
+# risk at its failure time (t >= t_case), the case excluded.
+m <- 3
+cases <- cohort[cohort$d == 1, ]
+cases <- cases[order(cases$t), ]
+sets <- lapply(seq_len(nrow(cases)), function(k) {
+  tc <- cases$t[k]; cid <- cases$id[k]
+  elig <- cohort$id[cohort$t >= tc & cohort$id != cid]
+  take <- elig[sample.int(length(elig), m)]
+  rows <- cohort[cohort$id %in% c(cid, take), ]
+  rows$case <- as.integer(rows$id == cid)
+  rows$set  <- k
+  rows$risk_time <- tc
+  rows
+})
+ncc <- do.call(rbind, sets)
+head(ncc)
+```
+
+## The risk-set hazard ratio
+
+`matcha()` with `design = nested_cc()` fits the conditional partial likelihood;
+`contrast()` reports the hazard ratio with the partial-likelihood
+information-matrix Wald interval.
+
+```{r}
+fit <- matcha(
+  ncc,
+  outcome = "case", exposure = "x",
+  design = nested_cc(strata = "set", time = "risk_time"),
+  estimator = "clogit"
+)
+fit
+
+contrast(fit)        # type = "hr" is the default for a nested design
+```
+
+The estimate recovers the true log hazard ratio `log(2.2) ≈ 0.79`. The design's
+`time` column records how the controls were sampled; the risk-set membership is
+read from `strata`, so the conditional likelihood does not enter `time` here.
+
+## OR = HR exactly
+
+The whole point of risk-set sampling is that the sampled odds ratio *is* the
+hazard ratio, with no rare-disease assumption. We can see this directly: the
+NCC estimate matches the Cox hazard ratio fit on the **full cohort** (within
+sampling error, since the NCC sample is a subset).
+
+```{r}
+full_cohort <- survival::coxph(survival::Surv(t, d) ~ x, data = cohort)
+c(ncc_HR    = exp(coef(fit$model)[["x"]]),
+  cohort_HR = exp(coef(full_cohort)[["x"]]))
+```
+
+## One scale per design
+
+Each conditional design identifies exactly one scale: the matched design reports
+the odds ratio, the nested design the hazard ratio. Asking for the off-design
+scale is declined — the value would be the same number, but it is not the
+estimand the design targets:
+
+```{r}
+#| error: true
+contrast(fit, type = "or")
+```
+
+As with the other case-control designs, a marginal risk difference / risk ratio
+needs a source-population prevalence `q0` and a case-control-weighted estimator,
+and the conditional fit reports the information-matrix interval only, so
+`ci_method = "sandwich"` / `"bootstrap"` are declined.
+
+## Covered combinations
+
+**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.
+
+| Sampling | Estimator | Estimand | Status |
+|---|---|---|---|
+| m:1 risk-set | `clogit` | conditional hazard ratio | ✅ |
+| m:1 risk-set + confounder | `clogit` | conditional hazard ratio | ✅ |
+| risk-set + `effect_modifier` | `clogit` | stratum-specific hazard ratio | ✅ |
+| nested | `clogit` | odds ratio | ⛔ use `type = "hr"` |
+| nested | `clogit` | RD / RR | ⛔ need q0 |
+| nested, non-binary outcome | — | — | ⛔ |
+
+See `FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every
+combination.
+
+## References
+
+Prentice RL, Breslow NE (1978). Retrospective studies and failure time models.
+*Biometrika* 65(1):153-158.
+
+Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control
+sampling in the Cox regression model. *Annals of Statistics* 20(4):1903-1928.
+
+Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by
+application to asbestos mining" by Liddell FDK, McDonald JC, Thomas DC.
+*Journal of the Royal Statistical Society A* 140(4):469-491.

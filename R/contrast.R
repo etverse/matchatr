@@ -26,10 +26,14 @@
 #' delta-method OR-scale SE, kept for reference). Use the reported bounds.
 #'
 #' @param fit A `matchatr_fit` object returned by [matcha()].
-#' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"or"`
-#'   (odds ratio). When omitted, it defaults to the estimand the design
-#'   identifies — `"or"` for the classical odds-ratio engines (unmatched
-#'   case-control logistic), `"difference"` otherwise.
+#' @param type Character contrast scale: `"difference"`, `"ratio"`, `"or"`
+#'   (odds ratio), or `"hr"` (hazard ratio, for the nested case-control risk-set
+#'   design). When omitted, it defaults to the estimand the design identifies —
+#'   `"or"` for the classical odds-ratio engines (unmatched / matched
+#'   case-control), `"hr"` for the nested case-control design, `"difference"`
+#'   otherwise. Each conditional design identifies exactly one scale, so the
+#'   off-design request (an odds ratio from a risk-set design, or vice versa)
+#'   aborts with `matchatr_unidentified_estimand`.
 #' @param ci_method Character variance source for the interval: `"model"`
 #'   (information-matrix Wald, the default), `"sandwich"` (Huber-White robust),
 #'   or `"bootstrap"`.
@@ -58,7 +62,7 @@
 #' @export
 contrast <- function(
   fit,
-  type = c("difference", "ratio", "or"),
+  type = c("difference", "ratio", "or", "hr"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
   ...
@@ -75,7 +79,7 @@ contrast <- function(
   # identifies (the OR for an odds-ratio-only engine) rather than the generic
   # risk difference, which such an engine would have to reject.
   if (missing(type)) {
-    type <- default_contrast_type(fit$engine)
+    type <- default_contrast_type(fit$engine, fit$design$type)
   } else {
     type <- match.arg(type)
   }

@@ -1,13 +1,14 @@
-#' Assemble stratum-specific odds ratios from a clogit interaction fit
+#' Assemble stratum-specific effects from a clogit interaction fit
 #'
-#' Turns a matched case-control conditional logistic fit that carries an
-#' `exposure x modifier` interaction into a `matchatr_result` reporting the
-#' exposure's conditional odds ratio within each modifier level — the
-#' stratum-specific OR. The exposure log OR at the modifier's reference level is
-#' the exposure main coefficient `beta_x`; at each non-reference level it is the
-#' linear combination `beta_x + beta_{x:level}`. Each combination's variance is
-#' read from the joint partial-likelihood variance, so the per-level Wald
-#' intervals account for the covariance between the main and interaction terms.
+#' Turns a matched or nested case-control conditional partial-likelihood fit that
+#' carries an `exposure x modifier` interaction into a `matchatr_result` reporting
+#' the exposure's conditional effect within each modifier level — the
+#' stratum-specific odds ratio (matched) or hazard ratio (nested). The exposure
+#' log effect at the modifier's reference level is the exposure main coefficient
+#' `beta_x`; at each non-reference level it is the linear combination
+#' `beta_x + beta_{x:level}`. Each combination's variance is read from the joint
+#' partial-likelihood variance, so the per-level Wald intervals account for the
+#' covariance between the main and interaction terms.
 #'
 #' @details
 #' For a binary exposure and a modifier that is constant within each matched set
@@ -35,10 +36,18 @@
 #' @param ci_method Character variance source recorded on the result (only
 #'   `"model"` reaches here; the caller rejects the others).
 #' @param n Integer analysis sample size (the clogit row count, `model$n`).
+#' @param type Character contrast scale recorded on the result: `"or"` (odds
+#'   ratio, the default; matched case-control) or `"hr"` (hazard ratio; nested
+#'   case-control). The per-level linear combination is identical; only the
+#'   reported scale label differs.
+#' @param estimand Character estimand label recorded on the result (default
+#'   `"stratum-specific conditional OR"`; the nested design passes
+#'   `"stratum-specific hazard ratio"`).
 #' @param call Caller environment surfaced in any error.
-#' @returns A `matchatr_result` with one stratum-specific odds-ratio row per
-#'   modifier level, the reference level recorded in `reference`, and the
-#'   per-level log-OR variance-covariance matrix in `vcov`.
+#' @returns A `matchatr_result` with one stratum-specific odds-ratio (or
+#'   hazard-ratio) row per modifier level, the reference level recorded in
+#'   `reference`, and the per-level log-scale variance-covariance matrix in
+#'   `vcov`.
 #' @family estimators
 #' @seealso [contrast()], `fit_clogit()`, `conditional_or_result()`
 #' @noRd
@@ -48,6 +57,8 @@ stratum_specific_or_result <- function(
   conf_level,
   ci_method,
   n,
+  type = "or",
+  estimand = "stratum-specific conditional OR",
   call = rlang::caller_env()
 ) {
   exposure <- fit$exposure
@@ -154,15 +165,15 @@ stratum_specific_or_result <- function(
 
   estimates <- data.table::data.table(
     term = comparison,
-    estimate = log_or, # log OR per modifier level
+    estimate = log_or, # log OR / log HR per modifier level
     se = se,
     ci_lower = log_lower,
     ci_upper = log_upper
   )
   contrasts <- data.table::data.table(
     comparison = comparison,
-    estimate = exp(log_or), # OR per modifier level
-    se = exp(log_or) * se, # delta-method SE on the OR scale
+    estimate = exp(log_or), # OR / HR per modifier level
+    se = exp(log_or) * se, # delta-method SE on the exponentiated scale
     ci_lower = exp(log_lower),
     ci_upper = exp(log_upper)
   )
@@ -170,8 +181,8 @@ stratum_specific_or_result <- function(
   new_matchatr_result(
     estimates = estimates,
     contrasts = contrasts,
-    type = "or",
-    estimand = "stratum-specific conditional OR",
+    type = type,
+    estimand = estimand,
     ci_method = ci_method,
     reference = levs[1],
     n = n,

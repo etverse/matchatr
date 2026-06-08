@@ -76,13 +76,26 @@ default_estimator <- function(design_type) {
 #' The estimand an engine identifies, used by [contrast()] when the caller does
 #' not name a `type`. The classical odds-ratio engines identify only the
 #' conditional OR, so they default to `"or"`; engines that target a marginal
-#' effect default to the risk difference (the etverse convention).
+#' effect default to the risk difference (the etverse convention). The
+#' conditional partial-likelihood engine serves two designs through the same
+#' `"clogit"` engine key, and the design fixes the scale: a matched case-control
+#' design reports the odds ratio, a risk-set-sampled nested case-control design
+#' the hazard ratio (OR = HR exactly under risk-set sampling).
 #'
 #' @param engine Character scalar engine key.
-#' @returns A character scalar contrast type (`"or"` or `"difference"`).
+#' @param design_type Character scalar design type, or `NULL`. Distinguishes the
+#'   matched (`"or"`) and nested (`"hr"`) case-control designs, which share the
+#'   `"clogit"` engine; ignored by every other engine.
+#' @returns A character scalar contrast type (`"or"`, `"hr"`, or `"difference"`).
 #' @family dispatch
 #' @noRd
-default_contrast_type <- function(engine) {
+default_contrast_type <- function(engine, design_type = NULL) {
+  # The nested case-control design reports the hazard ratio; the matched design
+  # the odds ratio. Both resolve to the `"clogit"` engine, so the design type
+  # disambiguates the default scale.
+  if (identical(engine, "clogit") && identical(design_type, "nested_cc")) {
+    return("hr")
+  }
   switch(
     engine,
     glm_logistic = "or",

@@ -63,6 +63,21 @@ Project-specific rules that override / extend the etverse-wide rules at
 - **OR = HR exactly under proper risk-set (incidence-density) matching** — no
   rare-disease assumption needed (Miettinen 1976; Prentice & Breslow 1978). Do
   not add a rare-disease caveat to NCC/risk-set-matched contrasts.
+- **One conditional scale per design (the `clogit` engine).** The conditional
+  partial likelihood gives `exp(beta)`, whose meaning is fixed by the sampling
+  design: a matched case-control design reports the conditional odds ratio
+  (`type = "or"`), a nested case-control (risk-set-sampled) design the hazard
+  ratio (`type = "hr"`). Both resolve to the same `clogit` engine, so
+  `default_contrast_type()` is design-aware and `contrast_clogit()` rejects the
+  off-design scale (an OR asked of a risk-set design, or an HR asked of a matched
+  design) with `matchatr_unidentified_estimand` via
+  `reject_offdesign_conditional_scale()`. The number would be identical, but the
+  estimand the design *targets* is not, and reporting the wrong label would
+  mislead. Do NOT flag this rejection as overly strict, do NOT "generalise" the
+  engine to emit both scales, and do NOT relabel the NCC result as an odds ratio.
+  The design's `time` column records how controls were sampled; the conditional
+  likelihood reads the risk set from `strata` and does not enter `time` (it feeds
+  the later inclusion-weight / weighted-Cox designs).
 - **causatr has NO targeted-learning machinery.** It ships g-comp / IPW / AIPW
   only. CCW-g-formula, CCW-IPW, and CCW-AIPW reuse causatr directly via the
   `weights` argument. CCW-**TMLE** (the targeting / fluctuation step) is genuinely

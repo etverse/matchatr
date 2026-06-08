@@ -1,5 +1,46 @@
 # matchatr (development version)
 
+## 2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)
+
+Opens the time-to-event sampling designs with the classical nested case-control
+(NCC) analysis. `matcha(design = nested_cc(strata = ..., time = ...), estimator =
+"clogit")` now fits the risk-set conditional partial likelihood and `contrast()`
+reports the exposure's **hazard ratio** (`type = "hr"`). The NCC analysis reuses
+the matched-design `clogit` engine unchanged — a sampled risk set and a matched
+set are the same stratum construction (`outcome ~ exposure + confounders +
+strata(set)`) — so the value is the design-faithful estimand, not new estimation
+machinery.
+
+- **OR = HR exactly under risk-set (incidence-density) sampling** (Prentice &
+  Breslow 1978), with no rare-disease assumption. The conditional partial
+  likelihood gives `exp(beta)`; the sampling design fixes its meaning, so a
+  matched case-control design reports the conditional odds ratio and a nested
+  case-control design the hazard ratio. The shared `conditional_or_result()` /
+  `stratum_specific_or_result()` assemblies gained a `type` argument that carries
+  the scale label (`"or"` / `"hr"`); the arithmetic is identical.
+- **A new contrast scale `type = "hr"`** (hazard ratio). `contrast()` defaults to
+  it for the nested design (`default_contrast_type()` is now design-aware) and to
+  `"or"` for the matched design. Each conditional design identifies exactly one
+  scale: requesting an odds ratio from a risk-set design, or a hazard ratio from a
+  matched design, names an estimand the design does not target and aborts with
+  `matchatr_unidentified_estimand`. `summary()` and `print()` label the NCC table
+  / contrast as a hazard ratio.
+- The design's `time` column records how controls were sampled; the risk-set
+  membership is read from `strata`, so the conditional likelihood does not enter
+  `time` here (it feeds the later inclusion-weight / weighted-Cox designs). Risk
+  set reuse — and hence a cluster-robust variance — belongs to those designs, so
+  `ci_method = "sandwich"` / `"bootstrap"` stay unsupported; a risk set with no
+  control is an uninformative stratum (`matchatr_uninformative_stratum`, dropped
+  by `clogit`), consistent with the matched design.
+- Validated against a cohort DGP with a known Cox log-HR (`make_ncc_cohort()`)
+  from which an incidence-density NCC sample is drawn (`sample_ncc_riskset()`):
+  the conditional likelihood recovers the cohort β within 3.5 SE and agrees with
+  the full-cohort `survival::coxph` β (the OR = HR check); exact pass-through
+  against a hand-fit `survival::clogit`; and the relative efficiency at the null
+  matches the classical `(m+1)/m` variance ratio (Goldstein & Langholz 1992).
+  Non-binary outcomes are rejected (`matchatr_bad_outcome`) and a within-set
+  constant exposure is `matchatr_unestimable_exposure`.
+
 ## 2026-06-08 — Homogeneity test + pooled common OR for disease subtypes (PHASE_4 Chunk 2)
 
 Completes the multiple-case/control-group layer with `test_homogeneity()`, which

@@ -11,8 +11,11 @@ Single source of truth for what works, what's tested, and at what fidelity.
 > subtype ORs for multi-group outcomes (PHASE_4, `nnet::multinom`) — including
 > `test_homogeneity()`, the Wald test of whether the exposure OR is constant
 > across subtypes plus the efficient pooled common OR — run end to end through
-> the shared `contrast()` / `tidy()` OR layer. The remaining estimator cells stay
-> pending until their phases land.
+> the shared `contrast()` / `tidy()` OR layer. The **nested case-control** risk-set
+> conditional partial likelihood (PHASE_5 Chunk 1) reuses that same `clogit`
+> engine and reports the **hazard ratio** (`type = "hr"`; OR = HR exactly under
+> risk-set sampling). The remaining estimator cells stay pending until their
+> phases land.
 
 ## Legend
 
@@ -230,7 +233,48 @@ the `C V C'` contrast pattern shared with `R/effect_modification.R`.
 
 ## Nested case-control (PHASE_5)
 
-_Pending implementation._
+**Chunk 1 implemented — the risk-set conditional partial likelihood (hazard
+ratio).** `matcha(design = nested_cc(strata = ..., time = ...), estimator =
+"clogit")` fits the same conditional partial likelihood as the matched design via
+`survival::clogit` (`outcome ~ exposure + confounders + strata(set)`, each
+sampled risk set a stratum), and `contrast()` reports the exposure's **hazard
+ratio** (`type = "hr"`) with a partial-likelihood-information Wald interval —
+OR = HR exactly under risk-set (incidence-density) sampling, with no rare-disease
+caveat (Prentice & Breslow 1978). The design's `time` column records how controls
+were sampled; the risk-set membership is read from `strata`, so the conditional
+likelihood does not enter `time` (it feeds the later inclusion-weight / weighted-
+Cox phases). Each conditional design identifies exactly one scale: requesting an
+odds ratio from a risk-set design (or a hazard ratio from a matched design) is
+`matchatr_unidentified_estimand`. `sample_ncc()` (control sampling) and
+counter-matching are later chunks.
+
+| Sampling | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|
+| simple m:1 risk-set | clogit | cond. HR | HR | partial-lik info | ✅ truth DGP (CMLE recovers cohort Cox β within 3.5 SE) + `survival::clogit` pass-through | `test-nested_cc.R` |
+| m:1 risk-set + confounder | clogit | cond. HR | HR | partial-lik info | ✅ truth DGP (recovers adjusted β) + `survival::clogit` pass-through | `test-nested_cc.R` |
+| risk-set vs full cohort (OR = HR) | clogit | cond. HR | HR | partial-lik info | ✅ NCC β agrees with full-cohort `survival::coxph` β within combined SE | `test-nested_cc.R` |
+| efficiency at β = 0 | clogit | cond. HR | HR | partial-lik info | ✅ Var ratio ≈ (m+1)/m (Goldstein & Langholz 1992), Monte-Carlo pin | `test-nested_cc.R` |
+| factor exposure (per-level) | clogit | cond. HR per level | HR | partial-lik info | ✅ vs `survival::clogit` (+ reference) | `test-nested_cc.R` |
+| effect modifier (`x:m`) | clogit | stratum-specific HR | HR | partial-lik info | ✅ hand-built `survival::clogit` linear combos (per-level point) | `test-nested_cc.R` |
+| nested_cc, non-binary outcome | — | — | — | — | ⛔ `matchatr_bad_outcome` (continuous / 3-level) | `test-nested_cc.R` |
+| odds ratio from a risk-set design | clogit | — | — | — | ⛔ `matchatr_unidentified_estimand` | `test-nested_cc.R` |
+| hazard ratio from a matched design | clogit | — | — | — | ⛔ `matchatr_unidentified_estimand` | `test-nested_cc.R` |
+| nested_cc | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-nested_cc.R` |
+| nested_cc HR | — | HR | — | sandwich / bootstrap | ⛔ `matchatr_unsupported_variance` | `test-nested_cc.R` |
+| risk set with no control | clogit | — | — | — | ⚠️ `matchatr_uninformative_stratum` (clogit drops it) | `test-nested_cc.R` |
+| exposure constant within risk set | clogit | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-nested_cc.R` |
+
+The NCC analysis shares the `clogit` engine (`R/clogit.R`, `fit_clogit()`) and the
+`conditional_or_result()` / `stratum_specific_or_result()` assemblies with the
+matched design; the only differences are the design→scale mapping (`"hr"` vs
+`"or"`, resolved in `default_contrast_type()` and `contrast_clogit()`) and the
+estimand label. The truth oracle is a cohort with a known Cox log-HR
+(`make_ncc_cohort()`) from which an incidence-density NCC sample is drawn
+(`sample_ncc_riskset()`); the full-cohort `survival::coxph` β is the
+design-faithful HR the subsample recovers. Deferred to later chunks:
+`sample_ncc()` + `Epi::ccwc` / `multipleNCC` cross-checks (Chunk 2),
+counter-matching offsets (Chunk 3), the `matchatr_empty_risk_set` hard error
+(belongs to the generation path).
 
 ## Case-cohort (PHASE_6)
 
@@ -277,6 +321,7 @@ Quarto, `lumen` theme).
 | `unmatched-cc.qmd` | `logistic` (binary / continuous / categorical / trend / GAM-adjusted) and `mh` (Mantel-Haenszel) ORs |
 | `matched-cc.qmd` | `clogit` conditional OR, `mcnemar` 1:1 matched-pair OR, `effect_modifier` stratum-specific ORs |
 | `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, `test_homogeneity()` (Wald test + pooled common OR), collinearity guard |
+| `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

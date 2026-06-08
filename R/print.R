@@ -162,6 +162,7 @@ contrast_label <- function(type) {
     difference = "Risk difference",
     ratio = "Risk ratio",
     or = "Odds ratio",
+    hr = "Hazard ratio",
     type
   )
 }
