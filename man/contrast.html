@@ -208,13 +208,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Reference</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Risk-set designs</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/nested-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nested case-control</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../man/case_cohort.html" class="sidebar-item-text sidebar-link">
@@ -376,7 +393,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">contrast(
   fit,
-  type = c("difference", "ratio", "or"),
+  type = c("difference", "ratio", "or", "hr"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
   ...
@@ -399,7 +416,7 @@ A <code>matchatr_fit</code> object returned by <code>matcha()</code>.
 <code id="type">type</code>
 </td>
 <td>
-Character contrast scale: <code>“difference”</code>, <code>“ratio”</code>, or <code>“or”</code> (odds ratio). When omitted, it defaults to the estimand the design identifies — <code>“or”</code> for the classical odds-ratio engines (unmatched case-control logistic), <code>“difference”</code> otherwise.
+Character contrast scale: <code>“difference”</code>, <code>“ratio”</code>, <code>“or”</code> (odds ratio), or <code>“hr”</code> (hazard ratio, for the nested case-control risk-set design). When omitted, it defaults to the estimand the design identifies — <code>“or”</code> for the classical odds-ratio engines (unmatched / matched case-control), <code>“hr”</code> for the nested case-control design, <code>“difference”</code> otherwise. Each conditional design identifies exactly one scale, so the off-design request (an odds ratio from a risk-set design, or vice versa) aborts with <code>matchatr_unidentified_estimand</code>.
 </td>
 </tr>
 <tr>

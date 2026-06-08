@@ -174,12 +174,29 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
- <span class="menu-text">Reference</span></a>
+ <span class="menu-text">Risk-set designs</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/nested-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nested case-control</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./man/case_cohort.html" class="sidebar-item-text sidebar-link">
@@ -314,6 +331,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#nested-case-control-hazard-ratio-phase_5-chunk-1" id="toc-nested-case-control-hazard-ratio-phase_5-chunk-1" class="nav-link" data-scroll-target="#nested-case-control-hazard-ratio-phase_5-chunk-1">2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)</a></li>
   <li><a href="#homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" id="toc-homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" class="nav-link" data-scroll-target="#homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2">2026-06-08 — Homogeneity test + pooled common OR for disease subtypes (PHASE_4 Chunk 2)</a></li>
   <li><a href="#polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" id="toc-polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1" class="nav-link" data-scroll-target="#polytomous-logistic-for-multiple-case-control-groups-phase_4-chunk-1">2026-06-03 — Polytomous logistic for multiple case / control groups (PHASE_4 Chunk 1)</a></li>
   <li><a href="#effect-modification-in-matched-case-control-phase_3-chunk-3" id="toc-effect-modification-in-matched-case-control-phase_3-chunk-3" class="nav-link" data-scroll-target="#effect-modification-in-matched-case-control-phase_3-chunk-3">2026-06-03 — Effect modification in matched case-control (PHASE_3 Chunk 3)</a></li>
@@ -339,6 +357,16 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="nested-case-control-hazard-ratio-phase_5-chunk-1" class="level2">
+<h2 class="anchored" data-anchor-id="nested-case-control-hazard-ratio-phase_5-chunk-1">2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)</h2>
+<p>Opens the time-to-event sampling designs with the classical nested case-control (NCC) analysis. <code>matcha(design = nested_cc(strata = ..., time = ...), estimator = "clogit")</code> now fits the risk-set conditional partial likelihood and <code>contrast()</code> reports the exposure’s <strong>hazard ratio</strong> (<code>type = "hr"</code>). The NCC analysis reuses the matched-design <code>clogit</code> engine unchanged — a sampled risk set and a matched set are the same stratum construction (<code>outcome ~ exposure + confounders + strata(set)</code>) — so the value is the design-faithful estimand, not new estimation machinery.</p>
+<ul>
+<li><strong>OR = HR exactly under risk-set (incidence-density) sampling</strong> (Prentice &amp; Breslow 1978), with no rare-disease assumption. The conditional partial likelihood gives <code>exp(beta)</code>; the sampling design fixes its meaning, so a matched case-control design reports the conditional odds ratio and a nested case-control design the hazard ratio. The shared <code>conditional_or_result()</code> / <code>stratum_specific_or_result()</code> assemblies gained a <code>type</code> argument that carries the scale label (<code>"or"</code> / <code>"hr"</code>); the arithmetic is identical.</li>
+<li><strong>A new contrast scale <code>type = "hr"</code></strong> (hazard ratio). <code>contrast()</code> defaults to it for the nested design (<code>default_contrast_type()</code> is now design-aware) and to <code>"or"</code> for the matched design. Each conditional design identifies exactly one scale: requesting an odds ratio from a risk-set design, or a hazard ratio from a matched design, names an estimand the design does not target and aborts with <code>matchatr_unidentified_estimand</code>. <code>summary()</code> and <code>print()</code> label the NCC table / contrast as a hazard ratio.</li>
+<li>The design’s <code>time</code> column records how controls were sampled; the risk-set membership is read from <code>strata</code>, so the conditional likelihood does not enter <code>time</code> here (it feeds the later inclusion-weight / weighted-Cox designs). Risk set reuse — and hence a cluster-robust variance — belongs to those designs, so <code>ci_method = "sandwich"</code> / <code>"bootstrap"</code> stay unsupported; a risk set with no control is an uninformative stratum (<code>matchatr_uninformative_stratum</code>, dropped by <code>clogit</code>), consistent with the matched design.</li>
+<li>Validated against a cohort DGP with a known Cox log-HR (<code>make_ncc_cohort()</code>) from which an incidence-density NCC sample is drawn (<code>sample_ncc_riskset()</code>): the conditional likelihood recovers the cohort β within 3.5 SE and agrees with the full-cohort <code>survival::coxph</code> β (the OR = HR check); exact pass-through against a hand-fit <code>survival::clogit</code>; and the relative efficiency at the null matches the classical <code>(m+1)/m</code> variance ratio (Goldstein &amp; Langholz 1992). Non-binary outcomes are rejected (<code>matchatr_bad_outcome</code>) and a within-set constant exposure is <code>matchatr_unestimable_exposure</code>.</li>
+</ul>
+</section>
 <section id="homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2" class="level2">
 <h2 class="anchored" data-anchor-id="homogeneity-test-pooled-common-or-for-disease-subtypes-phase_4-chunk-2">2026-06-08 — Homogeneity test + pooled common OR for disease subtypes (PHASE_4 Chunk 2)</h2>
 <p>Completes the multiple-case/control-group layer with <code>test_homogeneity()</code>, which answers the etiologic-heterogeneity question the polytomous design is for: does the exposure act the same way on every disease subtype? Given an unconstrained polytomous fit (<code>estimator = "polytomous"</code>), for each exposure term it tests the null that the exposure odds ratio is constant across the non-reference subtypes (H0: beta_1 = … = beta_M) and reports the efficient pooled (“common”) odds ratio that holds under homogeneity. A binary or continuous exposure yields one test; an unordered factor exposure one test per level. The new <code>R/homogeneity.R</code> (<code>test_homogeneity()</code>, <code>homogeneity_one_term()</code>, <code>print</code> / <code>tidy</code> methods for the <code>matchatr_homogeneity</code> class) carries it; <code>new_matchatr_homogeneity()</code> joins the constructors.</p>
