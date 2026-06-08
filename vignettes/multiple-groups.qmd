@@ -103,6 +103,44 @@ fit_adj <- matcha(
 contrast(fit_adj, type = "or")
 ```
 
+## Does the exposure act the same way on every subtype?
+
+The central question of a subtype analysis is *etiologic heterogeneity*: is the
+exposure odds ratio the same across the disease subtypes, or does the exposure
+act through different mechanisms on different subtypes? `test_homogeneity()`
+answers it. For each exposure term it runs a Wald test of the null that the
+exposure log odds ratio is equal across the non-reference subtypes
+(H~0~: β~1~ = … = β~M~) and reports the efficient pooled ("common") odds ratio
+that holds under homogeneity.
+
+```{r}
+test_homogeneity(fit)
+```
+
+Here the exposure doubles the odds of subtype A but quadruples them for subtype
+B, so the test returns a small p-value — evidence the effect is *not* homogeneous.
+The pooled odds ratio is the minimum-variance (inverse-variance / GLS) combination
+of the subtype odds ratios — the restricted estimator under homogeneity,
+asymptotically equal to the constrained maximum-likelihood fit — so it is more
+efficient than any single subtype odds ratio. It is the canonical etiologic-
+heterogeneity Wald test (Begg & Gray, 1984), computed on the already-fitted
+model, so it needs no refit and handles continuous confounders directly:
+
+```{r}
+test_homogeneity(fit_adj)
+```
+
+`tidy()` returns the per-term table (the common odds ratio, its interval, and the
+homogeneity χ², degrees of freedom, and p-value), one row per exposure term:
+
+```{r}
+tidy(test_homogeneity(fit_adj))
+```
+
+An unordered factor exposure is tested one level at a time (one "risk factor"
+per level). A small p-value points to distinct etiologic mechanisms; a large one
+licenses reporting the single pooled odds ratio.
+
 ## A note on collinearity
 
 Unlike `stats::glm`, `nnet::multinom` does not alias a rank-deficient exposure
@@ -121,6 +159,7 @@ confounders leaves the exposure estimable and is not rejected.
 |---|---|---|---|
 | ≥3-group factor / character | `polytomous` | per-subtype OR vs reference | ✅ |
 | ≥3-group (confounder-adjusted) | `polytomous` | adjusted per-subtype OR | ✅ |
+| ≥3-group | `polytomous` + `test_homogeneity()` | homogeneity Wald test + pooled common OR | ✅ |
 | 2-group / numeric / logical | `polytomous` | — | ⛔ use `logistic` / `clogit` |
 | matched design | `polytomous` | — | ⛔ unsupported |
 | any | `polytomous` | RD / RR | ⛔ need q0 |
@@ -130,6 +169,9 @@ See `FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every
 combination.
 
 ## References
+
+Begg CB, Gray R (1984). Calculation of polytomous logistic regression parameters
+using individualized regressions. *Biometrika* 71(1), 11-18.
 
 Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). *Handbook
 of Statistical Methods for Case-Control Studies*, Chapter 5. Chapman & Hall/CRC.

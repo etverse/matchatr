@@ -11,37 +11,9 @@
 #  2. Truth-based DGP recovery: a cohort drawn from a multinomial with KNOWN
 #     per-subtype exposure log-ORs; the estimates fall within a few SE of truth.
 #  3. nnet::multinom fidelity: matcha's coef / vcov equal a hand-built multinom.
-
-# A deterministic 3-group case-control table with exact cell counts, so the
-# saturated multinomial coefficients and variances have a closed form. Rows:
-# control (reference), caseA, caseB; columns: x = 0 / 1.
-make_3group_table <- function(
-  ctrl1 = 80L,
-  ctrl0 = 120L,
-  a1 = 60L,
-  a0 = 40L,
-  b1 = 30L,
-  b0 = 70L
-) {
-  g <- c(
-    rep("control", ctrl1 + ctrl0),
-    rep("caseA", a1 + a0),
-    rep("caseB", b1 + b0)
-  )
-  x <- c(
-    rep(1L, ctrl1),
-    rep(0L, ctrl0),
-    rep(1L, a1),
-    rep(0L, a0),
-    rep(1L, b1),
-    rep(0L, b0)
-  )
-  data.frame(
-    g = factor(g, levels = c("control", "caseA", "caseB")),
-    x = x,
-    stringsAsFactors = FALSE
-  )
-}
+#
+# The deterministic 3-group table `make_3group_table()` lives in helper-dgp.R
+# (shared with test-homogeneity.R).
 
 # ---- Closed-form 2x2 Woolf oracle (independent point AND variance) ----------
 

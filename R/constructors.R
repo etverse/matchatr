@@ -113,3 +113,54 @@ new_matchatr_result <- function(
     class = "matchatr_result"
   )
 }
+
+#' Construct a `matchatr_homogeneity` object
+#'
+#' Low-level constructor for the object returned by [test_homogeneity()]. It
+#' bundles the per-exposure homogeneity Wald test of whether an exposure's odds
+#' ratio is constant across the disease subtypes together with the efficient
+#' pooled ("common") odds ratio that holds under homogeneity, plus the
+#' subtype-specific odds ratios it pools. Defined here alongside the fit / result
+#' constructors so the homogeneity class lives with the rest of the S3 surface.
+#'
+#' @param homogeneity A data.table with one row per exposure term: the term
+#'   label, the common (pooled) odds ratio and its Wald confidence bounds, and
+#'   the homogeneity test's chi-squared statistic, degrees of freedom, and
+#'   p-value.
+#' @param subtype A data.table of the per-subtype exposure odds ratios the test
+#'   pools (one row per subtype x exposure term), for reference.
+#' @param reference Character name of the baseline outcome group every subtype
+#'   odds ratio is taken against.
+#' @param conf_level Numeric confidence level used for the common-OR interval.
+#' @param n Integer analysis sample size (the multinomial fit's complete-case
+#'   count).
+#' @param estimator Character estimator name (`"polytomous"`).
+#' @param engine Character engine key (`"multinom"`).
+#' @param call The original [test_homogeneity()] call, for printing.
+#' @returns A list with class `"matchatr_homogeneity"`.
+#' @family constructors
+#' @noRd
+new_matchatr_homogeneity <- function(
+  homogeneity,
+  subtype,
+  reference,
+  conf_level,
+  n,
+  estimator,
+  engine,
+  call = NULL
+) {
+  structure(
+    list(
+      homogeneity = homogeneity,
+      subtype = subtype,
+      reference = reference,
+      conf_level = conf_level,
+      n = n,
+      estimator = estimator,
+      engine = engine,
+      call = call
+    ),
+    class = "matchatr_homogeneity"
+  )
+}

@@ -270,10 +270,14 @@ contrast_polytomous <- function(
 #'   for signature symmetry with the contrast caller).
 #' @param call Caller environment surfaced in any error.
 #' @returns A list with `comparison` (character `"<subtype>: <term>"` labels),
-#'   `log_or` (numeric log odds ratios), `se` (their standard errors), and
-#'   `vcov` (their variance sub-matrix). Aborts with `matchatr_bad_input` when
-#'   the exposure is not a parametric term (a collinear exposure is already
-#'   rejected at fit time by `reject_collinear_exposure()`).
+#'   `log_or` (numeric log odds ratios), `se` (their standard errors), `vcov`
+#'   (their variance sub-matrix), `subtypes` (the non-reference outcome levels,
+#'   in row order), and `predictors` (the exposure column name(s), in column
+#'   order). The flat vectors are laid out subtype-major then exposure-column
+#'   (entry (k, c) at position `(k - 1) * length(predictors) + c`), so a caller
+#'   can regroup them by subtype or by exposure column. Aborts with
+#'   `matchatr_bad_input` when the exposure is not a parametric term (a collinear
+#'   exposure is already rejected at fit time by `reject_collinear_exposure()`).
 #' @family estimators
 #' @noRd
 multinom_exposure_or <- function(
@@ -324,7 +328,13 @@ multinom_exposure_or <- function(
     comparison = comparison,
     log_or = unname(log_or),
     se = unname(sqrt(diag(vcov_sel))),
-    vcov = vcov_sel
+    vcov = vcov_sel,
+    # The structured pieces the homogeneity verb regroups by exposure column:
+    # `subtypes` is the row order (non-reference outcome levels) and
+    # `predictors` the exposure column order, so entry (k, c) sits at flat
+    # position (k - 1) * length(predictors) + c.
+    subtypes = subtypes,
+    predictors = predictors[exp_cols]
   )
 }
 

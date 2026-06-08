@@ -8,9 +8,11 @@ Single source of truth for what works, what's tested, and at what fidelity.
 > input-validation / rejection paths, the unmatched case-control **logistic /
 > Mantel-Haenszel** ORs (PHASE_2) and the matched case-control **conditional
 > logistic** OR (PHASE_3 Chunk 1, `survival::clogit`) and the **polytomous**
-> subtype ORs for multi-group outcomes (PHASE_4 Chunk 1, `nnet::multinom`) run
-> end to end through the shared `contrast()` / `tidy()` OR layer. The remaining
-> estimator cells stay pending until their phases land.
+> subtype ORs for multi-group outcomes (PHASE_4, `nnet::multinom`) — including
+> `test_homogeneity()`, the Wald test of whether the exposure OR is constant
+> across subtypes plus the efficient pooled common OR — run end to end through
+> the shared `contrast()` / `tidy()` OR layer. The remaining estimator cells stay
+> pending until their phases land.
 
 ## Legend
 
@@ -148,8 +150,8 @@ likelihood treats any matched-set composition uniformly (truth-tested in
 
 ## Multiple case / control groups (PHASE_4)
 
-**Chunk 1 implemented — the unconstrained polytomous odds ratios run end to
-end.** `matcha(design = unmatched_cc(), estimator = "polytomous")` fits a
+**Chunks 1 & 2 implemented — the polytomous layer is complete.**
+`matcha(design = unmatched_cc(), estimator = "polytomous")` fits a
 baseline-category multinomial logistic via `nnet::multinom`
 (`outcome ~ exposure + confounders`) for an outcome with three or more groups
 (`reference =` selects the baseline group, releveled to the front). Each
@@ -158,8 +160,9 @@ versus the reference; `contrast(type = "or")` reports one OR row per
 (subtype, exposure-coefficient) with an information-matrix Wald interval, and
 `tidy()` renders the full per-equation table with a `y.level` column. RD / RR
 are rejected as unidentified without the source-population prevalences; the
-robust-sandwich and bootstrap variances do not apply. The constrained
-(common-OR) fit and the homogeneity LRT remain Chunk 2 (pending).
+robust-sandwich and bootstrap variances do not apply. `test_homogeneity()`
+(Chunk 2, below) tests whether the exposure OR is constant across subtypes and
+reports the efficient pooled common OR.
 
 | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -192,9 +195,38 @@ groups, reference releveled to the baseline) and routes it via the new
 `tidy_multinom()` for the matrix-coefficient fit. `nnet` is a recommended
 (zero-dependency) R package, so no skip guards are needed.
 
-### Constrained common-OR fit + homogeneity LRT (PHASE_4 Chunk 2)
+### Common-OR pooling + homogeneity test (PHASE_4 Chunk 2)
 
-_Pending implementation._
+**Implemented — the polytomous layer is complete.** `test_homogeneity(fit)`
+takes an unconstrained polytomous fit and, for each exposure term, tests whether
+the exposure odds ratio is constant across the disease subtypes
+(H0: beta_1 = ... = beta_M) and reports the efficient pooled ("common") odds
+ratio that holds under homogeneity. The test is the canonical **Wald** test of
+etiologic heterogeneity (Begg & Gray 1984; `riskclustr::eh_test_subtype`):
+W = (C b)' (C V C')^-1 (C b) on M − 1 df, where `b` / `V` are the stacked subtype
+log-ORs and their multinomial-information covariance (reused from
+`multinom_exposure_or()`). The common OR is the minimum-variance (GLS /
+inverse-variance) restricted estimator, asymptotically equal to the constrained
+MLE — so no constrained refit is needed and continuous confounders are handled
+directly. A binary or continuous exposure gives one test; an unordered factor
+exposure one test per level. `print()` / `tidy()` render the per-term common OR +
+homogeneity statistic.
+
+| Exposure | Estimand | Statistic | Variance | Status | Test |
+|---|---|---|---|---|---|
+| binary, saturated 3-group | pooled OR + homogeneity | Wald χ² (df = M−1) | info matrix | ✅ closed-form 2×2 Woolf: χ² **and** pooled OR (independent of multinom vcov) | `test-homogeneity.R` |
+| binary + continuous confounder | pooled OR + homogeneity | Wald χ² | info matrix | ✅ GLS / `C V C'` functional of `contrast()` (exact) + size/power DGP | `test-homogeneity.R` |
+| any | homogeneity p-value | Wald χ² | info matrix | ✅ vs `riskclustr::eh_test_subtype` (mlogit engine) | `test-homogeneity.R` |
+| factor exposure (per level) | pooled OR + homogeneity | Wald χ² per level | info matrix | ✅ vs hand-built `nnet::multinom` contrast | `test-homogeneity.R` |
+| binary, true common OR | pooled OR | — | info matrix | ✅ efficiency: pooled SE < each subtype SE (Begg & Gray) | `test-homogeneity.R` |
+| non-polytomous fit (logistic / mh / clogit) | — | — | — | ⛔ `matchatr_bad_input` | `test-homogeneity.R` |
+| non-estimated fit (no model) | — | — | — | ⛔ `matchatr_not_estimated` | `test-homogeneity.R` |
+| bad `conf_level` / non-`matchatr_fit` | — | — | — | ⛔ `matchatr_bad_input` | `test-homogeneity.R` |
+
+`test_homogeneity()` and `print` / `tidy.matchatr_homogeneity` live in
+`R/homogeneity.R`; the per-column Wald + GLS kernel is `homogeneity_one_term()`,
+reusing `multinom_exposure_or()`'s stacked log-ORs + cross-subtype covariance and
+the `C V C'` contrast pattern shared with `R/effect_modification.R`.
 
 ## Nested case-control (PHASE_5)
 
@@ -244,7 +276,7 @@ Quarto, `lumen` theme).
 | `introduction.qmd` | Design taxonomy, the two orthogonal axes, the two-step `matcha()` / `contrast()` / `tidy()` API, what-is-identified, what-works-today |
 | `unmatched-cc.qmd` | `logistic` (binary / continuous / categorical / trend / GAM-adjusted) and `mh` (Mantel-Haenszel) ORs |
 | `matched-cc.qmd` | `clogit` conditional OR, `mcnemar` 1:1 matched-pair OR, `effect_modifier` stratum-specific ORs |
-| `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, collinearity guard |
+| `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, `test_homogeneity()` (Wald test + pooled common OR), collinearity guard |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.
