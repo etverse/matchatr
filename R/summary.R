@@ -58,8 +58,17 @@ summary.matchatr_fit <- function(
   )
   se_label <- if (isTRUE(robust)) "robust (sandwich)" else "model-based"
   cat(" Std. error: ", se_label, "\n", sep = "")
+  # The nested case-control (risk-set) design reports hazard ratios; every other
+  # design tidied through this path reports odds ratios.
+  scale_label <- if (identical(object$design$type, "nested_cc")) {
+    "hazard ratios"
+  } else {
+    "odds ratios"
+  }
   cat(
-    "\nConditional odds ratios (",
+    "\nConditional ",
+    scale_label,
+    " (",
     format(100 * conf.level),
     "% Wald CI):\n",
     sep = ""

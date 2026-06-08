@@ -369,3 +369,71 @@ make_2x2_cc <- function(n11 = 60L, n10 = 40L, n01 = 30L, n00 = 70L) {
     x = c(rep(1L, n11), rep(0L, n10), rep(1L, n01), rep(0L, n00))
   )
 }
+
+# Truth-based DGP for the nested case-control (NCC) hazard ratio. A cohort is
+# generated from a proportional-hazards model with a constant baseline hazard
+# (exponential survival): the rate for subject i is base_rate * exp(beta_x * x +
+# beta_z * z), so coxph(Surv(t, d) ~ x + z) on the FULL cohort recovers beta_x /
+# beta_z. Continuous exponential times make ties negligible, so the sampled risk
+# sets are clean. Administrative censoring at `tau`. Columns: id, t (observed
+# time), d (event indicator), x (binary exposure), z (continuous confounder).
+# The true Cox log hazard ratios are returned in the "truth" attribute. An NCC
+# sample is drawn from this cohort with sample_ncc_riskset(); the conditional
+# partial likelihood on that sample recovers the SAME beta (OR = HR exactly under
+# risk-set sampling), which is the design-faithful oracle.
+make_ncc_cohort <- function(
+  n = 2500L,
+  beta_x = log(2.2),
+  beta_z = log(1.5),
+  base_rate = 0.08,
+  tau = 4,
+  seed = 51L
+) {
+  cohort <- withr::with_seed(seed, {
+    x <- stats::rbinom(n, 1L, 0.4)
+    z <- stats::rnorm(n)
+    # PH hazard: a constant baseline times exp(linear predictor). Inverting the
+    # exponential survival gives T ~ Exp(rate = base_rate * exp(lp)).
+    rate <- base_rate * exp(beta_x * x + beta_z * z)
+    tt <- stats::rexp(n, rate)
+    d <- as.integer(tt <= tau)
+    t_obs <- pmin(tt, tau)
+    data.frame(id = seq_len(n), t = t_obs, d = d, x = x, z = z)
+  })
+  attr(cohort, "truth") <- c(beta_x = beta_x, beta_z = beta_z)
+  cohort
+}
+
+# Risk-set (incidence-density) NCC sampler. For each case (d == 1) at its failure
+# time t_case, the risk set is everyone still at risk then (t >= t_case, no left
+# truncation), the case included; `m` controls are sampled WITHOUT replacement
+# from that set, excluding the case. A subject sampled as a control may itself
+# fail later in the cohort (it serves as a control before its own event) -- the
+# classical NCC structure. Each sampled set becomes a stratum (`set`) with a
+# per-set `case` indicator (NOT the cohort's `d`, since the controls are
+# non-cases AT the sampled time). Columns: the cohort columns plus case (per-set
+# 0/1), set (stratum id), risk_time (the case's failure time). A risk set with
+# fewer than `m` eligible controls keeps all that are available (a smaller set).
+sample_ncc_riskset <- function(cohort, m = 2L, seed = 71L) {
+  out <- withr::with_seed(seed, {
+    cases <- cohort[cohort$d == 1L, , drop = FALSE]
+    # Per-case sampling; order by failure time (then id) for a stable set index.
+    cases <- cases[order(cases$t, cases$id), , drop = FALSE]
+    sets <- lapply(seq_len(nrow(cases)), function(k) {
+      tc <- cases$t[k]
+      cid <- cases$id[k]
+      # Eligible controls: at risk at the case's failure time, case excluded.
+      elig <- cohort$id[cohort$t >= tc & cohort$id != cid]
+      # sample.int on indices avoids sample()'s length-1 "sample from 1:x" trap.
+      take <- if (length(elig) > m) elig[sample.int(length(elig), m)] else elig
+      rows <- cohort[cohort$id %in% c(cid, take), , drop = FALSE]
+      rows$case <- as.integer(rows$id == cid)
+      rows$set <- k
+      rows$risk_time <- tc
+      rows
+    })
+    do.call(rbind, sets)
+  })
+  rownames(out) <- NULL
+  out
+}

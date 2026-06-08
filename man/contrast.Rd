@@ -6,7 +6,7 @@
 \usage{
 contrast(
   fit,
-  type = c("difference", "ratio", "or"),
+  type = c("difference", "ratio", "or", "hr"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
   ...
@@ -15,10 +15,14 @@ contrast(
 \arguments{
 \item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}.}
 
-\item{type}{Character contrast scale: \code{"difference"}, \code{"ratio"}, or \code{"or"}
-(odds ratio). When omitted, it defaults to the estimand the design
-identifies — \code{"or"} for the classical odds-ratio engines (unmatched
-case-control logistic), \code{"difference"} otherwise.}
+\item{type}{Character contrast scale: \code{"difference"}, \code{"ratio"}, \code{"or"}
+(odds ratio), or \code{"hr"} (hazard ratio, for the nested case-control risk-set
+design). When omitted, it defaults to the estimand the design identifies —
+\code{"or"} for the classical odds-ratio engines (unmatched / matched
+case-control), \code{"hr"} for the nested case-control design, \code{"difference"}
+otherwise. Each conditional design identifies exactly one scale, so the
+off-design request (an odds ratio from a risk-set design, or vice versa)
+aborts with \code{matchatr_unidentified_estimand}.}
 
 \item{ci_method}{Character variance source for the interval: \code{"model"}
 (information-matrix Wald, the default), \code{"sandwich"} (Huber-White robust),

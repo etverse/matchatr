@@ -48,7 +48,22 @@ on person-period data) wherever possible.
 > constrained refit and continuous confounders are handled directly (chosen over
 > a Poisson-surrogate or `VGAM` LRT; matches `riskclustr::eh_test_subtype`).
 > Non-polytomous / non-estimated fits are rejected (`matchatr_bad_input` /
-> `matchatr_not_estimated`). PHASE_5+ remain `Status: DESIGN`.
+> `matchatr_not_estimated`). **PHASE_5 (nested case-control) Chunk 1 is
+> complete**: `matcha(design = nested_cc(...), estimator = "clogit")` fits the
+> risk-set conditional partial likelihood through the *same* `clogit` engine as
+> the matched design (a sampled risk set and a matched set are the same stratum
+> construction), and `contrast()` reports the exposure's **hazard ratio** via a
+> new contrast scale `type = "hr"` — OR = HR exactly under risk-set
+> (incidence-density) sampling, with no rare-disease caveat (Prentice & Breslow
+> 1978). The design fixes the scale: `default_contrast_type()` is design-aware
+> (`"hr"` for nested, `"or"` for matched) and the shared `conditional_or_result()`
+> / `stratum_specific_or_result()` assemblies carry a `type` label (the
+> arithmetic is identical). Each conditional design identifies exactly one scale,
+> so requesting an OR from a risk-set design (or an HR from a matched design) is
+> `matchatr_unidentified_estimand`; the design's `time` column records the
+> sampling but the conditional likelihood reads the risk set from `strata`. NCC
+> control sampling (`sample_ncc()`) and counter-matching remain later chunks;
+> PHASE_6+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -85,10 +100,13 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   variance), `coef_extract.R` (fitter-agnostic coefficient / variance extraction
   shared across engines — `term_assign()`, `estimable_vcov()`,
   `exposure_coef_index()`, `parametric_positions()`, plus the shared
-  `conditional_or_result()` OR-assembly used by the logistic and clogit engines),
-  `clogit.R` (PHASE_3 — `fit_clogit()` wraps `survival::clogit` for the matched
-  case-control conditional likelihood + the conditional-OR contrast; NCC
-  risk-set handling is its own later phase), `mcnemar.R` (PHASE_3 Chunk 2 —
+  `conditional_or_result()` exp(beta)-assembly used by the logistic and clogit
+  engines — odds ratio or, for the nested risk-set design, hazard ratio),
+  `clogit.R` (PHASE_3 + PHASE_5 Chunk 1 — `fit_clogit()` wraps `survival::clogit`
+  for the matched case-control AND nested case-control conditional partial
+  likelihood; `contrast_clogit()` reports the conditional OR (matched) or hazard
+  ratio (nested, `type = "hr"`), with `reject_offdesign_conditional_scale()`
+  enforcing one scale per design), `mcnemar.R` (PHASE_3 Chunk 2 —
   `fit_mcnemar()` closed-form 1:1 matched-pair OR = n10/n01 + McNemar variance,
   mirroring the `mantel_haenszel.R` closed-form precedent),
   `effect_modification.R` (PHASE_3 Chunk 3 — `stratum_specific_or_result()`

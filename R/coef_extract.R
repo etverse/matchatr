@@ -81,23 +81,27 @@ parametric_positions <- function(model) {
   }
 }
 
-#' Assemble a conditional odds-ratio result from a fitted model
+#' Assemble a conditional exp(beta) result from a fitted model
 #'
-#' Shared odds-ratio assembly for the conditional-likelihood OR engines — the
-#' unmatched-CC logistic `glm` and the matched-CC conditional
-#' `survival::clogit`. It locates the exposure coefficient(s) by term position
-#' (`exposure_coef_index()`), reads their variance over the estimable
-#' coefficients (`estimable_vcov()`), forms the Wald interval on the log-odds
-#' scale, and exponentiates to the OR scale.
+#' Shared assembly for the conditional-likelihood effect engines — the
+#' unmatched-CC logistic `glm`, the matched-CC conditional `survival::clogit`,
+#' and the nested-CC risk-set `survival::clogit`. It locates the exposure
+#' coefficient(s) by term position (`exposure_coef_index()`), reads their
+#' variance over the estimable coefficients (`estimable_vcov()`), forms the Wald
+#' interval on the log scale, and exponentiates. The exponentiated effect is an
+#' odds ratio (logistic / matched clogit, `type = "or"`) or a hazard ratio
+#' (nested-CC risk-set clogit, `type = "hr"`); the arithmetic is identical and
+#' the scale label is carried through verbatim.
 #'
 #' @details
-#' The interval is symmetric on the log scale and therefore asymmetric on the OR
-#' scale, so `estimate +/- z * se` does not reproduce `ci_lower` / `ci_upper`;
-#' the OR-scale `se` is the delta-method value OR * SE(log OR), kept for
-#' reference and downstream composition, not to reconstruct the interval. The
-#' reconstructable log-scale estimate and SE live in the result's `estimates`.
-#' A constant or collinear exposure is aliased to `NA` by the fitter and aborts
-#' with `matchatr_unestimable_exposure` rather than returning a silent `NA` OR.
+#' The interval is symmetric on the log scale and therefore asymmetric on the
+#' exponentiated scale, so `estimate +/- z * se` does not reproduce `ci_lower` /
+#' `ci_upper`; the exponentiated-scale `se` is the delta-method value
+#' effect * SE(log effect), kept for reference and downstream composition, not to
+#' reconstruct the interval. The reconstructable log-scale estimate and SE live in
+#' the result's `estimates`. A constant or collinear exposure is aliased to `NA`
+#' by the fitter and aborts with `matchatr_unestimable_exposure` rather than
+#' returning a silent `NA` effect.
 #'
 #' @param fit A `matchatr_fit` supplying the `exposure` / `data` columns and the
 #'   `estimator` / `engine` labels recorded on the result.
@@ -107,13 +111,17 @@ parametric_positions <- function(model) {
 #'   ([sandwich::sandwich()]) instead of the model information matrix.
 #' @param ci_method Character variance source recorded on the result.
 #' @param conf_level Numeric confidence level in (0, 1).
-#' @param estimand Character estimand label (e.g. `"conditional OR"`).
+#' @param estimand Character estimand label (e.g. `"conditional OR"`,
+#'   `"hazard ratio"`).
 #' @param n Integer analysis sample size to record (the fitter's complete-case
 #'   count; `stats::nobs()` for a `glm`, `model$n` for a `clogit`, whose
 #'   `nobs()` counts events rather than rows).
+#' @param type Character contrast scale recorded on the result: `"or"` (odds
+#'   ratio, the default) or `"hr"` (hazard ratio). The computation is the same;
+#'   only the reported scale label differs.
 #' @param call Caller environment surfaced in any error.
-#' @returns A `matchatr_result` carrying the log-OR estimates and the OR-scale
-#'   contrasts for the exposure term(s).
+#' @returns A `matchatr_result` carrying the log-scale estimates and the
+#'   exponentiated contrasts (odds or hazard ratios) for the exposure term(s).
 #' @family estimators
 #' @seealso `contrast_logistic()`, `contrast_clogit()`
 #' @noRd
@@ -125,6 +133,7 @@ conditional_or_result <- function(
   conf_level,
   estimand,
   n,
+  type = "or",
   call = rlang::caller_env()
 ) {
   beta <- stats::coef(model)
@@ -135,8 +144,8 @@ conditional_or_result <- function(
   term_labels <- names(beta)[idx]
   b <- unname(beta[idx])
   # A constant or collinear exposure is aliased to NA by the fitter: it has no
-  # estimable coefficient, so its odds ratio is not identified. Refuse rather
-  # than return a silent NA (mirrors the degenerate-outcome rejection in
+  # estimable coefficient, so its odds / hazard ratio is not identified. Refuse
+  # rather than return a silent NA (mirrors the degenerate-outcome rejection in
   # resolve_binary_outcome()).
   if (anyNA(b)) {
     rlang::abort(
@@ -180,15 +189,15 @@ conditional_or_result <- function(
 
   estimates <- data.table::data.table(
     term = term_labels,
-    estimate = b, # log OR (raw coefficient)
+    estimate = b, # raw coefficient (log OR or log HR)
     se = s,
     ci_lower = log_lower,
     ci_upper = log_upper
   )
   contrasts <- data.table::data.table(
     comparison = term_labels,
-    estimate = exp(b), # OR
-    se = exp(b) * s, # delta-method SE on the OR scale
+    estimate = exp(b), # OR or HR
+    se = exp(b) * s, # delta-method SE on the exponentiated scale
     ci_lower = exp(log_lower),
     ci_upper = exp(log_upper)
   )
@@ -196,7 +205,7 @@ conditional_or_result <- function(
   new_matchatr_result(
     estimates = estimates,
     contrasts = contrasts,
-    type = "or",
+    type = type,
     estimand = estimand,
     ci_method = ci_method,
     reference = reference,
