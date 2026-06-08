@@ -216,14 +216,24 @@ test_that("the heterogeneity p-value matches riskclustr::eh_test_subtype", {
     factors = list("x"),
     data = as.data.frame(d)
   )
+  # riskclustr returns `eh_pval` as a one-row data.frame (column `p_het`, row
+  # named by the risk factor) and `beta` as a [risk factor x subtype] data.frame.
   # Compare on the chi-squared scale (robust to the p-value magnitude): back out
   # riskclustr's statistic from its heterogeneity p-value (df = M - 1 = 1).
   chisq_oracle <- stats::qchisq(
-    unname(oracle$eh_pval["x"]),
+    oracle$eh_pval["x", "p_het"],
     df = 1,
     lower.tail = FALSE
   )
   expect_equal(h$homogeneity$statistic, chisq_oracle, tolerance = 1e-2)
+  # And the per-subtype log-ORs agree with riskclustr's mlogit fit (different
+  # engine), confirming the inputs to the test -- not just the test statistic.
+  res <- contrast(fit, type = "or")
+  expect_equal(
+    res$estimates$estimate,
+    unname(unlist(oracle$beta["x", ])),
+    tolerance = 1e-2
+  )
 })
 
 # ---- Operating characteristics ----------------------------------------------
