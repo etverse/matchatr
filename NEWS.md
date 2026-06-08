@@ -1,5 +1,46 @@
 # matchatr (development version)
 
+## 2026-06-08 — Risk-set control sampling: `sample_ncc()` (PHASE_5 Chunk 2)
+
+Adds the exported `sample_ncc()`, which generates a nested case-control dataset
+from a cohort by risk-set (incidence-density) control sampling. Each event
+anchors a matched set holding the case and `m` controls drawn without replacement
+from the subjects at risk at that failure time; the result is an analysis-ready
+`data.table` (the cohort columns plus `set`, the per-set `case` indicator, and
+`risk_time`) that feeds straight into
+`matcha(design = nested_cc(strata = "set", time = "risk_time"))`. This closes the
+generate-then-analyse loop opened by Chunk 1.
+
+- **`sample_ncc(cohort, time, event, m = 1, match = NULL, entry = NULL)`.**
+  `match = ~ s1 + s2` confines each case's controls to its own population
+  stratum; `entry =` supplies a delayed-entry (left-truncation) column so a
+  subject counts as at risk only after entering follow-up. Sampling uses the
+  ambient random stream (wrap in `withr::with_seed()` / precede with
+  `set.seed()`), and the input cohort is never mutated.
+- **Native sampler, `Epi::ccwc` as an oracle.** Risk-set sampling is implemented
+  natively (base R + data.table) so it is always available and deterministically
+  seedable — consistent with the package's pattern of delegating only to
+  Imports-tier *estimation* engines and hand-rolling sampling / closed forms.
+  `Epi::ccwc` is an external cross-check in the tests (every sampled control must
+  lie in the eligible risk-set pool), not a runtime dependency.
+- **A case with no eligible control aborts with `matchatr_empty_risk_set`** — in
+  the generation path, producing such a set is a sampling failure (a misspecified
+  time origin/scale, an entry/exit mismatch, or over-fine `match` strata), unlike
+  an uninformative analysis stratum, which `clogit` merely drops with a warning.
+  A late failure time with fewer than `m` eligible controls keeps all of them (a
+  smaller set), which is correct, not an error.
+- **`match` strata are crossed with collision-proof `interaction()` codes**, and a
+  missing value in a `match` column is rejected up front (`matchatr_bad_input`):
+  an undefined stratum must not silently merge with the literal string `"NA"` nor
+  match anyone.
+- Validated by structural invariants (one case per set, controls genuinely at
+  risk, no within-set reuse), the `Epi::ccwc` risk-set-definition cross-check, a
+  cohort DGP whose known Cox log-HR the sampled subsample recovers within 3.5 SE
+  and agrees with the full-cohort `survival::coxph` fit, and the classical
+  `(m+1)/m` null efficiency. The test-only `sample_ncc_riskset()` fixture now
+  delegates to `sample_ncc()`, so the Chunk 1 analysis tests also exercise the
+  exported sampler.
+
 ## 2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)
 
 Opens the time-to-event sampling designs with the classical nested case-control

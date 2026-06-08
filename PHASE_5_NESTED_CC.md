@@ -1,12 +1,16 @@
 # Phase 5 — Nested Case-Control: Risk-Set Sampling and Conditional Partial Likelihood
 
-> **Status: Chunk 1 IMPLEMENTED — risk-set conditional partial likelihood.**
-> Book chapters: 16 (Cohort Sampling Overview), 18 (NCC Counting-Process Approach).
+> **Status: Chunks 1–2 IMPLEMENTED.** Book chapters: 16 (Cohort Sampling
+> Overview), 18 (NCC Counting-Process Approach).
 > Chunk 1 (`fit_clogit()` extended to `nested_cc`, the hazard-ratio contrast via
 > the new `type = "hr"` scale, the survival-outcome rejection, and the cohort /
 > risk-set oracle) is in `R/clogit.R` (+ shared `R/coef_extract.R` /
-> `R/effect_modification.R` / `R/dispatch.R`) and `test-nested_cc.R`. Chunks 2
-> (`sample_ncc()`) and 3 (counter-matching) remain `DESIGN`.
+> `R/effect_modification.R` / `R/dispatch.R`) and `test-nested_cc.R`. Chunk 2
+> (the exported `sample_ncc()` risk-set control sampler — native sampling, the
+> `matchatr_empty_risk_set` hard error, optional population-stratum matching and
+> delayed entry) is in `R/risk_set_sampling.R` and `test-risk_set_sampling.R`
+> (with the `Epi::ccwc` oracle in `helper-ncc-oracle.R`). Chunk 3
+> (counter-matching) remains `DESIGN`.
 
 ## Scope
 
@@ -93,7 +97,9 @@ the offset. Robust/cluster variance only becomes necessary when controls are reu
 ## Chunk plan
 
 1. ✅ NCC `clogit` analysis path + survival-outcome rejection + oracle.
-2. `sample_ncc()` control-sampling helper (+ `Epi::ccwc` wrap) + efficiency test.
+2. ✅ `sample_ncc()` control-sampling helper (native sampler; `Epi::ccwc` oracle)
+   + matching / delayed entry + the `matchatr_empty_risk_set` hard error +
+   truth-recovery / efficiency tests.
 3. Counter-matching offset path + oracle.
 
 ### Chunk 1 decisions
@@ -126,5 +132,6 @@ the offset. Robust/cluster variance only becomes necessary when controls are reu
 
 Control reuse / IPW (Phase 7), absolute risk and non-PH models (Phase 7), marginal
 causal contrasts under NCC sampling (Phase 10). The `matchatr_empty_risk_set`
-hard error and `Epi::ccwc` / `multipleNCC` cross-checks land with `sample_ncc()`
-(Chunk 2); counter-matching offsets with Chunk 3.
+hard error and the `Epi::ccwc` cross-check landed with `sample_ncc()` (Chunk 2);
+counter-matching offsets come with Chunk 3 and the `multipleNCC` IPW cross-checks
+with Phase 7.

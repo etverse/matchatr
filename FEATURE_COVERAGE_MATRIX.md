@@ -245,8 +245,10 @@ were sampled; the risk-set membership is read from `strata`, so the conditional
 likelihood does not enter `time` (it feeds the later inclusion-weight / weighted-
 Cox phases). Each conditional design identifies exactly one scale: requesting an
 odds ratio from a risk-set design (or a hazard ratio from a matched design) is
-`matchatr_unidentified_estimand`. `sample_ncc()` (control sampling) and
-counter-matching are later chunks.
+`matchatr_unidentified_estimand`. **PHASE_5 Chunk 2** adds the exported
+`sample_ncc()`, which generates an analysis-ready NCC dataset from a cohort by
+risk-set (incidence-density) control sampling (with optional population-stratum
+matching and delayed entry); counter-matching is the remaining chunk.
 
 | Sampling | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -272,9 +274,45 @@ estimand label. The truth oracle is a cohort with a known Cox log-HR
 (`make_ncc_cohort()`) from which an incidence-density NCC sample is drawn
 (`sample_ncc_riskset()`); the full-cohort `survival::coxph` β is the
 design-faithful HR the subsample recovers. Deferred to later chunks:
-`sample_ncc()` + `Epi::ccwc` / `multipleNCC` cross-checks (Chunk 2),
-counter-matching offsets (Chunk 3), the `matchatr_empty_risk_set` hard error
-(belongs to the generation path).
+counter-matching offsets (Chunk 3) and `multipleNCC` IPW cross-checks (Phase 7).
+
+### Risk-set control sampling — `sample_ncc()` (PHASE_5 Chunk 2)
+
+**Implemented.** `sample_ncc(cohort, time, event, m, match, entry)` generates a
+nested case-control dataset from a cohort by risk-set (incidence-density)
+sampling: each event anchors a matched set holding the case and `m` controls
+drawn without replacement from the subjects at risk at that failure time. The
+output is an analysis-ready `data.table` (the cohort columns plus `set`, the
+per-set `case` indicator, and `risk_time`) that feeds straight into
+`matcha(design = nested_cc(strata = "set", time = "risk_time"))`. The sampler is
+native base-R/data.table (always available, deterministically seedable via the
+ambient RNG); `Epi::ccwc` is an external cross-check in the tests, not a runtime
+dependency. The test-only `sample_ncc_riskset()` DGP fixture now delegates to it,
+so the Chunk 1 analysis tests also exercise the exported sampler.
+
+| Feature | Estimand | Status | Test |
+|---|---|---|---|
+| m:1 risk-set draw: one case + ≤m at-risk controls per set, no within-set reuse | NCC sample | ✅ structural invariants | `test-risk_set_sampling.R` |
+| risk-set definition (the at-risk pool) | — | ✅ vs `Epi::ccwc` (every sampled control ∈ our eligible pool) | `test-risk_set_sampling.R` |
+| sampled NCC analysed → log-HR | cond. HR | ✅ recovers cohort Cox β within 3.5 SE + agrees with full-cohort `coxph` | `test-risk_set_sampling.R` |
+| efficiency at β = 0 | — | ✅ Var ratio ≈ (m+1)/m (Goldstein & Langholz 1992) | `test-risk_set_sampling.R` |
+| additional matching (`match = ~ s`) | NCC sample | ✅ every control shares the case's stratum + analysis-ready | `test-risk_set_sampling.R` |
+| delayed entry (`entry`) | NCC sample | ✅ not-yet-entered subjects excluded from the risk set | `test-risk_set_sampling.R` |
+| fewer than m eligible at late times | NCC sample | ✅ smaller set, no error | `test-risk_set_sampling.R` |
+| a control may serve before its own later event | NCC sample | ✅ sampled controls include future cohort cases | `test-risk_set_sampling.R` |
+| case with no eligible control | — | ⛔ `matchatr_empty_risk_set` (snapshot) | `test-risk_set_sampling.R` |
+| missing `time` / `event` column | — | ⛔ `matchatr_bad_design` | `test-risk_set_sampling.R` |
+| non-0/1 or event-free `event` | — | ⛔ `matchatr_bad_outcome` | `test-risk_set_sampling.R` |
+| non-whole / sub-1 / `NULL` `m` | — | ⛔ `matchatr_bad_ratio` | `test-risk_set_sampling.R` |
+| `match` not a formula / names absent column | — | ⛔ `matchatr_bad_input` / `matchatr_bad_design` | `test-risk_set_sampling.R` |
+| output-name collision (`set`/`case`/`risk_time` present) | — | ⛔ `matchatr_bad_input` (snapshot) | `test-risk_set_sampling.R` |
+| non-data.frame cohort / non-numeric `time` | — | ⛔ `matchatr_bad_input` | `test-risk_set_sampling.R` |
+
+`sample_ncc()` lives in `R/risk_set_sampling.R` (with the `@noRd`
+`eligible_controls()` / `resolve_event_indicator()` / `check_sample_m()` /
+`reject_empty_risk_set()` helpers); the `Epi::ccwc` oracle wrapper is
+`tests/testthat/helper-ncc-oracle.R`. Counter-matching (stratified risk-set
+sampling with sampling-weight offsets) is Chunk 3.
 
 ## Case-cohort (PHASE_6)
 

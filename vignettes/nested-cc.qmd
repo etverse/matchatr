@@ -34,7 +34,7 @@ library(matchatr)
 ## A cohort and a nested sample
 
 We simulate a cohort with a constant baseline hazard and a known Cox log hazard
-ratio for a binary exposure `x`, then draw a 1:3 risk-set NCC sample from it.
+ratio for a binary exposure `x`.
 
 ```{r}
 set.seed(51)
@@ -47,25 +47,25 @@ tau  <- 4                              # administrative censoring
 cohort <- data.frame(
   id = seq_len(n), t = pmin(time, tau), d = as.integer(time <= tau), x = x
 )
+```
 
-# Incidence-density sampling: for each case, draw 3 controls from those still at
-# risk at its failure time (t >= t_case), the case excluded.
-m <- 3
-cases <- cohort[cohort$d == 1, ]
-cases <- cases[order(cases$t), ]
-sets <- lapply(seq_len(nrow(cases)), function(k) {
-  tc <- cases$t[k]; cid <- cases$id[k]
-  elig <- cohort$id[cohort$t >= tc & cohort$id != cid]
-  take <- elig[sample.int(length(elig), m)]
-  rows <- cohort[cohort$id %in% c(cid, take), ]
-  rows$case <- as.integer(rows$id == cid)
-  rows$set  <- k
-  rows$risk_time <- tc
-  rows
-})
-ncc <- do.call(rbind, sets)
+`sample_ncc()` draws the risk-set (incidence-density) sample: for each case it
+takes `m` controls at random from the subjects still at risk at that failure
+time. The result is analysis-ready — it carries a per-set `case` indicator
+(distinct from the cohort-wide `event`, since a sampled control may itself fail
+later), a matched-set id `set`, and the set's `risk_time`.
+
+```{r}
+set.seed(1)
+ncc <- sample_ncc(cohort, time = "t", event = "d", m = 3)
 head(ncc)
 ```
+
+Two further sampling options match real designs: `match = ~ sex + birth_cohort`
+confines each case's controls to its own population stratum, and `entry =`
+supplies a delayed-entry (left-truncation) column so a subject counts as at risk
+only after it enters follow-up. A case left with no eligible control aborts with
+an informative `matchatr_empty_risk_set` error rather than a degenerate set.
 
 ## The risk-set hazard ratio
 
@@ -125,6 +125,7 @@ and the conditional fit reports the information-matrix interval only, so
 
 | Sampling | Estimator | Estimand | Status |
 |---|---|---|---|
+| `sample_ncc()` risk-set draw (+ `match` / `entry`) | — | NCC sample from a cohort | ✅ |
 | m:1 risk-set | `clogit` | conditional hazard ratio | ✅ |
 | m:1 risk-set + confounder | `clogit` | conditional hazard ratio | ✅ |
 | risk-set + `effect_modifier` | `clogit` | stratum-specific hazard ratio | ✅ |
