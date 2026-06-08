@@ -58,29 +58,35 @@ test_that("a control may serve before its own later event", {
 test_that("the risk-set pool agrees with Epi::ccwc", {
   skip_if_not_installed("Epi")
   co <- make_ncc_cohort(n = 800L, seed = 51L)
-  m <- 3L
-  epi <- epi_ccwc_riskset(co, time = "t", event = "d", m = m)
-
-  # Same number of sets = number of cohort events.
-  expect_identical(length(unique(epi$set)), sum(co$d))
   tvec <- co$t
-  # Every control Epi sampled must lie in our computed eligible pool for that
-  # set's case -- an independent check that both implementations define the
-  # at-risk set identically (no off-by-one on the t >= tc boundary).
+
+  # Direction 1: every control Epi SAMPLES (at the analysis m) must lie in our
+  # eligible pool -- our pool is not too narrow.
+  epi <- epi_ccwc_riskset(co, time = "t", event = "d", m = 3L)
+  expect_identical(length(unique(epi$set)), sum(co$d))
   by_set <- split(epi, epi$set)
   for (s in by_set) {
     case_row <- s$row[s$case == 1L]
     expect_length(case_row, 1L)
-    pool <- eligible_controls(
-      case_row,
-      tvec = tvec,
-      entryvec = NULL,
-      match_key = NULL
-    )
-    ctrl_rows <- s$row[s$case == 0L]
-    expect_true(all(ctrl_rows %in% pool))
+    pool <- eligible_controls(case_row, tvec, entryvec = NULL, match_key = NULL)
+    expect_true(all(s$row[s$case == 0L] %in% pool))
     # Epi's set failure time is the case's exit time.
     expect_equal(unique(s$risk_time), tvec[case_row])
+  }
+
+  # Direction 2: asking Epi for more controls than any risk set can hold makes it
+  # return the FULL eligible set per case, so our pool must equal it EXACTLY --
+  # our pool is not too wide either (a one-directional subset check would miss an
+  # over-permissive `t > tc` boundary or a missing self-exclusion). Over-
+  # requesting makes Epi warn "sets are incomplete" -- that is the intended
+  # signal that it returned every available control, so it is suppressed here.
+  epi_full <- suppressWarnings(
+    epi_ccwc_riskset(co, time = "t", event = "d", m = nrow(co))
+  )
+  for (s in split(epi_full, epi_full$set)) {
+    case_row <- s$row[s$case == 1L]
+    pool <- eligible_controls(case_row, tvec, entryvec = NULL, match_key = NULL)
+    expect_setequal(s$row[s$case == 0L], pool)
   }
 })
 
