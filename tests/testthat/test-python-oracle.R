@@ -176,3 +176,30 @@ test_that("the polytomous subtype ORs match the statsmodels MNLogit oracle", {
     expect_equal(crow$ci_upper, pr$conf_high, tolerance = 1e-4)
   }
 })
+
+test_that("the homogeneity Wald test + pooled OR match the statsmodels oracle", {
+  res_path <- test_path("fixtures", "python", "homogeneity_results.csv")
+  skip_if(!file.exists(res_path), "Python oracle fixture not generated")
+  data <- read.csv(test_path("fixtures", "python", "homogeneity_data.csv"))
+  py <- read.csv(res_path)
+
+  fit <- matcha(
+    data,
+    "g",
+    "x",
+    unmatched_cc(),
+    estimator = "polytomous",
+    reference = "control"
+  )
+  hr <- as.data.frame(tidy(test_homogeneity(fit)))
+  hr <- hr[hr$term == "x", ]
+  # matchatr reconstructs the Wald homogeneity chi-square and the GLS-pooled
+  # common OR from nnet's multinomial fit; the Python oracle does the same from
+  # statsmodels' MNLogit. Two independent multinomial optimisers agree to ~1e-3.
+  tol <- 1e-3
+  expect_identical(as.integer(hr$df), as.integer(py$df[1]))
+  expect_equal(hr$statistic, py$chisq[1], tolerance = tol)
+  expect_equal(hr$estimate, py$pooled_or[1], tolerance = tol)
+  expect_equal(hr$conf.low, py$pooled_or_low[1], tolerance = tol)
+  expect_equal(hr$conf.high, py$pooled_or_high[1], tolerance = tol)
+})
