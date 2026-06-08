@@ -53,6 +53,24 @@ test_that("a control may serve before its own later event", {
   expect_true(any(ctrl$d == 1L))
 })
 
+# --- tie handling at equal event times -----------------------------------
+
+test_that("a tied co-case is in the risk set (incidence-density semantics)", {
+  # Two subjects fail at the same time t = 2. At that instant each is still at
+  # risk for the other's event (the risk set is {t >= tc}), so the eligible pool
+  # for one case includes the tied co-case. This pins the Langholz/Borgan
+  # convention, which the continuous-time cohorts never exercise (and where the
+  # behaviour diverges from Epi::ccwc's tied-failure grouping).
+  coh <- data.frame(id = 1:5, t = c(2, 2, 5, 8, 9), d = c(1, 1, 0, 0, 0), x = 1:5)
+  # Case in row 1 (t = 2): the tied co-case in row 2 (t = 2) is at risk (t >= 2).
+  pool <- eligible_controls(1L, tvec = coh$t, entryvec = NULL, match_key = NULL)
+  expect_true(2L %in% pool)
+  # A full sample over both tied cases forms two sets (one per event), and each
+  # set can draw the other tied case as a control.
+  ncc <- withr::with_seed(1L, sample_ncc(coh, time = "t", event = "d", m = 3L))
+  expect_identical(length(unique(ncc$set)), 2L)
+})
+
 # --- Epi::ccwc external oracle (definition of the risk set) ---------------
 
 test_that("the risk-set pool agrees with Epi::ccwc", {
