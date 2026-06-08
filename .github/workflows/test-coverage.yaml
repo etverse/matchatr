@@ -36,8 +36,13 @@ jobs:
         shell: Rscript {0}
 
       - uses: codecov/codecov-action@v5
+        # Coverage upload is informational; never gate CI on Codecov's CDN/GPG
+        # health. The action can exit non-zero in its binary-bootstrap step
+        # (GPG signature verification of the codecov CLI download), which
+        # `fail_ci_if_error` cannot catch, so make the whole step non-blocking.
+        continue-on-error: true
         with:
-          fail_ci_if_error: ${{ secrets.CODECOV_TOKEN != '' }}
+          fail_ci_if_error: false
           files: ./cobertura.xml
           plugins: noop
           disable_search: true
