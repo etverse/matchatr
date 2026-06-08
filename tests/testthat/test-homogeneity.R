@@ -104,6 +104,55 @@ test_that("homogeneity chi-squared and pooled OR match the closed-form 2x2 Woolf
   expect_equal(unname(ex$vcov), V, tolerance = 1e-4)
 })
 
+# ---- Closed-form oracle with M = 3 subtypes (df = 2) -------------------------
+
+test_that("the df = 2 homogeneity test matches the closed-form 4-group Woolf values", {
+  # Exercises the general (M-1) x M contrast and the >=2x2 C V C' inversion that
+  # the binary df = 1 cases never reach. caseA / caseB share OR = 2.25, caseC has
+  # OR = 0.5, so the homogeneity test rejects.
+  d <- make_4group_table()
+  fit <- matcha(
+    d,
+    outcome = "g",
+    exposure = "x",
+    design = unmatched_cc(),
+    estimator = "polytomous",
+    reference = "control"
+  )
+  h <- test_homogeneity(fit)
+  expect_equal(nrow(h$homogeneity), 1L) # one exposure column
+  expect_equal(h$homogeneity$df, 2L)
+
+  # Closed-form subtype log-ORs and the 3x3 Woolf covariance: the diagonal is the
+  # per-subtype Woolf sum, every off-diagonal the shared reference cells.
+  b <- c(
+    log((60 * 120) / (40 * 80)),
+    log((45 * 120) / (30 * 80)),
+    log((20 * 120) / (60 * 80))
+  )
+  v_a <- 1 / 60 + 1 / 40 + 1 / 80 + 1 / 120
+  v_b <- 1 / 45 + 1 / 30 + 1 / 80 + 1 / 120
+  v_c <- 1 / 20 + 1 / 60 + 1 / 80 + 1 / 120
+  off <- 1 / 80 + 1 / 120
+  V <- matrix(off, 3, 3)
+  diag(V) <- c(v_a, v_b, v_c)
+  cmat <- rbind(c(1, -1, 0), c(0, 1, -1))
+  cb <- cmat %*% b
+  chisq_cf <- as.numeric(t(cb) %*% solve(cmat %*% V %*% t(cmat)) %*% cb)
+  p_cf <- stats::pchisq(chisq_cf, df = 2, lower.tail = FALSE)
+
+  expect_equal(h$homogeneity$statistic, chisq_cf, tolerance = 1e-2)
+  expect_equal(h$homogeneity$p.value, p_cf, tolerance = 1e-2)
+
+  # Exact: the same statistic rebuilt from multinom's own 3x3 exposure vcov.
+  res <- contrast(fit, type = "or")
+  cb2 <- cmat %*% res$estimates$estimate
+  chisq_hand <- as.numeric(
+    t(cb2) %*% solve(cmat %*% res$vcov %*% t(cmat)) %*% cb2
+  )
+  expect_equal(h$homogeneity$statistic, chisq_hand, tolerance = 1e-10)
+})
+
 # ---- Definition consistency on an adjusted (continuous-confounder) fit -------
 
 test_that("the pooled OR and chi-squared are the GLS / Wald functionals of contrast()", {
@@ -278,6 +327,67 @@ test_that("a factor exposure reports a per-level homogeneity test vs a multinom 
   expect_equal(h$homogeneity$statistic, chisq_hand, tolerance = 1e-6)
 })
 
+test_that("a 3-level factor exposure tests each level separately (multi-column stride)", {
+  # Two exposure columns (xf3b, xf3c) drive the subtype-major / column-minor
+  # regrouping stride that a single-column exposure never exercises. Level "b"
+  # raises both subtypes equally (homogeneous); level "c" raises caseA but lowers
+  # caseB (heterogeneous), so the two columns must yield DISTINCT statistics -- a
+  # transposed stride would scramble them and fail the per-column oracle.
+  d <- withr::with_seed(7L, {
+    n <- 5000L
+    xf3 <- sample(c("a", "b", "c"), n, replace = TRUE)
+    b_a <- c(a = 0, b = 0.6, c = 0.6)[xf3]
+    b_b <- c(a = 0, b = 0.6, c = -0.6)[xf3]
+    lp_a <- -0.5 + b_a
+    lp_b <- -0.5 + b_b
+    denom <- 1 + exp(lp_a) + exp(lp_b)
+    u <- runif(n)
+    g <- ifelse(
+      u < 1 / denom,
+      "control",
+      ifelse(u < (1 + exp(lp_a)) / denom, "caseA", "caseB")
+    )
+    data.frame(
+      g = factor(g, levels = c("control", "caseA", "caseB")),
+      xf3 = factor(xf3, levels = c("a", "b", "c"))
+    )
+  })
+  fit <- matcha(
+    d,
+    outcome = "g",
+    exposure = "xf3",
+    design = unmatched_cc(),
+    estimator = "polytomous"
+  )
+  h <- test_homogeneity(fit)
+  # "a" is the factor reference, so the two columns are xf3b and xf3c.
+  expect_equal(nrow(h$homogeneity), 2L)
+  expect_setequal(h$homogeneity$term, c("xf3b", "xf3c"))
+  # The heterogeneous level ("c") must give a far larger statistic than the
+  # homogeneous one ("b") -- confirms the columns are not swapped.
+  stat_b <- h$homogeneity$statistic[h$homogeneity$term == "xf3b"]
+  stat_c <- h$homogeneity$statistic[h$homogeneity$term == "xf3c"]
+  expect_lt(stat_b, stat_c)
+
+  # Each column's statistic equals a hand-built Wald on the SAME-named multinom
+  # coefficients -- pins the per-column regrouping to the exact subtype pair.
+  oracle <- nnet::multinom(g ~ xf3, data = d, trace = FALSE)
+  vc <- vcov(oracle)
+  cmat <- matrix(c(1, -1), nrow = 1)
+  for (lv in c("xf3b", "xf3c")) {
+    b <- c(coef(oracle)["caseA", lv], coef(oracle)["caseB", lv])
+    nm <- c(paste0("caseA:", lv), paste0("caseB:", lv))
+    V <- vc[nm, nm]
+    cb <- cmat %*% b
+    chisq_hand <- as.numeric(t(cb) %*% solve(cmat %*% V %*% t(cmat)) %*% cb)
+    expect_equal(
+      h$homogeneity$statistic[h$homogeneity$term == lv],
+      chisq_hand,
+      tolerance = 1e-6
+    )
+  }
+})
+
 # ---- S3 surface -------------------------------------------------------------
 
 test_that("print shows the common OR table and a Wald-test header", {
@@ -382,4 +492,21 @@ test_that("a malformed confidence level and a non-fit object are rejected", {
     class = "matchatr_bad_input"
   )
   expect_error(test_homogeneity(list(a = 1)), class = "matchatr_bad_input")
+})
+
+test_that("a singular subtype covariance is matchatr_unestimable_exposure", {
+  # Direct unit test of the per-term guard: a rank-1 covariance (perfectly
+  # correlated subtype log-ORs) makes both the contrast covariance C V C' and V
+  # singular, so the pooled OR / test are undefined. Unreachable from a converged
+  # multinom (collinearity is rejected at fit time), so it is exercised here at
+  # the kernel.
+  expect_error(
+    homogeneity_one_term(
+      beta = c(0.5, 0.5),
+      vcov = matrix(c(1, 1, 1, 1), 2, 2),
+      term = "x",
+      z = 1.96
+    ),
+    class = "matchatr_unestimable_exposure"
+  )
 })

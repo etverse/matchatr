@@ -199,6 +199,48 @@ make_3group_table <- function(
   )
 }
 
+# A deterministic 4-group case-control table with exact cell counts, extending
+# `make_3group_table()` to three non-reference subtypes (caseA, caseB, caseC) so
+# the homogeneity test runs with df = M - 1 = 2 and a closed-form oracle. The
+# saturated multinomial reproduces the closed-form Woolf log-ORs and a 3x3
+# covariance whose diagonal is the per-subtype Woolf sum and whose every
+# off-diagonal is the shared reference contribution 1/n_ref1 + 1/n_ref0. The
+# default counts give caseA / caseB a common OR of 2.25 and caseC an OR of 0.5,
+# so the homogeneity test rejects. Rows: control (reference), caseA, caseB,
+# caseC; columns: x = 0 / 1.
+make_4group_table <- function(
+  ctrl1 = 80L,
+  ctrl0 = 120L,
+  a1 = 60L,
+  a0 = 40L,
+  b1 = 45L,
+  b0 = 30L,
+  c1 = 20L,
+  c0 = 60L
+) {
+  g <- c(
+    rep("control", ctrl1 + ctrl0),
+    rep("caseA", a1 + a0),
+    rep("caseB", b1 + b0),
+    rep("caseC", c1 + c0)
+  )
+  x <- c(
+    rep(1L, ctrl1),
+    rep(0L, ctrl0),
+    rep(1L, a1),
+    rep(0L, a0),
+    rep(1L, b1),
+    rep(0L, b0),
+    rep(1L, c1),
+    rep(0L, c0)
+  )
+  data.frame(
+    g = factor(g, levels = c("control", "caseA", "caseB", "caseC")),
+    x = x,
+    stringsAsFactors = FALSE
+  )
+}
+
 # A stratified case-control sample with a binary exposure, for the
 # Mantel-Haenszel oracle (cross-checked against stats::mantelhaen.test). Each
 # stratum k has its own baseline log-odds; `x` carries a common log-OR of 0.7.

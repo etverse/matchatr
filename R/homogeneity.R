@@ -232,6 +232,12 @@ homogeneity_one_term <- function(
       call = call
     )
   }
+  # `solve()` only errors on an *exactly* singular matrix; a near-singular one
+  # returns large-but-finite garbage. Reject on the reciprocal condition number
+  # so a degenerate subtype covariance is caught, not silently inverted.
+  invertible <- function(mat) {
+    all(is.finite(mat)) && rcond(mat) >= .Machine$double.eps
+  }
 
   # Wald statistic for equality across subtypes: any full-rank contrast spanning
   # the complement of the all-equal direction gives the same W, so the
@@ -239,18 +245,18 @@ homogeneity_one_term <- function(
   cmat <- homogeneity_contrast_matrix(m)
   cb <- cmat %*% beta
   cvc <- cmat %*% vcov %*% t(cmat)
-  cvc_inv <- tryCatch(solve(cvc), error = function(e) NULL)
-  if (is.null(cvc_inv)) {
+  if (!invertible(cvc)) {
     unestimable()
   }
+  cvc_inv <- solve(cvc)
   statistic <- as.numeric(t(cb) %*% cvc_inv %*% cb)
   p_value <- stats::pchisq(statistic, df = df, lower.tail = FALSE)
 
   # GLS / inverse-variance pooled common log OR (the restricted estimator).
-  vinv <- tryCatch(solve(vcov), error = function(e) NULL)
-  if (is.null(vinv)) {
+  if (!invertible(vcov)) {
     unestimable()
   }
+  vinv <- solve(vcov)
   ones <- rep(1, m)
   denom <- as.numeric(t(ones) %*% vinv %*% ones)
   common_log_or <- as.numeric(t(ones) %*% vinv %*% beta) / denom
@@ -330,6 +336,10 @@ print.matchatr_homogeneity <- function(x, ...) {
     "\nCommon (pooled) odds ratio per exposure term and homogeneity test:\n"
   )
   print(x$homogeneity)
+  # Show the per-subtype odds ratios the pooled estimate combines, so the print
+  # exposes what the common OR is pooling and what the test compares.
+  cat("\nPer-subtype odds ratios (pooled):\n")
+  print(x$subtype)
   cat(
     "\nA small p-value is evidence the exposure odds ratio differs across ",
     "subtypes.\n",
