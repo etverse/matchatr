@@ -278,7 +278,7 @@ sample_ncc <- function(cohort, time, event, m = 1, match = NULL, entry = NULL) {
 #' @param match_key `NULL` (no matching) or an integer vector of per-row crossed
 #'   stratum codes (from `interaction()`), compared exactly to the case's code.
 #' @returns An integer vector of eligible control row indices (possibly empty).
-#' @family estimators
+#' @family sampling
 #' @seealso [sample_ncc()]
 #' @noRd
 eligible_controls <- function(case_row, tvec, entryvec, match_key) {

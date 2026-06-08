@@ -43,6 +43,15 @@ test_that("sample_ncc does not mutate the input cohort", {
   expect_identical(co, before)
 })
 
+test_that("sample_ncc does not mutate a data.table cohort", {
+  # The as.data.frame() copy is the mutation guard; a data.table input is the
+  # case where in-place `:=` semantics would otherwise bite.
+  co <- data.table::as.data.table(make_ncc_cohort(n = 300L, seed = 51L))
+  before <- data.table::copy(co)
+  withr::with_seed(1L, sample_ncc(co, time = "t", event = "d", m = 2L))
+  expect_identical(co, before)
+})
+
 test_that("a control may serve before its own later event", {
   # The defining NCC structure: a subject sampled as a control can itself fail
   # later in the cohort. With a known early case and later events, at least one
