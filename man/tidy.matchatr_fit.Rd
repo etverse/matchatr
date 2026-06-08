@@ -63,6 +63,7 @@ tidy(fit, exponentiate = TRUE)
 \code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=summary.matchatr_fit]{summary.matchatr_fit()}}
 
 Other tidiers: 
+\code{\link{tidy.matchatr_homogeneity}()},
 \code{\link{tidy.matchatr_result}()}
 }
 \concept{tidiers}

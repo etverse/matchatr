@@ -1,5 +1,44 @@
 # matchatr (development version)
 
+## 2026-06-08 — Homogeneity test + pooled common OR for disease subtypes (PHASE_4 Chunk 2)
+
+Completes the multiple-case/control-group layer with `test_homogeneity()`, which
+answers the etiologic-heterogeneity question the polytomous design is for: does
+the exposure act the same way on every disease subtype? Given an unconstrained
+polytomous fit (`estimator = "polytomous"`), for each exposure term it tests the
+null that the exposure odds ratio is constant across the non-reference subtypes
+(H0: beta_1 = ... = beta_M) and reports the efficient pooled ("common") odds
+ratio that holds under homogeneity. A binary or continuous exposure yields one
+test; an unordered factor exposure one test per level. The new `R/homogeneity.R`
+(`test_homogeneity()`, `homogeneity_one_term()`, `print` / `tidy` methods for the
+`matchatr_homogeneity` class) carries it; `new_matchatr_homogeneity()` joins the
+constructors.
+
+- The homogeneity test is the canonical **Wald** test of etiologic heterogeneity
+  (Begg & Gray 1984; `riskclustr::eh_test_subtype`):
+  `W = (C b)' (C V C')^-1 (C b) ~ chi-squared(M - 1)`, where `b` is the stacked
+  subtype log odds ratios and `V` their multinomial-information covariance
+  (reused from `multinom_exposure_or()`, now also returning the structured
+  subtype / predictor pieces). The common odds ratio is the minimum-variance
+  (GLS / inverse-variance) restricted estimator `(1' V^-1 b)/(1' V^-1 1)`,
+  asymptotically equal to the constrained maximum-likelihood fit. Both are
+  computed on the **already-fitted** unconstrained model — no constrained refit —
+  so there is no new dependency and continuous confounders are handled directly
+  (chosen over a Poisson-surrogate or `VGAM` likelihood-ratio test, which would
+  need discrete covariate patterns or a heavy new dependency). It mirrors the
+  `C V C'` contrast construction already used for stratum-specific odds ratios.
+- A non-polytomous fit (`logistic` / `mh` / `clogit`) or a non-`matchatr_fit`
+  object is `matchatr_bad_input`; a fit whose engine produced no model is
+  `matchatr_not_estimated`; a malformed `conf_level` is `matchatr_bad_input`.
+- Validated against three oracles: the saturated 3-group / binary-exposure case
+  reproduces the closed-form 2x2 Woolf chi-squared **and** pooled odds ratio
+  (independent of `multinom`'s `vcov()`); the chi-squared / pooled OR equal the
+  exact `C V C'` / GLS functionals of `contrast()` on an adjusted
+  (continuous-confounder) fit; a truth DGP gives correct size under equal subtype
+  ORs and power under unequal ones, with the pooled SE smaller than each subtype
+  SE (Begg & Gray efficiency); and the heterogeneity p-value cross-checks against
+  `riskclustr::eh_test_subtype` (the `mlogit` engine), which joins `Suggests`.
+
 ## 2026-06-03 — Polytomous logistic for multiple case / control groups (PHASE_4 Chunk 1)
 
 Opens the multiple-case/control-group layer with unconstrained polytomous

@@ -30,6 +30,7 @@ tidy(contrast(fit, type = "or"))
 \code{\link[=contrast]{contrast()}}
 
 Other tidiers: 
-\code{\link{tidy.matchatr_fit}()}
+\code{\link{tidy.matchatr_fit}()},
+\code{\link{tidy.matchatr_homogeneity}()}
 }
 \concept{tidiers}

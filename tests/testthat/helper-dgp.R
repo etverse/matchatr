@@ -163,6 +163,42 @@ make_polytomous_cc <- function(
   sample
 }
 
+# A deterministic 3-group case-control table with exact cell counts, so the
+# saturated multinomial coefficients AND their variances have a closed form
+# (used by the polytomous subtype-OR and the homogeneity-test oracles). Rows:
+# control (reference), caseA, caseB; columns: x = 0 / 1. For each non-reference
+# group k the saturated multinomial log OR is the 2x2 Woolf value and its
+# variance is the Woolf sum 1/n_{k1} + 1/n_{k0} + 1/n_{ref1} + 1/n_{ref0}; the
+# caseA and caseB equations share the reference cells, so their log-OR
+# covariance is 1/n_{ref1} + 1/n_{ref0}.
+make_3group_table <- function(
+  ctrl1 = 80L,
+  ctrl0 = 120L,
+  a1 = 60L,
+  a0 = 40L,
+  b1 = 30L,
+  b0 = 70L
+) {
+  g <- c(
+    rep("control", ctrl1 + ctrl0),
+    rep("caseA", a1 + a0),
+    rep("caseB", b1 + b0)
+  )
+  x <- c(
+    rep(1L, ctrl1),
+    rep(0L, ctrl0),
+    rep(1L, a1),
+    rep(0L, a0),
+    rep(1L, b1),
+    rep(0L, b0)
+  )
+  data.frame(
+    g = factor(g, levels = c("control", "caseA", "caseB")),
+    x = x,
+    stringsAsFactors = FALSE
+  )
+}
+
 # A stratified case-control sample with a binary exposure, for the
 # Mantel-Haenszel oracle (cross-checked against stats::mantelhaen.test). Each
 # stratum k has its own baseline log-odds; `x` carries a common log-OR of 0.7.

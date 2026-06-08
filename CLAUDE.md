@@ -30,7 +30,7 @@ on person-period data) wherever possible.
 > variable-ratio matching need no special handling (the conditional likelihood
 > treats any matched-set composition uniformly). `contrast(type = "or")` reports
 > the OR(s); RD/RR are rejected as unidentified without q0. **PHASE_4 (multiple
-> case/control groups) Chunk 1 is complete**: `matcha(design = unmatched_cc(),
+> case/control groups) is complete**: `matcha(design = unmatched_cc(),
 > estimator = "polytomous", reference = ...)` fits the baseline-category
 > multinomial logistic via `nnet::multinom` for a ≥3-group outcome, and
 > `contrast(type = "or")` reports each non-reference subtype's exposure odds
@@ -39,8 +39,16 @@ on person-period data) wherever possible.
 > two-group / numeric / logical outcome is rejected toward the binary estimators
 > (`matchatr_bad_outcome`). The dispatch gained an `outcome_kind` axis so
 > `matcha()` resolves the multi-group outcome (`resolve_polytomous_outcome()`)
-> instead of the binary one. The constrained common-OR fit + homogeneity LRT
-> (PHASE_4 Chunk 2) and PHASE_5+ remain `Status: DESIGN`.
+> instead of the binary one. **PHASE_4 Chunk 2** adds `test_homogeneity(fit)`:
+> for each exposure term it runs the canonical **Wald** test of whether the
+> exposure odds ratio is constant across the subtypes (H0: β₁ = … = β_M,
+> W = (C b)′(C V C′)⁻¹(C b) ~ χ²₍M−1₎) and reports the efficient **GLS-pooled
+> common OR** — both computed on the unconstrained `nnet::multinom` fit + its
+> information matrix (reusing `multinom_exposure_or()`), so there is no
+> constrained refit and continuous confounders are handled directly (chosen over
+> a Poisson-surrogate or `VGAM` LRT; matches `riskclustr::eh_test_subtype`).
+> Non-polytomous / non-estimated fits are rejected (`matchatr_bad_input` /
+> `matchatr_not_estimated`). PHASE_5+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -92,6 +100,11 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   the `level:predictor` `vcov()` names, and `tidy_multinom()` renders the
   per-equation `y.level` table; the multi-group outcome is resolved by
   `resolve_polytomous_outcome()` in `checks.R`),
+  `homogeneity.R` (PHASE_4 Chunk 2 — `test_homogeneity()` runs the per-exposure
+  Wald homogeneity test + the GLS-pooled common OR from the stacked subtype
+  log-ORs / covariance via `homogeneity_one_term()`, reusing
+  `multinom_exposure_or()` and the `C V C'` pattern; `print` / `tidy` methods for
+  the `matchatr_homogeneity` class),
   `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
