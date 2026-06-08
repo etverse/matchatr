@@ -147,6 +147,13 @@ contrast <- function(
       conf_level = conf_level,
       call = call
     ),
+    cch = contrast_cch(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
     # Defensive: a fitted model whose engine has no contrast assembly wired.
     rlang::abort(
       paste0(

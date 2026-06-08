@@ -425,6 +425,48 @@ sample_ncc_riskset <- function(cohort, m = 2L, seed = 71L) {
   out
 }
 
+# Truth-based DGP for the case-cohort hazard ratio. A cohort is generated from
+# a proportional-hazards model with a constant baseline hazard (exponential
+# survival), then a random subcohort of size `sub_frac * n` is sampled at
+# baseline. Every case is included (as in the standard case-cohort design).
+# Columns: id, t (observed time), d (event indicator), x (binary exposure),
+# z (continuous confounder), subcohort (0/1). The true Cox log hazard ratios
+# are returned in the "truth" attribute.
+make_case_cohort_data <- function(
+  n = 3000L,
+  beta_x = log(2),
+  beta_z = log(1.5),
+  base_rate = 0.06,
+  tau = 5,
+  sub_frac = 0.25,
+  seed = 77L
+) {
+  cohort <- withr::with_seed(seed, {
+    x <- stats::rbinom(n, 1L, 0.4)
+    z <- stats::rnorm(n)
+    rate <- base_rate * exp(beta_x * x + beta_z * z)
+    tt <- stats::rexp(n, rate)
+    d <- as.integer(tt <= tau)
+    t_obs <- pmin(tt, tau)
+    # Subcohort sampled once at baseline, independently of x and z.
+    n_sub <- round(n * sub_frac)
+    sc_idx <- sample.int(n, n_sub)
+    subcohort <- integer(n)
+    subcohort[sc_idx] <- 1L
+    data.frame(
+      id = seq_len(n),
+      t = t_obs,
+      d = d,
+      x = x,
+      z = z,
+      subcohort = subcohort,
+      stringsAsFactors = FALSE
+    )
+  })
+  attr(cohort, "truth") <- c(beta_x = beta_x, beta_z = beta_z)
+  cohort
+}
+
 # Counter-matched NCC sampler used as a deterministic test fixture.
 # Delegates to the exported sample_ncc_counter_matched() under a fixed seed.
 # When cohort is NULL, builds from make_ncc_cohort() and attaches z_bin = x as

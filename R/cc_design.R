@@ -160,24 +160,70 @@ nested_cc <- function(strata, time, ratio = NULL) {
 #' @param subcohort A single character string naming the 0/1 (or logical)
 #'   column flagging subcohort membership.
 #' @param time A single character string naming the event/follow-up time column.
+#' @param method Character scalar naming the pseudo-likelihood method passed to
+#'   [survival::cch()]. One of `"Prentice"` (the default), `"SelfPrentice"`,
+#'   `"LinYing"`, `"I.Borgan"`, or `"II.Borgan"`. The first three are for
+#'   simple (unstratified) subcohorts; the Borgan variants are for stratified
+#'   subcohorts. `"Prentice"` and `"SelfPrentice"` share the same asymptotic
+#'   variance; `"LinYing"` uses an independent variance estimator.
+#' @param id `NULL` or a single character string naming the subject-identifier
+#'   column. When `NULL` (the default) the original row positions in the data
+#'   are used as synthetic IDs. Supply an ID column when subjects can appear
+#'   both as subcohort members and as cases (the common case-cohort situation):
+#'   [survival::cch()] uses the ID to correctly pair each subject's two
+#'   appearances.
 #'
 #' @returns A `matchatr_design` object of `type` `"case_cohort"` carrying the
-#'   subcohort and time columns, with a `weight_spec` flagged for
-#'   inclusion-probability weighting.
+#'   subcohort, time, method, and (optionally) id columns, with a `weight_spec`
+#'   flagged for inclusion-probability weighting.
 #'
 #' @examples
 #' case_cohort(subcohort = "in_subcohort", time = "t")
+#' case_cohort(subcohort = "in_subcohort", time = "t", method = "LinYing")
+#' case_cohort(subcohort = "in_subcohort", time = "t", id = "subject_id")
 #'
 #' @family design constructors
 #' @seealso [nested_cc()], [matcha()]
 #' @export
-case_cohort <- function(subcohort, time) {
+case_cohort <- function(
+  subcohort,
+  time,
+  method = "Prentice",
+  id = NULL
+) {
   check_string(subcohort)
   check_string(time)
+  valid_methods <- c(
+    "Prentice",
+    "SelfPrentice",
+    "LinYing",
+    "I.Borgan",
+    "II.Borgan"
+  )
+  if (
+    !is.character(method) || length(method) != 1L || !method %in% valid_methods
+  ) {
+    rlang::abort(
+      c(
+        paste0(
+          "`method` must be one of: ",
+          paste0('"', valid_methods, '"', collapse = ", "),
+          "."
+        ),
+        i = 'Default is `"Prentice"`.'
+      ),
+      class = c("matchatr_bad_input", "matchatr_error")
+    )
+  }
+  if (!is.null(id)) {
+    check_string(id)
+  }
   new_matchatr_design(
     type = "case_cohort",
     subcohort = subcohort,
     time = time,
+    method = method,
+    id = id,
     weight_spec = list(kind = "inclusion"),
     call = match.call()
   )
@@ -288,6 +334,11 @@ counter_matched <- function(strata, time, weights = NULL, ratio = NULL) {
 #' @param subcohort Character scalar subcohort-membership column, or `NULL`.
 #' @param weights Character scalar log-weight column for counter-matched
 #'   designs, or `NULL`.
+#' @param method Character scalar estimation method for case-cohort designs
+#'   (one of `"Prentice"`, `"SelfPrentice"`, `"LinYing"`, `"I.Borgan"`,
+#'   `"II.Borgan"`), or `NULL`.
+#' @param id Character scalar subject-identifier column for case-cohort
+#'   designs, or `NULL` (row positions used as synthetic IDs).
 #' @param phase1 Character vector of phase-1 strata, or `NULL`.
 #' @param phase2 Character scalar phase-2 selection column, or `NULL`.
 #' @param weight_spec Named list describing the intended weighting scheme.
@@ -303,6 +354,8 @@ new_matchatr_design <- function(
   prevalence = NULL,
   subcohort = NULL,
   weights = NULL,
+  method = NULL,
+  id = NULL,
   phase1 = NULL,
   phase2 = NULL,
   weight_spec = list(kind = "none"),
@@ -317,6 +370,8 @@ new_matchatr_design <- function(
       prevalence = prevalence,
       subcohort = subcohort,
       weights = weights,
+      method = method,
+      id = id,
       phase1 = phase1,
       phase2 = phase2,
       weight_spec = weight_spec,

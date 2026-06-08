@@ -1,6 +1,7 @@
 # Phase 6 — Case-Cohort: Prentice, Self-Prentice, and Borgan Estimators
 
-> **Status: DESIGN**
+> **Status: Chunk 1 IMPLEMENTED (Prentice + Self-Prentice + LinYing + design
+> rejections). Chunks 2–3 DESIGN.**
 > Book chapters: 16 (Overview), 17 (Survival Analysis / Sample Survey).
 
 ## Scope

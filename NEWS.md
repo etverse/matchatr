@@ -1,5 +1,35 @@
 # matchatr (development version)
 
+## 2026-06-08 — Case-cohort Cox pseudo-likelihood (PHASE_6 Chunk 1)
+
+Adds the `case_cohort()` design constructor and the `cch` engine wrapping
+`survival::cch()` for the Prentice, Self-Prentice, and Lin-Ying pseudo-likelihood
+hazard ratio.
+
+- **`case_cohort(subcohort, time, method, id)`** declares a case-cohort sampling
+  structure. `method` selects the pseudo-likelihood variant (`"Prentice"`,
+  `"SelfPrentice"`, `"LinYing"`, `"I.Borgan"`, `"II.Borgan"`); `id` names the
+  subject-identifier column so `survival::cch` correctly pairs subjects that
+  appear as both subcohort member and case. Default: `method = "Prentice"`.
+- **`matcha(design = case_cohort(subcohort, time, method), estimator = "cch")`**
+  builds the `Surv(time, status) ~ exposure + confounders` call, subsets to
+  cases + subcohort members (censored non-members contribute nothing to the
+  pseudo-likelihood), and delegates to `survival::cch` with `cohort.size =
+  nrow(data)`. `contrast()` reports the exposure's **hazard ratio** (`type = "hr"`)
+  using the variance that `survival::cch` returns for the chosen method — the
+  correct asymptotic / pseudo-likelihood variance, not the naive information matrix.
+- The pseudo-likelihood's dependent score factors mean its controls (subcohort
+  members) are reused across failure times, so the naive information-matrix SE is
+  never used. Self-Prentice and Prentice share the same asymptotic variance; LinYing
+  uses an independent robust variance estimator.
+- `type = "or"`, `"difference"`, `"ratio"` and `ci_method = "sandwich"`,
+  `"bootstrap"` are rejected for this estimator.
+- New functions: `fit_cch()`, `contrast_cch()`, `cch_exposure_coef_names()` in
+  `R/case_cohort.R`. Wired in `R/dispatch.R`, `R/contrast.R`, `R/cc_design.R`.
+- Tests in `tests/testthat/test-case_cohort.R`: nwtco oracle (3 methods vs direct
+  `survival::cch` call), truth recovery within 3.5 SE, full-cohort `coxph`
+  agreement, structural checks, and all rejection paths.
+
 ## 2026-06-08 — Counter-matched NCC sampler and weighted partial likelihood (PHASE_5 Chunk 3)
 
 Adds `sample_ncc_counter_matched()` and the `weighted_cox` engine for the

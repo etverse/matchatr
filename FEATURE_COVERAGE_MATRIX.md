@@ -350,7 +350,34 @@ and each control represents the opposite stratum divided by the controls drawn
 
 ## Case-cohort (PHASE_6)
 
-_Pending implementation._
+**Chunk 1 implemented — Prentice, Self-Prentice, and Lin-Ying pseudo-likelihood
+hazard ratio.** `matcha(design = case_cohort(subcohort, time, method, id),
+estimator = "cch")` subsets to cases + subcohort members, builds the
+`Surv(time, status) ~ exposure + confounders` formula, and delegates to
+`survival::cch`. `contrast()` reports the exposure's **hazard ratio** using the
+variance `survival::cch` returns for the chosen method (Self-Prentice asymptotic;
+Lin-Ying robust). The naive information-matrix SE is never used (dependent score
+factors due to subcohort reuse across failure times). Borgan I/II (stratified
+subcohort) and absolute risk are deferred to Chunks 2–3.
+
+| Method | Estimand | Variance | Status | Test |
+|---|---|---|---|---|
+| Prentice | HR | Self-Prentice asymptotic | ✅ nwtco oracle (vs `survival::cch` exact equality) + truth DGP (within 3.5 SE) + full-cohort `coxph` agreement | `test-case_cohort.R` |
+| SelfPrentice | HR | Self-Prentice asymptotic | ✅ nwtco oracle (vs `survival::cch` exact equality) | `test-case_cohort.R` |
+| LinYing | HR | Lin-Ying robust | ✅ nwtco oracle (vs `survival::cch` exact equality) + truth DGP (within 3.5 SE) | `test-case_cohort.R` |
+| any, `type = "or"` | — | — | ⛔ `matchatr_unidentified_estimand` | `test-case_cohort.R` |
+| any, `type = "difference"` / `"ratio"` | — | — | ⛔ `matchatr_unidentified_estimand` | `test-case_cohort.R` |
+| any, `ci_method = "sandwich"` / `"bootstrap"` | — | — | ⛔ `matchatr_unsupported_variance` | `test-case_cohort.R` |
+| invalid method string | — | — | ⛔ `matchatr_bad_input` (snapshot) | `test-case_cohort.R` |
+| missing subcohort / time column | — | — | ⛔ `matchatr_bad_design` | `test-case_cohort.R` |
+| Borgan I/II (stratified subcohort) | HR | plug-in asymptotic | ❌ pending Chunk 2 |
+| absolute risk F_x(t) | — | Breslow + delta | ❌ pending Chunk 3 |
+
+`fit_cch()` / `contrast_cch()` / `cch_exposure_coef_names()` live in
+`R/case_cohort.R`. The coefficient-name lookup builds a fresh `model.matrix()`
+from the user-facing formula (matching the `cch` coefficient names exactly, which
+use standard R contrasts) rather than using `term_assign()`, because
+`survival::cch` rewrites its internal formula in a non-standard form.
 
 ## IPW for nested case-control (PHASE_7)
 

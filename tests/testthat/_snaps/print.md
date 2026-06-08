@@ -40,6 +40,7 @@
        Type:       Case-cohort
        Time:       t
        Subcohort:  in_subcohort
+       Method:     Prentice
        Weights:    inclusion-probability
 
 ---

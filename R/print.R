@@ -28,6 +28,9 @@ print.matchatr_design <- function(x, ...) {
   if (!is.null(x$weights)) {
     cat(" Log-weights:", x$weights, "\n", sep = "")
   }
+  if (!is.null(x$method)) {
+    cat(" Method:     ", x$method, "\n", sep = "")
+  }
   if (!is.null(x$phase1)) {
     cat(" Phase 1:    ", paste(x$phase1, collapse = ", "), "\n", sep = "")
   }
