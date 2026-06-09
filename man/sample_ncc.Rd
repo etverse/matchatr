@@ -123,6 +123,7 @@ ncc_ipw[, c("id", "case", "set", "ipw_weight", ".cohort_row")]
 \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=matcha]{matcha()}}, \code{\link[Epi:ccwc]{Epi::ccwc()}}
 
 Other sampling: 
+\code{\link{compute_ncc_weights}()},
 \code{\link{sample_ncc_counter_matched}()}
 }
 \concept{sampling}

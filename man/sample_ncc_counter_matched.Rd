@@ -104,6 +104,7 @@ contrast(fit)
 \code{\link[=counter_matched]{counter_matched()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=sample_ncc]{sample_ncc()}}
 
 Other sampling: 
+\code{\link{compute_ncc_weights}()},
 \code{\link{sample_ncc}()}
 }
 \concept{sampling}
