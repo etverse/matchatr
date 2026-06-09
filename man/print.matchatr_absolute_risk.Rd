@@ -24,6 +24,7 @@ of covariate patterns, followed by the estimates table.
 
 Other contrasts: 
 \code{\link{absolute_risk}()},
+\code{\link{contrast}()},
 \code{\link{tidy.matchatr_absolute_risk}()}
 }
 \concept{contrasts}

@@ -118,3 +118,4 @@ matcha(df, outcome = "case", exposure = "x",
 \seealso{
 \code{\link[=unmatched_cc]{unmatched_cc()}}, \code{\link[=matched_cc]{matched_cc()}}, \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=case_cohort]{case_cohort()}}
 }
+\concept{fitting}

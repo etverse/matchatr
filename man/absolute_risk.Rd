@@ -62,6 +62,7 @@ absolute_risk(fit, newdata = data.frame(x = 1, z = 0), times = c(1, 2, 3))
 \code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=case_cohort]{case_cohort()}}
 
 Other contrasts: 
+\code{\link{contrast}()},
 \code{\link{print.matchatr_absolute_risk}()},
 \code{\link{tidy.matchatr_absolute_risk}()}
 }

@@ -1,0 +1,226 @@
+---
+title: "Case-cohort hazard ratios and absolute risk"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Case-cohort hazard ratios and absolute risk}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+A *case-cohort* study draws a random **subcohort** from the full cohort at
+baseline and augments it with every case (regardless of subcohort membership).
+The key advantage over nested case-control sampling is that the subcohort serves
+as a control group simultaneously for all endpoints of interest — even endpoints
+ascertained years apart — because selection happens once, at the start. Controls
+are reused across failure times, which is what makes the pseudo-likelihood
+analysis necessary.
+
+matchatr wraps `survival::cch()`, which implements the Prentice, Self-Prentice,
+Lin-Ying, and Borgan I/II pseudo-likelihoods with their correct asymptotic
+variances. The additional absolute-risk layer (IPW Breslow cumulative baseline
+hazard) is matchatr's own.
+
+```{r}
+#| message: false
+library(matchatr)
+library(survival)
+```
+
+## The Wilms tumour data
+
+We use `survival::nwtco`, the standard case-cohort example from the
+*Handbook of Statistical Methods for Case-Control Studies*. A random subcohort
+of 668 subjects was drawn from 4 028 children enrolled in the National Wilms
+Tumour Study. The endpoint is relapse (`rel`); the exposure of interest is
+histological type (`histol`: 1 = unfavourable). The subcohort indicator is
+`in.subcohort`.
+
+```{r}
+nwtco2 <- nwtco
+nwtco2$subcohort <- as.logical(nwtco2$in.subcohort)
+nwtco2$stage     <- factor(nwtco2$stage)
+
+cat("Cohort size: ", nrow(nwtco2), "\n")
+cat("Subcohort:   ", sum(nwtco2$subcohort), " (~",
+    round(100 * mean(nwtco2$subcohort)), "%)\n", sep = "")
+cat("Relapses:    ", sum(nwtco2$rel), "\n")
+```
+
+`matcha()` takes the **full cohort** — it subsets internally to
+cases + subcohort members before calling `cch()`, so the denominators for the
+per-stratum cohort sizes are computed correctly.
+
+## Hazard ratio: Prentice pseudo-likelihood
+
+The Prentice (1986) pseudo-likelihood augments each risk set with the case if
+the case falls outside the subcohort. `contrast()` reports the hazard ratio with
+the Self-Prentice corrected asymptotic variance (the naive information-matrix SE
+is not valid here because controls are reused across failure times).
+
+```{r}
+fit <- matcha(
+  nwtco2,
+  outcome     = "rel",
+  exposure    = "histol",
+  design      = case_cohort(subcohort = "subcohort", time = "edrel",
+                            method = "Prentice"),
+  confounders = ~ stage + age,
+  estimator   = "cch"
+)
+fit
+contrast(fit)       # type = "hr" is the default for a case-cohort design
+```
+
+Unfavourable histology roughly doubles the relapse hazard conditional on stage
+and age at diagnosis.
+
+## Alternative pseudo-likelihoods
+
+Three further methods are supported. `"SelfPrentice"` uses the subcohort alone
+at each failure time (slightly more efficient); `"LinYing"` uses the full
+subcohort plus all failures (Lin & Ying 1993).
+
+```{r}
+fit_sp <- matcha(nwtco2, "rel", "histol",
+                 design = case_cohort("subcohort", "edrel",
+                                      method = "SelfPrentice"),
+                 confounders = ~ stage + age, estimator = "cch")
+fit_ly <- matcha(nwtco2, "rel", "histol",
+                 design = case_cohort("subcohort", "edrel",
+                                      method = "LinYing"),
+                 confounders = ~ stage + age, estimator = "cch")
+
+rbind(
+  Prentice    = unlist(contrast(fit)$contrasts[1, c("estimate", "ci_lower", "ci_upper")]),
+  SelfPrentice = unlist(contrast(fit_sp)$contrasts[1, c("estimate", "ci_lower", "ci_upper")]),
+  LinYing     = unlist(contrast(fit_ly)$contrasts[1, c("estimate", "ci_lower", "ci_upper")])
+)
+```
+
+All three methods agree closely; differences reflect the distinct variance
+estimators rather than the point estimates.
+
+## Stratified subcohorts: Borgan I/II
+
+When the subcohort is drawn by stratified sampling (e.g. oversampling a rare
+exposure group), the Borgan (2000) IPW estimators weight each risk-set
+contribution by the inverse of its stratum-specific subcohort sampling fraction
+`N_s / n_sub_s`. Provide the stratification column via `stratum =`.
+
+```{r}
+fit_b2 <- matcha(
+  nwtco2,
+  outcome     = "rel",
+  exposure    = "histol",
+  design      = case_cohort(subcohort = "subcohort", time = "edrel",
+                            method = "II.Borgan", stratum = "stage"),
+  confounders = ~ age,
+  estimator   = "cch"
+)
+contrast(fit_b2)
+```
+
+Requesting a Borgan method without supplying `stratum` is declined:
+
+```{r}
+#| error: true
+matcha(nwtco2, "rel", "histol",
+       design = case_cohort("subcohort", "edrel", method = "I.Borgan"),
+       confounders = ~ stage + age, estimator = "cch")
+```
+
+## Absolute risk: IPW Breslow cumulative baseline hazard
+
+`absolute_risk()` evaluates the cumulative incidence
+F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) at specified times, where Λ̂₀(t) is the
+IPW Breslow estimator. The subcohort-only risk-set denominator at each event
+time is scaled by the inverse sampling fraction `N / n_sub` (or per-stratum
+`N_s / n_sub_s` for Borgan methods) so the estimate targets the full-cohort
+baseline hazard. Pointwise confidence intervals use the delta method on the
+complementary log-log scale.
+
+```{r}
+# Two covariate profiles: favourable vs unfavourable histology, median age
+nd <- data.frame(
+  histol = c(0L, 1L),
+  stage  = factor(c(2, 2), levels = 1:4),
+  age    = c(3, 3)
+)
+
+ar <- absolute_risk(fit, newdata = nd, times = c(500, 1000, 2000))
+tidy(ar)
+```
+
+We can compare the case-cohort absolute risk against the full-cohort Kaplan-Meier
+/ Cox curves. Because the subcohort is only ~17% of the cohort, individual-run
+sampling variability is visible, but the estimates track the full-cohort curve
+closely.
+
+```{r}
+cox_full <- coxph(Surv(edrel, rel) ~ histol + stage + age, data = nwtco2)
+sf_full  <- survfit(cox_full, newdata = nd)
+f_full   <- summary(sf_full, times = c(500, 1000, 2000))$surv
+f_full   <- 1 - f_full
+
+cat("Full-cohort F_x(t) [histol=0, histol=1]:\n")
+print(round(f_full, 3))
+
+cat("\nIPW Breslow F_x(t) [histol=0, histol=1]:\n")
+est_wide <- matrix(ar$estimates$estimate, nrow = 2, byrow = FALSE)
+print(round(est_wide, 3))
+```
+
+## One scale per design
+
+A case-cohort fit identifies the **hazard ratio**. Requesting an odds ratio
+(appropriate for matched case-control data) is declined:
+
+```{r}
+#| error: true
+contrast(fit, type = "or")
+```
+
+A marginal risk difference / risk ratio also requires a source-population
+prevalence `q0` that the standard case-cohort analysis does not supply.
+
+## Covered combinations
+
+**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.
+
+| Method | Subcohort | Estimand | Variance | Status |
+|---|---|---|---|---|
+| Prentice | simple | HR | Self-Prentice asymptotic | ✅ |
+| SelfPrentice / LinYing | simple | HR | asymptotic | ✅ |
+| I.Borgan | stratified | HR | Borgan asymptotic | ✅ |
+| II.Borgan | stratified | HR | plug-in asymptotic | ✅ |
+| any method | — | absolute risk F_x(t) | IPW Breslow + delta log-log CI | ✅ |
+| Borgan I/II, no `stratum` | — | — | ⛔ `matchatr_bad_design` |
+| any method | — | odds ratio | ⛔ use `type = "hr"` |
+| any method | — | RD / RR | ⛔ need `q0` |
+| any method | — | sandwich / bootstrap CI | ⛔ `matchatr_unsupported_variance` |
+
+See `FEATURE_COVERAGE_MATRIX.md` for the full combination table.
+
+## References
+
+Prentice RL (1986). A case-cohort design for epidemiologic cohort studies and
+disease prevention trials. *Biometrika* 73(1):1-11.
+
+Self SG, Prentice RL (1988). Asymptotic distribution theory and efficiency
+results for case-cohort studies. *Annals of Statistics* 16(1):64-81.
+
+Lin DY, Ying Z (1993). Cox regression with incomplete covariate measurements.
+*Journal of the American Statistical Association* 88(422):1341-1349.
+
+Borgan Ø, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure
+stratified case-cohort designs. *Lifetime Data Analysis* 6(1):39-58.
+
+Borgan Ø, Liestøl K (1990). A note on confidence intervals and bands for the
+survival function based on transformations. *Scandinavian Journal of Statistics*
+17(1):35-41.

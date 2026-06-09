@@ -101,4 +101,8 @@ contrast(fit)
 }
 \seealso{
 \code{\link[=counter_matched]{counter_matched()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=sample_ncc]{sample_ncc()}}
+
+Other sampling: 
+\code{\link{sample_ncc}()}
 }
+\concept{sampling}

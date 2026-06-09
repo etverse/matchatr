@@ -79,6 +79,7 @@
 #'               estimator = "clogit")
 #' contrast(fit)
 #'
+#' @family sampling
 #' @seealso [nested_cc()], [matcha()], [Epi::ccwc()]
 #' @export
 sample_ncc <- function(cohort, time, event, m = 1, match = NULL, entry = NULL) {
@@ -374,6 +375,7 @@ eligible_controls <- function(case_row, tvec, entryvec, match_key) {
 #'               estimator = "weighted_cox")
 #' contrast(fit)
 #'
+#' @family sampling
 #' @seealso [counter_matched()], [matcha()], [sample_ncc()]
 #' @export
 sample_ncc_counter_matched <- function(

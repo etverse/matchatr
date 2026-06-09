@@ -88,6 +88,7 @@
 #' matcha(df, outcome = "case", exposure = "x",
 #'        design = matched_cc(strata = "set"), estimator = "clogit")
 #'
+#' @family fitting
 #' @seealso [unmatched_cc()], [matched_cc()], [nested_cc()], [case_cohort()]
 #' @export
 matcha <- function(

@@ -58,6 +58,7 @@
 #' # The risk difference is not (no prevalence q0):
 #' try(contrast(fit, type = "difference"))
 #'
+#' @family contrasts
 #' @seealso [matcha()], [tidy.matchatr_fit()]
 #' @export
 contrast <- function(
