@@ -1,5 +1,13 @@
 # matchatr (development version)
 
+## 2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)
+
+`fit_cch()` computed `n_dropped = nrow(subset_dt) - model$n`, but `model$n` for
+a `survival::cch` object equals `subcohort_size + n_events` — it double-counts
+subjects who are both subcohort members and cases. `n_dropped` was therefore
+always negative and the warning could never fire. Removed the dead code; NA
+handling is left to `survival::cch`'s own `na.action`.
+
 ## 2026-06-09 — Borgan I/II IPW case-cohort estimators (PHASE_6 Chunk 2)
 
 Extends the `cch` engine with the Borgan I/II IPW estimators for stratified

@@ -28,8 +28,7 @@
 #' full data; for simple-subcohort methods it is `nrow(data)`.
 #'
 #' Missing values in the outcome, exposure, or confounders are handled by
-#' `survival::cch`'s default `na.action`; a `matchatr_dropped_rows` warning
-#' reports how many rows were dropped.
+#' `survival::cch`'s default `na.action`.
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"cch"`, carrying
 #'   the analysis `data` (full cohort), the `outcome` / `exposure` column
@@ -138,20 +137,6 @@ fit_cch <- function(fit) {
     method = method
   )
 
-  # survival::cch may silently drop rows with missing values; warn if so.
-  n_dropped <- length(in_sample[in_sample]) - model$n
-  if (n_dropped > 0L) {
-    rlang::warn(
-      c(
-        paste0(
-          n_dropped,
-          " row(s) with missing values were dropped from the fit."
-        ),
-        i = "The hazard ratio is estimated on the complete cases only."
-      ),
-      class = c("matchatr_dropped_rows", "matchatr_warning")
-    )
-  }
   model
 }
 
