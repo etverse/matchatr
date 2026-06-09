@@ -34,6 +34,10 @@ website:
           - vignettes/multiple-groups.qmd
       # Single-item section: explicit text:/file: form (see note above) so the
       # one-item sequence is not collapsed to a broken scalar.
+      - section: Case-cohort designs
+        contents:
+          - text: "Case-cohort hazard ratios and absolute risk"
+            file: vignettes/case-cohort.qmd
       - section: Risk-set designs
         contents:
           - text: "Nested case-control"
