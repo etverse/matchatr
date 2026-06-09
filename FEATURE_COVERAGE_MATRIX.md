@@ -374,7 +374,10 @@ subcohort) and absolute risk are deferred to Chunks 2–3.
 | II.Borgan (stratified) | HR | Borgan asymptotic | ✅ nwtco oracle (vs `survival::cch` exact equality) + truth DGP (within 3.5 SE) | `test-case_cohort.R` |
 | Borgan I/II without `stratum` | — | — | ⛔ `matchatr_bad_design` (snapshot) | `test-case_cohort.R` |
 | missing `stratum` column in data | — | — | ⛔ `matchatr_bad_design` | `test-case_cohort.R` |
-| absolute risk F_x(t) | — | Breslow + delta | ❌ pending Chunk 3 |
+| absolute risk F_x(t), Prentice / SelfPrentice / LinYing | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ nwtco oracle (vs full-cohort survfit, tolerance 0.06) + truth DGP (exponential, CI covers truth) | `test-absolute_risk.R` |
+| absolute risk F_x(t), Borgan I/II stratified | F̂_x(t) | per-stratum IPW Breslow + delta-method CI | ✅ structural + CI-ordering check | `test-absolute_risk.R` |
+| `absolute_risk()` on non-cch engine | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
+| mismatched `newdata` columns | — | — | ⛔ `matchatr_bad_input` | `test-absolute_risk.R` |
 
 `fit_cch()` / `contrast_cch()` / `cch_exposure_coef_names()` live in
 `R/case_cohort.R`. The coefficient-name lookup builds a fresh `model.matrix()`

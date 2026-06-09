@@ -1,5 +1,25 @@
 # matchatr (development version)
 
+## 2026-06-09 — IPW Breslow absolute risk from case-cohort fits (PHASE_6 Chunk 3)
+
+New exported verb `absolute_risk(fit, newdata, times)` for `matchatr_fit` objects
+fitted with the `"cch"` engine. Returns `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))`
+at each evaluation time for each row of `newdata`.
+
+- **IPW Breslow cumulative baseline hazard** `Λ̂₀(t)`: at each event time t_k the
+  denominator is scaled by `N / n_sub` (cohort size over subcohort size) so the
+  subcohort-only risk set correctly represents the full cohort. For Borgan I/II
+  stratified methods the per-stratum weight `N_s / n_sub_s` is used instead.
+- **Pointwise CIs** via the delta method on the complementary log-log scale
+  (`log(−log(1 − F))`) — the standard log-log CI for the survival function inverted
+  to the cumulative-incidence scale. Variance = `x′ V_β x + Σ (dΛ̂₀)² / Λ̂₀²`.
+- **All five `cch` methods** (Prentice, SelfPrentice, LinYing, I.Borgan, II.Borgan)
+  are handled; Borgan I/II use per-stratum IPW weights.
+- Times before the first event return `F̂ = 0` exactly (fence-post at `t = 0` in
+  the Breslow step function). CIs are clamped to `[0, 1]`.
+- `tidy.matchatr_absolute_risk()` returns the long-form estimates `data.table`.
+- Non-`cch` engines abort with `matchatr_not_implemented`.
+
 ## 2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)
 
 `fit_cch()` computed `n_dropped = nrow(subset_dt) - model$n`, but `model$n` for
