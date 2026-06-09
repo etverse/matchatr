@@ -1,5 +1,22 @@
 # matchatr (development version)
 
+## 2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)
+
+Two correctness issues in the IPW NCC vignette and test suite.
+
+- **Vignette DGP**: `vignettes/ipw-ncc.qmd` generated the observed time `t` and
+  event indicator `d` from two independent `rexp(n, rate)` draws, producing
+  inconsistent censoring (658 subjects with `t < 5` but `d = 0`, 675 with
+  `t = 5` but `d = 1`). The biased DGP recovered HR ≈ 2.39 instead of the
+  true 2.0. Fixed to a single draw: `tt <- rexp(n, rate); t = pmin(tt, 5);
+  d = as.integer(tt <= 5)`. Also removed a dead first cohort block that was
+  immediately overwritten.
+- **Rejection test outcome column**: the `ipw_weight`-missing rejection test
+  passed `"case"` (the per-set NCC indicator) as the outcome; changed to `"d"`
+  (the cohort event indicator) to match documented usage. The test was
+  functionally correct (it errors before fitting) but modelled the wrong API
+  call.
+
 ## 2026-06-09 — Samuelsen KM IPW weights + `ipw_cox` engine for NCC data (PHASE_7 Chunk 1)
 
 Implements the IPW reformulation of nested case-control data: break the

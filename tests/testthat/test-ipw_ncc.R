@@ -284,7 +284,7 @@ test_that("matcha with ipw_cox and no ipw_weight column aborts", {
   expect_error(
     matcha(
       ncc,
-      "case",
+      "d",
       "exposure",
       nested_cc(strata = "set", time = "t"),
       estimator = "ipw_cox"
@@ -374,5 +374,5 @@ test_that("ci_method = 'sandwich' is accepted and gives finite CIs", {
   res <- contrast(fit, type = "hr", ci_method = "sandwich")
   expect_true(is.finite(res$contrasts$ci_lower))
   expect_true(is.finite(res$contrasts$ci_upper))
-  expect_gt(res$contrasts$ci_lower, 0)
+  expect_true(res$contrasts$ci_lower > 0 && res$contrasts$ci_upper > res$contrasts$ci_lower)
 })
