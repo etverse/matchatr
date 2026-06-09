@@ -7,6 +7,8 @@
 #       log-scale SE against a direct cch() call;
 #   (2) make_case_cohort_data() DGP with known Cox log-HR for coverage;
 #   (3) full-cohort coxph for the same DGP (agreement within sampling error).
+# No Python (delicatessen) oracle: the Prentice / Borgan pseudo-likelihood is
+# not an M-estimator and is not covered by delicatessen.
 
 # --- oracle: survival::nwtco Prentice method ----------------------------------
 
