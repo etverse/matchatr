@@ -107,6 +107,7 @@ default_contrast_type <- function(engine, design_type = NULL) {
     # Borgan 1995), not the OR. The weighted coxph returns exp(beta); the design
     # fixes the scale.
     weighted_cox = "hr",
+    cch = "hr",
     "difference"
   )
 }
@@ -214,6 +215,7 @@ run_engine <- function(fit) {
     mcnemar = fit_mcnemar(fit),
     multinom = fit_polytomous(fit),
     weighted_cox = fit_weighted_cox(fit),
+    cch = fit_cch(fit),
     NULL
   )
 }
@@ -234,6 +236,7 @@ design_columns <- function(design) {
     design$time,
     design$subcohort,
     design$weights,
+    design$id,
     design$phase1,
     design$phase2
   )
