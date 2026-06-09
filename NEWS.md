@@ -1,5 +1,33 @@
 # matchatr (development version)
 
+## 2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)
+
+`fit_cch()` computed `n_dropped = nrow(subset_dt) - model$n`, but `model$n` for
+a `survival::cch` object equals `subcohort_size + n_events` — it double-counts
+subjects who are both subcohort members and cases. `n_dropped` was therefore
+always negative and the warning could never fire. Removed the dead code; NA
+handling is left to `survival::cch`'s own `na.action`.
+
+## 2026-06-09 — Borgan I/II IPW case-cohort estimators (PHASE_6 Chunk 2)
+
+Extends the `cch` engine with the Borgan I/II IPW estimators for stratified
+subcohort sampling.
+
+- **`case_cohort(..., method = "I.Borgan", stratum = "<col>")`** and `"II.Borgan"`
+  now work end-to-end. `stratum` names the column that defines the subcohort
+  sampling strata; `survival::cch` weights each subject by the inverse of its
+  stratum-specific subcohort sampling fraction (Borgan et al. 2000).
+- **`cohort.size` is computed per stratum** from the full cohort (not the
+  cases+subcohort subset), so the denominator correctly reflects the total stratum
+  size. A named integer vector is passed to `survival::cch`.
+- `method = "I.Borgan"` or `"II.Borgan"` without `stratum` aborts with
+  `matchatr_bad_design`; a missing stratum column in the data aborts similarly.
+- `case_cohort()` gains the `stratum` parameter; `print.matchatr_design()` shows
+  the stratum column when present.
+- Tests in `test-case_cohort.R`: nwtco oracle for both Borgan methods (exact
+  coefficient and SE match vs direct `survival::cch`), truth DGP with two sampling
+  strata (`make_stratified_case_cohort_data()`), and rejection path snapshot.
+
 ## 2026-06-08 — Case-cohort Cox pseudo-likelihood (PHASE_6 Chunk 1)
 
 Adds the `case_cohort()` design constructor and the `cch` engine wrapping

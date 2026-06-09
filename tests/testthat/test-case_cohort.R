@@ -7,6 +7,8 @@
 #       log-scale SE against a direct cch() call;
 #   (2) make_case_cohort_data() DGP with known Cox log-HR for coverage;
 #   (3) full-cohort coxph for the same DGP (agreement within sampling error).
+# No Python (delicatessen) oracle: the Prentice / Borgan pseudo-likelihood is
+# not an M-estimator and is not covered by delicatessen.
 
 # --- oracle: survival::nwtco Prentice method ----------------------------------
 
@@ -461,6 +463,223 @@ test_that("matcha rejects case_cohort with missing time column", {
       outcome = "d",
       exposure = "x",
       design = case_cohort(subcohort = "subcohort", time = "t"),
+      estimator = "cch"
+    ),
+    class = "matchatr_bad_design"
+  )
+})
+
+# --- oracle: nwtco I.Borgan and II.Borgan methods ------------------------------
+
+test_that("fit_cch with I.Borgan matches survival::cch on nwtco", {
+  skip_if_not_installed("survival")
+  data(nwtco, package = "survival")
+
+  # Borgan methods need per-stratum cohort sizes and a stratum formula.
+  nwtco2 <- nwtco[nwtco$in.subcohort | nwtco$rel == 1L, ]
+  strat_sizes <- table(nwtco$instit)
+  oracle <- survival::cch(
+    survival::Surv(edrel, rel) ~ histol + stage + age,
+    data = nwtco2,
+    subcoh = ~in.subcohort,
+    id = ~seqno,
+    cohort.size = strat_sizes,
+    stratum = ~instit,
+    method = "I.Borgan"
+  )
+  oracle_log_hr <- unname(coef(oracle)["histol"])
+  oracle_se <- unname(sqrt(diag(vcov(oracle)))["histol"])
+
+  fit <- matcha(
+    nwtco,
+    outcome = "rel",
+    exposure = "histol",
+    design = case_cohort(
+      subcohort = "in.subcohort",
+      time = "edrel",
+      method = "I.Borgan",
+      id = "seqno",
+      stratum = "instit"
+    ),
+    confounders = ~ stage + age,
+    estimator = "cch"
+  )
+  r <- contrast(fit, type = "hr")
+
+  matchatr_log_hr <- log(r$contrasts$estimate)
+  matchatr_se_log <- r$contrasts$se / r$contrasts$estimate
+
+  expect_equal(matchatr_log_hr, oracle_log_hr, tolerance = 1e-6)
+  expect_equal(matchatr_se_log, oracle_se, tolerance = 1e-6)
+})
+
+test_that("fit_cch with II.Borgan matches survival::cch on nwtco", {
+  skip_if_not_installed("survival")
+  data(nwtco, package = "survival")
+
+  nwtco2 <- nwtco[nwtco$in.subcohort | nwtco$rel == 1L, ]
+  strat_sizes <- table(nwtco$instit)
+  oracle <- survival::cch(
+    survival::Surv(edrel, rel) ~ histol + stage + age,
+    data = nwtco2,
+    subcoh = ~in.subcohort,
+    id = ~seqno,
+    cohort.size = strat_sizes,
+    stratum = ~instit,
+    method = "II.Borgan"
+  )
+  oracle_log_hr <- unname(coef(oracle)["histol"])
+  oracle_se <- unname(sqrt(diag(vcov(oracle)))["histol"])
+
+  fit <- matcha(
+    nwtco,
+    outcome = "rel",
+    exposure = "histol",
+    design = case_cohort(
+      subcohort = "in.subcohort",
+      time = "edrel",
+      method = "II.Borgan",
+      id = "seqno",
+      stratum = "instit"
+    ),
+    confounders = ~ stage + age,
+    estimator = "cch"
+  )
+  r <- contrast(fit, type = "hr")
+
+  matchatr_log_hr <- log(r$contrasts$estimate)
+  matchatr_se_log <- r$contrasts$se / r$contrasts$estimate
+
+  expect_equal(matchatr_log_hr, oracle_log_hr, tolerance = 1e-6)
+  expect_equal(matchatr_se_log, oracle_se, tolerance = 1e-6)
+})
+
+# --- truth-based: stratified case-cohort DGP with known Cox log-HR ------------
+
+test_that("fit_cch I.Borgan recovers known log-HR within 3.5 SE", {
+  cohort <- make_stratified_case_cohort_data()
+  truth_beta_x <- unname(attr(cohort, "truth")["beta_x"])
+
+  fit <- matcha(
+    cohort,
+    outcome = "d",
+    exposure = "x",
+    design = case_cohort(
+      subcohort = "subcohort",
+      time = "t",
+      method = "I.Borgan",
+      id = "id",
+      stratum = "region"
+    ),
+    confounders = ~z,
+    estimator = "cch"
+  )
+  r <- contrast(fit, type = "hr")
+  log_hr <- log(r$contrasts$estimate)
+  se_log <- r$contrasts$se / r$contrasts$estimate
+
+  expect_equal(log_hr, truth_beta_x, tolerance = 3.5 * se_log)
+})
+
+test_that("fit_cch II.Borgan recovers known log-HR within 3.5 SE", {
+  cohort <- make_stratified_case_cohort_data()
+  truth_beta_x <- unname(attr(cohort, "truth")["beta_x"])
+
+  fit <- matcha(
+    cohort,
+    outcome = "d",
+    exposure = "x",
+    design = case_cohort(
+      subcohort = "subcohort",
+      time = "t",
+      method = "II.Borgan",
+      id = "id",
+      stratum = "region"
+    ),
+    confounders = ~z,
+    estimator = "cch"
+  )
+  r <- contrast(fit, type = "hr")
+  log_hr <- log(r$contrasts$estimate)
+  se_log <- r$contrasts$se / r$contrasts$estimate
+
+  expect_equal(log_hr, truth_beta_x, tolerance = 3.5 * se_log)
+})
+
+# --- Borgan rejections --------------------------------------------------------
+
+test_that("Borgan I without stratum aborts with matchatr_bad_design", {
+  skip_if_not_installed("survival")
+  data(nwtco, package = "survival")
+
+  expect_snapshot(
+    error = TRUE,
+    matcha(
+      nwtco,
+      outcome = "rel",
+      exposure = "histol",
+      design = case_cohort(
+        subcohort = "in.subcohort",
+        time = "edrel",
+        method = "I.Borgan",
+        id = "seqno"
+      ),
+      confounders = ~ stage + age,
+      estimator = "cch"
+    )
+  )
+})
+
+test_that("Borgan II without stratum aborts with matchatr_bad_design", {
+  cohort <- make_stratified_case_cohort_data()
+
+  expect_error(
+    matcha(
+      cohort,
+      outcome = "d",
+      exposure = "x",
+      design = case_cohort(
+        subcohort = "subcohort",
+        time = "t",
+        method = "II.Borgan",
+        id = "id"
+      ),
+      confounders = ~z,
+      estimator = "cch"
+    ),
+    class = "matchatr_bad_design"
+  )
+})
+
+test_that("case_cohort design print includes stratum when set", {
+  d <- case_cohort(
+    subcohort = "in_sc",
+    time = "t",
+    method = "I.Borgan",
+    stratum = "region"
+  )
+  out <- capture.output(print(d))
+  expect_true(any(grepl("region", out)))
+  expect_true(any(grepl("I.Borgan", out)))
+})
+
+test_that("matcha rejects case_cohort with missing stratum column", {
+  cohort <- make_stratified_case_cohort_data()
+  cohort$region <- NULL
+
+  expect_error(
+    matcha(
+      cohort,
+      outcome = "d",
+      exposure = "x",
+      design = case_cohort(
+        subcohort = "subcohort",
+        time = "t",
+        method = "I.Borgan",
+        id = "id",
+        stratum = "region"
+      ),
+      confounders = ~z,
       estimator = "cch"
     ),
     class = "matchatr_bad_design"

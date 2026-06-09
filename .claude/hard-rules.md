@@ -169,6 +169,12 @@ Project-specific rules that override / extend the etverse-wide rules at
   `model$n` still counts the rows of an *uninformative* stratum that `clogit`
   drops from the likelihood, so a dropped stratum does NOT inflate `n_dropped`
   and triggers no `matchatr_dropped_rows` warning — do not "fix" this.
+- **For a `survival::cch` fit, `model$n` ≠ nrow(subset).** `cch$n` equals
+  `subcohort_size + n_events`, double-counting subjects who are both subcohort
+  members and cases. `nrow(subset) - cch$n` is therefore always negative and
+  cannot detect NA-dropped rows. Do NOT attempt `n_dropped = nrow(data) - cch$n`;
+  NA handling is delegated to `survival::cch` via its `na.action`. There is no
+  simple `model$n`-based NA-drop check for `cch` fits.
 - **The only oracle that validates the matched-CC conditional VARIANCE
   independently of `survival::clogit` is the 1:1 McNemar closed form**:
   OR = n10/n01, Var(log OR) = 1/n10 + 1/n01 over the discordant pairs. Comparing

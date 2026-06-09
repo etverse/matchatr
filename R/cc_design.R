@@ -163,24 +163,35 @@ nested_cc <- function(strata, time, ratio = NULL) {
 #' @param method Character scalar naming the pseudo-likelihood method passed to
 #'   [survival::cch()]. One of `"Prentice"` (the default), `"SelfPrentice"`,
 #'   `"LinYing"`, `"I.Borgan"`, or `"II.Borgan"`. The first three are for
-#'   simple (unstratified) subcohorts; the Borgan variants are for stratified
-#'   subcohorts. `"Prentice"` and `"SelfPrentice"` share the same asymptotic
-#'   variance; `"LinYing"` uses an independent variance estimator.
+#'   simple (unstratified) subcohorts; the Borgan variants require stratified
+#'   subcohort sampling and need `stratum` to be supplied. `"Prentice"` and
+#'   `"SelfPrentice"` share the same asymptotic variance; `"LinYing"` uses an
+#'   independent variance estimator; `"I.Borgan"` and `"II.Borgan"` are IPW
+#'   estimators for stratified subcohorts with plug-in asymptotic variance.
 #' @param id `NULL` or a single character string naming the subject-identifier
 #'   column. When `NULL` (the default) the original row positions in the data
 #'   are used as synthetic IDs. Supply an ID column when subjects can appear
 #'   both as subcohort members and as cases (the common case-cohort situation):
 #'   [survival::cch()] uses the ID to correctly pair each subject's two
 #'   appearances.
+#' @param stratum `NULL` or a non-empty character vector naming the column(s)
+#'   defining the subcohort sampling strata. Required when `method` is
+#'   `"I.Borgan"` or `"II.Borgan"`: both IPW estimators weight each subject by
+#'   the inverse of its stratum-specific subcohort sampling fraction, so the
+#'   stratum boundaries must be known. When `method` is `"Prentice"`,
+#'   `"SelfPrentice"`, or `"LinYing"` the `stratum` argument is ignored (those
+#'   estimators assume a simple random subcohort).
 #'
 #' @returns A `matchatr_design` object of `type` `"case_cohort"` carrying the
-#'   subcohort, time, method, and (optionally) id columns, with a `weight_spec`
-#'   flagged for inclusion-probability weighting.
+#'   subcohort, time, method, stratum, and (optionally) id columns, with a
+#'   `weight_spec` flagged for inclusion-probability weighting.
 #'
 #' @examples
 #' case_cohort(subcohort = "in_subcohort", time = "t")
 #' case_cohort(subcohort = "in_subcohort", time = "t", method = "LinYing")
 #' case_cohort(subcohort = "in_subcohort", time = "t", id = "subject_id")
+#' case_cohort(subcohort = "in_subcohort", time = "t",
+#'             method = "I.Borgan", stratum = "region")
 #'
 #' @family design constructors
 #' @seealso [nested_cc()], [matcha()]
@@ -189,7 +200,8 @@ case_cohort <- function(
   subcohort,
   time,
   method = "Prentice",
-  id = NULL
+  id = NULL,
+  stratum = NULL
 ) {
   check_string(subcohort)
   check_string(time)
@@ -218,12 +230,16 @@ case_cohort <- function(
   if (!is.null(id)) {
     check_string(id)
   }
+  if (!is.null(stratum)) {
+    check_character(stratum, class = "matchatr_bad_input")
+  }
   new_matchatr_design(
     type = "case_cohort",
     subcohort = subcohort,
     time = time,
     method = method,
     id = id,
+    stratum = stratum,
     weight_spec = list(kind = "inclusion"),
     call = match.call()
   )
@@ -339,6 +355,8 @@ counter_matched <- function(strata, time, weights = NULL, ratio = NULL) {
 #'   `"II.Borgan"`), or `NULL`.
 #' @param id Character scalar subject-identifier column for case-cohort
 #'   designs, or `NULL` (row positions used as synthetic IDs).
+#' @param stratum Character vector of subcohort sampling stratum column(s) for
+#'   Borgan IPW estimators, or `NULL` for simple (unstratified) subcohorts.
 #' @param phase1 Character vector of phase-1 strata, or `NULL`.
 #' @param phase2 Character scalar phase-2 selection column, or `NULL`.
 #' @param weight_spec Named list describing the intended weighting scheme.
@@ -356,6 +374,7 @@ new_matchatr_design <- function(
   weights = NULL,
   method = NULL,
   id = NULL,
+  stratum = NULL,
   phase1 = NULL,
   phase2 = NULL,
   weight_spec = list(kind = "none"),
@@ -372,6 +391,7 @@ new_matchatr_design <- function(
       weights = weights,
       method = method,
       id = id,
+      stratum = stratum,
       phase1 = phase1,
       phase2 = phase2,
       weight_spec = weight_spec,

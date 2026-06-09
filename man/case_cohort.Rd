@@ -4,7 +4,7 @@
 \alias{case_cohort}
 \title{Case-cohort design}
 \usage{
-case_cohort(subcohort, time, method = "Prentice", id = NULL)
+case_cohort(subcohort, time, method = "Prentice", id = NULL, stratum = NULL)
 }
 \arguments{
 \item{subcohort}{A single character string naming the 0/1 (or logical)
@@ -15,9 +15,11 @@ column flagging subcohort membership.}
 \item{method}{Character scalar naming the pseudo-likelihood method passed to
 \code{\link[survival:cch]{survival::cch()}}. One of \code{"Prentice"} (the default), \code{"SelfPrentice"},
 \code{"LinYing"}, \code{"I.Borgan"}, or \code{"II.Borgan"}. The first three are for
-simple (unstratified) subcohorts; the Borgan variants are for stratified
-subcohorts. \code{"Prentice"} and \code{"SelfPrentice"} share the same asymptotic
-variance; \code{"LinYing"} uses an independent variance estimator.}
+simple (unstratified) subcohorts; the Borgan variants require stratified
+subcohort sampling and need \code{stratum} to be supplied. \code{"Prentice"} and
+\code{"SelfPrentice"} share the same asymptotic variance; \code{"LinYing"} uses an
+independent variance estimator; \code{"I.Borgan"} and \code{"II.Borgan"} are IPW
+estimators for stratified subcohorts with plug-in asymptotic variance.}
 
 \item{id}{\code{NULL} or a single character string naming the subject-identifier
 column. When \code{NULL} (the default) the original row positions in the data
@@ -25,11 +27,19 @@ are used as synthetic IDs. Supply an ID column when subjects can appear
 both as subcohort members and as cases (the common case-cohort situation):
 \code{\link[survival:cch]{survival::cch()}} uses the ID to correctly pair each subject's two
 appearances.}
+
+\item{stratum}{\code{NULL} or a non-empty character vector naming the column(s)
+defining the subcohort sampling strata. Required when \code{method} is
+\code{"I.Borgan"} or \code{"II.Borgan"}: both IPW estimators weight each subject by
+the inverse of its stratum-specific subcohort sampling fraction, so the
+stratum boundaries must be known. When \code{method} is \code{"Prentice"},
+\code{"SelfPrentice"}, or \code{"LinYing"} the \code{stratum} argument is ignored (those
+estimators assume a simple random subcohort).}
 }
 \value{
 A \code{matchatr_design} object of \code{type} \code{"case_cohort"} carrying the
-subcohort, time, method, and (optionally) id columns, with a \code{weight_spec}
-flagged for inclusion-probability weighting.
+subcohort, time, method, stratum, and (optionally) id columns, with a
+\code{weight_spec} flagged for inclusion-probability weighting.
 }
 \description{
 Declares a case-cohort sample: a random subcohort drawn from the full cohort
@@ -44,6 +54,8 @@ matrix.
 case_cohort(subcohort = "in_subcohort", time = "t")
 case_cohort(subcohort = "in_subcohort", time = "t", method = "LinYing")
 case_cohort(subcohort = "in_subcohort", time = "t", id = "subject_id")
+case_cohort(subcohort = "in_subcohort", time = "t",
+            method = "I.Borgan", stratum = "region")
 
 }
 \seealso{

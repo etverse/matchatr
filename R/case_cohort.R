@@ -1,38 +1,39 @@
 #' Fit a case-cohort Cox pseudo-likelihood
 #'
-#' Fits the Prentice, Self-Prentice, or Lin-Ying pseudo-likelihood hazard
-#' ratio for a case-cohort sample via [survival::cch()]. The case-cohort
+#' Fits the Prentice, Self-Prentice, Lin-Ying, or Borgan I/II pseudo-likelihood
+#' hazard ratio for a case-cohort sample via [survival::cch()]. The case-cohort
 #' design draws a random subcohort from the full cohort at baseline and
 #' augments it with every case; controls are reused across failure times, so
 #' the pseudo-likelihood's dependent score factors mean the variance does NOT
 #' come from the naive information matrix. `survival::cch` returns the correct
-#' asymptotic (Self-Prentice) or robust (Lin-Ying) variance; matchatr passes
-#' it through unchanged.
+#' asymptotic or robust variance; matchatr passes it through unchanged.
 #'
 #' @details
-#' The three unstratified methods differ in which "risk set" backs each failure
-#' time:
+#' The unstratified methods differ in which "risk set" backs each failure time:
 #' - `"Prentice"` uses the subcohort members at risk plus the case if the case
 #'   is outside the subcohort. Score-unbiased.
 #' - `"SelfPrentice"` uses only the subcohort members at risk. Same asymptotic
 #'   variance as Prentice (Self & Prentice 1988).
 #' - `"LinYing"` uses the full subcohort plus all failures. The robust variance
-#'   estimator (Lin & Ying 1993) is returned by default; the conservative
-#'   design-based SE is available via `robust = TRUE` inside `cch`.
+#'   estimator (Lin & Ying 1993) is returned by default.
+#'
+#' The Borgan IPW estimators (`"I.Borgan"`, `"II.Borgan"`) weight each subject
+#' by the inverse of its stratum-specific subcohort sampling fraction (Borgan
+#' et al. 2000). They require a subcohort stratification column (`design$stratum`)
+#' and `cohort.size` must be a named per-stratum integer vector.
 #'
 #' `matcha()` is called with the FULL cohort; `fit_cch()` subsets internally
-#' to cases plus subcohort members before passing to `survival::cch`. The
-#' cohort size used in the pseudo-likelihood denominator is `nrow(data)` (the
-#' full cohort passed to `matcha()`).
+#' to cases plus subcohort members before passing to `survival::cch`. For
+#' Borgan methods the cohort.size denominator is computed per stratum from the
+#' full data; for simple-subcohort methods it is `nrow(data)`.
 #'
 #' Missing values in the outcome, exposure, or confounders are handled by
-#' `survival::cch`'s default `na.action`; a `matchatr_dropped_rows` warning
-#' reports how many rows were dropped.
+#' `survival::cch`'s default `na.action`.
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"cch"`, carrying
 #'   the analysis `data` (full cohort), the `outcome` / `exposure` column
 #'   names, the `confounders` formula (or `NULL`), and the design's `subcohort`,
-#'   `time`, `method`, and (optionally) `id` slots.
+#'   `time`, `method`, `stratum`, and (optionally) `id` slots.
 #' @returns A fitted `survival::cch` object.
 #' @family estimators
 #' @seealso [matcha()], [contrast()], [survival::cch()]
@@ -44,8 +45,30 @@ fit_cch <- function(fit) {
   time_col <- fit$design$time
   method <- fit$design$method %||% "Prentice"
   id_col <- fit$design$id
+  stratum_cols <- fit$design$stratum
 
-  n_cohort <- nrow(dt)
+  borgan_methods <- c("I.Borgan", "II.Borgan")
+  is_borgan <- method %in% borgan_methods
+
+  # Borgan IPW estimators weight each subject by the inverse of its
+  # stratum-specific subcohort sampling fraction (Borgan et al. 2000, Ch16.4),
+  # so the subcohort strata must be known at fit time.
+  if (is_borgan && is.null(stratum_cols)) {
+    rlang::abort(
+      c(
+        paste0(
+          "`method = \"",
+          method,
+          "\"` requires a subcohort stratification column."
+        ),
+        i = paste0(
+          "Supply `stratum = \"<column>\"` in `case_cohort()` to specify ",
+          "which column defines the subcohort sampling strata."
+        )
+      ),
+      class = c("matchatr_bad_design", "matchatr_error")
+    )
+  }
 
   # Subset to cases + subcohort members; censored non-subcohort subjects
   # contribute nothing to the pseudo-likelihood and survival::cch rejects them.
@@ -80,29 +103,40 @@ fit_cch <- function(fit) {
     response = paste0("survival::Surv(", time_col, ", ", outcome_col, ")")
   )
 
+  # For Borgan IPW methods, cohort.size must be a named integer vector (one
+  # entry per stratum level) so survival::cch can compute per-stratum sampling
+  # fractions. For simple-subcohort methods a scalar suffices.
+  if (is_borgan) {
+    stratum_formula <- stats::as.formula(
+      paste0("~", paste(stratum_cols, collapse = "+"))
+    )
+    # Count from the full cohort (dt, not the subset) so the denominator is the
+    # total stratum size regardless of how many cases fall outside the subcohort.
+    if (length(stratum_cols) == 1L) {
+      strat_vec <- dt[[stratum_cols]]
+    } else {
+      strat_vec <- interaction(dt[, stratum_cols, drop = FALSE], sep = ":")
+    }
+    strat_counts <- table(strat_vec)
+    cohort_size_arg <- stats::setNames(
+      as.integer(strat_counts),
+      names(strat_counts)
+    )
+  } else {
+    stratum_formula <- NULL
+    cohort_size_arg <- nrow(dt)
+  }
+
   model <- survival::cch(
     formula = model_formula,
     data = subset_dt,
     subcoh = stats::as.formula(paste0("~", subcohort_col)),
     id = id_vec,
-    cohort.size = n_cohort,
+    cohort.size = cohort_size_arg,
+    stratum = stratum_formula,
     method = method
   )
 
-  # survival::cch may silently drop rows with missing values; warn if so.
-  n_dropped <- length(in_sample[in_sample]) - model$n
-  if (n_dropped > 0L) {
-    rlang::warn(
-      c(
-        paste0(
-          n_dropped,
-          " row(s) with missing values were dropped from the fit."
-        ),
-        i = "The hazard ratio is estimated on the complete cases only."
-      ),
-      class = c("matchatr_dropped_rows", "matchatr_warning")
-    )
-  }
   model
 }
 

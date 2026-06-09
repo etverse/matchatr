@@ -237,6 +237,7 @@ design_columns <- function(design) {
     design$subcohort,
     design$weights,
     design$id,
+    design$stratum,
     design$phase1,
     design$phase2
   )

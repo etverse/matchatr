@@ -370,7 +370,10 @@ subcohort) and absolute risk are deferred to Chunks 2–3.
 | any, `ci_method = "sandwich"` / `"bootstrap"` | — | — | ⛔ `matchatr_unsupported_variance` | `test-case_cohort.R` |
 | invalid method string | — | — | ⛔ `matchatr_bad_input` (snapshot) | `test-case_cohort.R` |
 | missing subcohort / time column | — | — | ⛔ `matchatr_bad_design` | `test-case_cohort.R` |
-| Borgan I/II (stratified subcohort) | HR | plug-in asymptotic | ❌ pending Chunk 2 |
+| I.Borgan (stratified) | HR | Borgan asymptotic | ✅ nwtco oracle (vs `survival::cch` exact equality) + truth DGP (within 3.5 SE) | `test-case_cohort.R` |
+| II.Borgan (stratified) | HR | Borgan asymptotic | ✅ nwtco oracle (vs `survival::cch` exact equality) + truth DGP (within 3.5 SE) | `test-case_cohort.R` |
+| Borgan I/II without `stratum` | — | — | ⛔ `matchatr_bad_design` (snapshot) | `test-case_cohort.R` |
+| missing `stratum` column in data | — | — | ⛔ `matchatr_bad_design` | `test-case_cohort.R` |
 | absolute risk F_x(t) | — | Breslow + delta | ❌ pending Chunk 3 |
 
 `fit_cch()` / `contrast_cch()` / `cch_exposure_coef_names()` live in
