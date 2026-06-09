@@ -85,7 +85,12 @@ absolute_risk.matchatr_fit <- function(
       class = c("matchatr_bad_input", "matchatr_error")
     )
   }
-  absolute_risk_cch(fit, newdata = newdata, times = times, conf_level = conf_level)
+  absolute_risk_cch(
+    fit,
+    newdata = newdata,
+    times = times,
+    conf_level = conf_level
+  )
 }
 
 #' Compute IPW Breslow absolute risk for a cch fit
@@ -117,12 +122,20 @@ absolute_risk_cch <- function(fit, newdata, times, conf_level = 0.95) {
   # rule = 2 (extrapolate with endpoint value) gives the step-function convention:
   # before first event -> cumhaz = 0, after last event -> last cumhaz value.
   cumhaz_t <- stats::approx(
-    breslow$times, breslow$cumhaz,
-    xout = times, method = "constant", f = 0, rule = 2
+    breslow$times,
+    breslow$cumhaz,
+    xout = times,
+    method = "constant",
+    f = 0,
+    rule = 2
   )$y
   var_log_t <- stats::approx(
-    breslow$times, breslow$var_log_cumhaz,
-    xout = times, method = "constant", f = 0, rule = 2
+    breslow$times,
+    breslow$var_log_cumhaz,
+    xout = times,
+    method = "constant",
+    f = 0,
+    rule = 2
   )$y
   # Before the first event, the cumhaz is 0 so the variance is also 0.
   cumhaz_t[is.na(cumhaz_t)] <- 0
@@ -148,8 +161,11 @@ absolute_risk_cch <- function(fit, newdata, times, conf_level = 0.95) {
       if (!is.finite(lambda_x) || lambda_x <= 0) {
         # cumhaz_t = 0 before the first event -> F = 0 exactly, no CI needed
         rows[[k <- k + 1L]] <- list(
-          row = r, time = times[j],
-          estimate = 0, ci_lower = 0, ci_upper = 0
+          row = r,
+          time = times[j],
+          estimate = 0,
+          ci_lower = 0,
+          ci_upper = 0
         )
         next
       }
@@ -169,8 +185,11 @@ absolute_risk_cch <- function(fit, newdata, times, conf_level = 0.95) {
       ci_hi <- max(0, min(1, ci_hi))
 
       rows[[k <- k + 1L]] <- list(
-        row = r, time = times[j],
-        estimate = f_est, ci_lower = ci_lo, ci_upper = ci_hi
+        row = r,
+        time = times[j],
+        estimate = f_est,
+        ci_lower = ci_lo,
+        ci_upper = ci_hi
       )
     }
   }
@@ -260,8 +279,10 @@ ipw_breslow_cch <- function(fit, beta) {
     }
     strat_N <- table(strat_fac)
     strat_n_sub <- table(strat_fac[is_sc])
-    ipw_w <- as.numeric(strat_N[as.character(strat_fac)] /
-                          strat_n_sub[as.character(strat_fac)])
+    ipw_w <- as.numeric(
+      strat_N[as.character(strat_fac)] /
+        strat_n_sub[as.character(strat_fac)]
+    )
   } else {
     ipw_w <- rep(N / n_sub, N)
   }
@@ -274,7 +295,9 @@ ipw_breslow_cch <- function(fit, beta) {
   for (i in seq_len(n_times)) {
     tk <- t_events[i]
     sc_at_risk <- is_sc & t_col >= tk
-    if (!any(sc_at_risk)) next
+    if (!any(sc_at_risk)) {
+      next
+    }
     n_ev_tk <- sum(is_ev & t_col == tk)
     denom <- sum(ipw_w[sc_at_risk] * exp(lp_full[sc_at_risk]))
     inc[i] <- n_ev_tk / denom
@@ -290,8 +313,8 @@ ipw_breslow_cch <- function(fit, beta) {
   # Prepend a fence post at t = 0 so that times before the first event map to
   # cumhaz = 0 (and F = 0) rather than extrapolating to the first event's value.
   list(
-    times        = c(0, t_events),
-    cumhaz       = c(0, cumhaz),
+    times = c(0, t_events),
+    cumhaz = c(0, cumhaz),
     var_log_cumhaz = c(0, var_log)
   )
 }
@@ -374,8 +397,14 @@ print.matchatr_absolute_risk <- function(x, ...) {
     ")\n",
     sep = ""
   )
-  cat(" Patterns:   ", nrow(x$newdata), " covariate pattern",
-      if (nrow(x$newdata) == 1L) "" else "s", "\n", sep = "")
+  cat(
+    " Patterns:   ",
+    nrow(x$newdata),
+    " covariate pattern",
+    if (nrow(x$newdata) == 1L) "" else "s",
+    "\n",
+    sep = ""
+  )
   cat("\nAbsolute risk estimates:\n")
   print(x$estimates)
   invisible(x)

@@ -13,12 +13,17 @@ make_nwtco_fit <- function(method = "Prentice") {
   nwtco2 <- survival::nwtco
   nwtco2$subcohort <- as.logical(nwtco2$in.subcohort)
   nwtco2$stage <- factor(nwtco2$stage)
-  matcha(nwtco2,
-    outcome = "rel", exposure = "histol",
+  matcha(
+    nwtco2,
+    outcome = "rel",
+    exposure = "histol",
     design = case_cohort(
-      subcohort = "subcohort", time = "edrel", method = method
+      subcohort = "subcohort",
+      time = "edrel",
+      method = method
     ),
-    confounders = ~ stage + age, estimator = "cch"
+    confounders = ~ stage + age,
+    estimator = "cch"
   )
 }
 
@@ -40,7 +45,9 @@ make_exp_truth_data <- function(n = 2000, seed = 42) {
   sc[sort(sample(n, round(n * 0.3)))] <- TRUE
   list(
     data = data.frame(obs_t = obs_t, event = event, x = x, z = z, sc = sc),
-    beta_x = beta_x, beta_z = beta_z, lambda0 = lambda0
+    beta_x = beta_x,
+    beta_z = beta_z,
+    lambda0 = lambda0
   )
 }
 
@@ -54,7 +61,10 @@ test_that("absolute_risk returns correct S3 class and list structure", {
   expect_s3_class(ar, "matchatr_absolute_risk")
   expect_s3_class(ar, "matchatr")
   expect_true(data.table::is.data.table(ar$estimates))
-  expect_named(ar$estimates, c("row", "time", "estimate", "ci_lower", "ci_upper"))
+  expect_named(
+    ar$estimates,
+    c("row", "time", "estimate", "ci_lower", "ci_upper")
+  )
 })
 
 test_that("absolute_risk returns one row per (newdata row, time) combination", {
@@ -141,12 +151,18 @@ test_that("absolute_risk agrees with full-cohort survfit within sampling toleran
   # and that the CI includes the full-cohort reference.
   f_ipw <- ar$estimates$estimate
 
-  expect_true(all(abs(f_ipw - f_full) < 0.06),
-    info = paste("Max discrepancy:", round(max(abs(f_ipw - f_full)), 4)))
+  expect_true(
+    all(abs(f_ipw - f_full) < 0.06),
+    info = paste("Max discrepancy:", round(max(abs(f_ipw - f_full)), 4))
+  )
   # The full-cohort estimate should lie within the (wider) case-cohort CI
-  expect_true(all(ar$estimates$ci_lower <= f_full + 0.02 &
-                  f_full <= ar$estimates$ci_upper + 0.02),
-    info = "Full-cohort F_x(t) should lie inside the case-cohort CI")
+  expect_true(
+    all(
+      ar$estimates$ci_lower <= f_full + 0.02 &
+        f_full <= ar$estimates$ci_upper + 0.02
+    ),
+    info = "Full-cohort F_x(t) should lie inside the case-cohort CI"
+  )
 })
 
 # -- Truth DGP: exponential survival with known F_x(t) ------------------------
@@ -155,12 +171,17 @@ test_that("absolute_risk recovers known F_x(t) in exponential DGP", {
   skip_if_not_installed("survival")
 
   dat <- make_exp_truth_data(n = 2000, seed = 42)
-  fit <- matcha(dat$data,
-    outcome = "event", exposure = "x",
+  fit <- matcha(
+    dat$data,
+    outcome = "event",
+    exposure = "x",
     design = case_cohort(
-      subcohort = "sc", time = "obs_t", method = "Prentice"
+      subcohort = "sc",
+      time = "obs_t",
+      method = "Prentice"
     ),
-    confounders = ~ z, estimator = "cch"
+    confounders = ~z,
+    estimator = "cch"
   )
 
   # Analytical truth at x = 1, z = 0
@@ -172,12 +193,16 @@ test_that("absolute_risk recovers known F_x(t) in exponential DGP", {
   f_hat <- ar$estimates$estimate
 
   # With n=2000 and 30% subcohort, expect within ~0.06 of truth
-  expect_true(all(abs(f_hat - truth) < 0.06),
-    info = paste("Max discrepancy:", round(max(abs(f_hat - truth)), 4)))
+  expect_true(
+    all(abs(f_hat - truth) < 0.06),
+    info = paste("Max discrepancy:", round(max(abs(f_hat - truth)), 4))
+  )
 
   # 95% CI should cover the analytical truth at each evaluation time
-  expect_true(all(ar$estimates$ci_lower <= truth & truth <= ar$estimates$ci_upper),
-    info = "95% CI should cover the analytical truth")
+  expect_true(
+    all(ar$estimates$ci_lower <= truth & truth <= ar$estimates$ci_upper),
+    info = "95% CI should cover the analytical truth"
+  )
 })
 
 # -- Borgan II (stratified subcohort) -----------------------------------------
@@ -187,13 +212,18 @@ test_that("absolute_risk works for Borgan II stratified subcohort", {
   nwtco2$subcohort <- as.logical(nwtco2$in.subcohort)
   nwtco2$stage <- factor(nwtco2$stage)
 
-  fit_b2 <- matcha(nwtco2,
-    outcome = "rel", exposure = "histol",
+  fit_b2 <- matcha(
+    nwtco2,
+    outcome = "rel",
+    exposure = "histol",
     design = case_cohort(
-      subcohort = "subcohort", time = "edrel",
-      method = "II.Borgan", stratum = "stage"
+      subcohort = "subcohort",
+      time = "edrel",
+      method = "II.Borgan",
+      stratum = "stage"
     ),
-    confounders = ~ age, estimator = "cch"
+    confounders = ~age,
+    estimator = "cch"
   )
   nd <- data.frame(histol = 1L, age = 3)
   ar <- absolute_risk(fit_b2, newdata = nd, times = c(500, 1000))
