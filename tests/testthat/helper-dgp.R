@@ -467,6 +467,54 @@ make_case_cohort_data <- function(
   cohort
 }
 
+# Truth-based DGP for the stratified case-cohort hazard ratio. Like
+# make_case_cohort_data() but the subcohort is sampled *within* two strata
+# (e.g. region A / B) at different fractions, which is the design Borgan I/II
+# are built for. Columns: id, t, d, x, z, region (factor 2-level), subcohort
+# (0/1, sampled within region). True Cox log-HRs are in the "truth" attribute.
+make_stratified_case_cohort_data <- function(
+  n = 3000L,
+  beta_x = log(2),
+  beta_z = log(1.5),
+  base_rate = 0.06,
+  tau = 5,
+  sub_frac_a = 0.20,
+  sub_frac_b = 0.35,
+  seed = 88L
+) {
+  cohort <- withr::with_seed(seed, {
+    region <- factor(sample(c("A", "B"), n, replace = TRUE))
+    x <- stats::rbinom(n, 1L, 0.4)
+    z <- stats::rnorm(n)
+    rate <- base_rate * exp(beta_x * x + beta_z * z)
+    tt <- stats::rexp(n, rate)
+    d <- as.integer(tt <= tau)
+    t_obs <- pmin(tt, tau)
+    # Stratified subcohort: different sampling fractions per region.
+    n_a <- sum(region == "A")
+    n_b <- sum(region == "B")
+    sc_a <- sample.int(n_a, round(n_a * sub_frac_a))
+    sc_b <- sample.int(n_b, round(n_b * sub_frac_b))
+    subcohort <- integer(n)
+    idx_a <- which(region == "A")
+    idx_b <- which(region == "B")
+    subcohort[idx_a[sc_a]] <- 1L
+    subcohort[idx_b[sc_b]] <- 1L
+    data.frame(
+      id = seq_len(n),
+      t = t_obs,
+      d = d,
+      x = x,
+      z = z,
+      region = region,
+      subcohort = subcohort,
+      stringsAsFactors = FALSE
+    )
+  })
+  attr(cohort, "truth") <- c(beta_x = beta_x, beta_z = beta_z)
+  cohort
+}
+
 # Counter-matched NCC sampler used as a deterministic test fixture.
 # Delegates to the exported sample_ncc_counter_matched() under a fixed seed.
 # When cohort is NULL, builds from make_ncc_cohort() and attaches z_bin = x as

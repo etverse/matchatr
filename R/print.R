@@ -31,6 +31,9 @@ print.matchatr_design <- function(x, ...) {
   if (!is.null(x$method)) {
     cat(" Method:     ", x$method, "\n", sep = "")
   }
+  if (!is.null(x$stratum)) {
+    cat(" Stratum:    ", paste(x$stratum, collapse = ", "), "\n", sep = "")
+  }
   if (!is.null(x$phase1)) {
     cat(" Phase 1:    ", paste(x$phase1, collapse = ", "), "\n", sep = "")
   }

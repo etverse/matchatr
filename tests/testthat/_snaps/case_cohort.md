@@ -25,3 +25,14 @@
       ! `ci_method = "sandwich"` is not available for the case-cohort estimator.
       i It reports the pseudo-likelihood asymptotic variance; use `ci_method = "model"` (the default).
 
+# Borgan I without stratum aborts with matchatr_bad_design
+
+    Code
+      matcha(nwtco, outcome = "rel", exposure = "histol", design = case_cohort(
+        subcohort = "in.subcohort", time = "edrel", method = "I.Borgan", id = "seqno"),
+      confounders = ~ stage + age, estimator = "cch")
+    Condition
+      Error in `fit_cch()`:
+      ! `method = "I.Borgan"` requires a subcohort stratification column.
+      i Supply `stratum = "<column>"` in `case_cohort()` to specify which column defines the subcohort sampling strata.
+
