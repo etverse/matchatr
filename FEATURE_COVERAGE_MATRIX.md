@@ -387,7 +387,23 @@ use standard R contrasts) rather than using `term_assign()`, because
 
 ## IPW for nested case-control (PHASE_7)
 
-_Pending implementation._
+**Chunk 1 (KM weights + `ipw_cox`) implemented.**
+`sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and
+appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data.
+`matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits
+`coxph(weights = ipw_weight, robust = TRUE)`, and reports the hazard ratio with
+the Lin-Wei robust sandwich variance. Oracle: `multipleNCC::wpl(weight.method =
+"KM")` agrees exactly on log-HR and SE.
+
+| Weight | Estimator | Estimand | Variance | Status | Test |
+|---|---|---|---|---|---|
+| KM (Samuelsen 1997) | `ipw_cox` | HR | Lin-Wei robust sandwich | ✅ `multipleNCC::wpl` oracle (exact); truth-DGP HR recovery (3.5-SE band) | `test-ipw_ncc.R` |
+| `ipw_cox` without `incl_prob = TRUE` data | — | — | — | ⛔ `matchatr_missing_ipw_weights` | `test-ipw_ncc.R` |
+| `ipw_cox` with `type = "or"` or `"difference"` | — | — | — | ⛔ `matchatr_unidentified_estimand` | `test-ipw_ncc.R` |
+| `ipw_cox` with `ci_method = "bootstrap"` | — | — | — | ⛔ `matchatr_unsupported_variance` | `test-ipw_ncc.R` |
+| GLM/GAM/Chen working-model weights | ipw_cox | HR | robust | Chunk 2 pending |
+| multiple endpoints | ipw_cox | HR per endpoint | robust | Chunk 3 pending |
+| IPW absolute risk F_x(t) | — | F_x(t) | IPW Breslow | Chunk 3 pending |
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 
@@ -428,6 +444,7 @@ Quarto, `lumen` theme).
 | `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, `test_homogeneity()` (Wald test + pooled common OR), collinearity guard |
 | `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 | `case-cohort.qmd` | Prentice / SelfPrentice / LinYing / Borgan I/II HRs, stratified subcohort, `absolute_risk()` IPW Breslow F_x(t), design rejections |
+| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, classical vs IPW comparison, rejection paths |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

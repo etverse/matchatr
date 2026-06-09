@@ -24,7 +24,7 @@ dispatch_table <- function() {
     # McNemar closed form is the 1:1 binary-exposure reduction of that
     # likelihood, offered as a faster, formula-level alternative for paired data.
     matched_cc = c(clogit = "clogit", mcnemar = "mcnemar"),
-    nested_cc = c(clogit = "clogit"),
+    nested_cc = c(clogit = "clogit", ipw_cox = "ipw_cox"),
     case_cohort = c(cch = "cch"),
     two_phase = c(survey = "survey_twophase"),
     counter_matched = c(weighted_cox = "weighted_cox")
@@ -105,8 +105,10 @@ default_contrast_type <- function(engine, design_type = NULL) {
     multinom = "or",
     # Counter-matched partial likelihood identifies the hazard ratio (Langholz &
     # Borgan 1995), not the OR. The weighted coxph returns exp(beta); the design
-    # fixes the scale.
+    # fixes the scale. IPW NCC weighted Cox similarly reports the Cox HR (the
+    # IPW weighted partial likelihood is consistent for the same estimand).
     weighted_cox = "hr",
+    ipw_cox = "hr",
     cch = "hr",
     "difference"
   )
@@ -215,6 +217,7 @@ run_engine <- function(fit) {
     mcnemar = fit_mcnemar(fit),
     multinom = fit_polytomous(fit),
     weighted_cox = fit_weighted_cox(fit),
+    ipw_cox = fit_ipw_cox(fit),
     cch = fit_cch(fit),
     NULL
   )

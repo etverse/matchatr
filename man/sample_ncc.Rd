@@ -4,7 +4,15 @@
 \alias{sample_ncc}
 \title{Draw a nested case-control sample from a cohort by risk-set sampling}
 \usage{
-sample_ncc(cohort, time, event, m = 1, match = NULL, entry = NULL)
+sample_ncc(
+  cohort,
+  time,
+  event,
+  m = 1,
+  match = NULL,
+  entry = NULL,
+  incl_prob = FALSE
+)
 }
 \arguments{
 \item{cohort}{A data.frame or data.table with one row per subject. Copied,
@@ -27,13 +35,26 @@ population-stratum column(s) controls must share with the case
 \item{entry}{\code{NULL} (everyone enters at the time origin) or a single character
 string naming a delayed-entry / left-truncation column. Must be numeric when
 supplied; a subject is at risk at \code{tc} only if \code{entry < tc}.}
+
+\item{incl_prob}{Logical; if \code{TRUE}, compute Samuelsen (1997) Kaplan-Meier
+inclusion probabilities for each sampled subject and append two columns to
+the output: \code{.cohort_row} (integer row index of the subject in \code{cohort})
+and \code{ipw_weight} (inverse inclusion probability: 1 for cases, 1/pi_j for
+sampled controls). The weights are needed by the IPW nested case-control
+analysis (\code{estimator = "ipw_cox"}). The inclusion probability for control
+j is pi_j = 1 - prod over event times where j was eligible of
+(1 - m_i / n_elig_i), where m_i is the controls sampled and n_elig_i the
+eligible pool size at event i (Samuelsen 1997, Biometrika). Computation
+is O(n x K) where n is the cohort size and K is the number of events.
+Default \code{FALSE}.}
 }
 \value{
 A \code{data.table} with one row per sampled subject: the selected rows of
 \code{cohort} (all original columns) plus \code{set} (integer matched-set id), \code{case}
 (per-set 0/1 indicator, 1 for the case), and \code{risk_time} (the set's failure
-time). Aborts with \code{matchatr_empty_risk_set} when any case has no eligible
-control.
+time). When \code{incl_prob = TRUE}, also \code{.cohort_row} (integer, 1-indexed row
+index in the original \code{cohort}) and \code{ipw_weight} (numeric, 1/pi_j).
+Aborts with \code{matchatr_empty_risk_set} when any case has no eligible control.
 }
 \description{
 Generates a nested case-control (NCC) dataset from a full cohort by risk-set
@@ -91,6 +112,11 @@ fit <- matcha(ncc, outcome = "case", exposure = "x",
               design = nested_cc(strata = "set", time = "risk_time"),
               estimator = "clogit")
 contrast(fit)
+
+# With Samuelsen KM inclusion probabilities for IPW analysis.
+set.seed(1)
+ncc_ipw <- sample_ncc(cohort, time = "t", event = "d", m = 2, incl_prob = TRUE)
+ncc_ipw[, c("id", "case", "set", "ipw_weight", ".cohort_row")]
 
 }
 \seealso{

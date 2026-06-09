@@ -1,0 +1,172 @@
+---
+title: "IPW analysis of nested case-control data"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{IPW analysis of nested case-control data}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+The **classical** nested case-control (NCC) analysis conditions on the sampled
+risk sets: each case and its matched controls form a stratum, and
+`estimator = "clogit"` uses the conditional partial likelihood (see
+`vignette("nested-cc")`). Controls appear only at their matched case's failure
+time — a design feature that removes residual confounding by the matching
+variables but also discards information each control carries across the full
+follow-up.
+
+The **inverse probability weighting (IPW)** approach *breaks the matching*. Each
+sampled control receives a weight equal to the inverse of its inclusion
+probability under the NCC sampling scheme, then a standard weighted Cox partial
+likelihood is fit over the unique subjects (cases + unique controls). Controls
+now contribute at every event time where they are still at risk — their exposure
+information is re-used across all failure times rather than only at their matched
+event. This gains efficiency, especially when many controls were matched to early
+cases and their follow-up extends across later events.
+
+```{r}
+#| message: false
+library(matchatr)
+```
+
+## Generating a cohort and an NCC sample
+
+```{r}
+set.seed(77)
+n      <- 3000
+beta_x <- log(2)                       # true Cox log hazard ratio
+rate   <- 0.08 * exp(beta_x * rbinom(n, 1, 0.4) + 0.4 * rnorm(n))
+cohort <- data.frame(
+  id         = seq_len(n),
+  t          = pmin(rexp(n, rate), 5),
+  d          = as.integer(rexp(n, rate) <= 5),
+  exposure   = rbinom(n, 1, 0.4),
+  confounder = rnorm(n)
+)
+# reproduce rate with final covariates
+set.seed(77)
+cohort$exposure   <- rbinom(n, 1, 0.4)
+cohort$confounder <- rnorm(n)
+rate <- 0.08 * exp(beta_x * cohort$exposure + 0.4 * cohort$confounder)
+cohort$t <- pmin(rexp(n, rate), 5)
+cohort$d <- as.integer(rexp(n, rate) <= 5)
+```
+
+`sample_ncc()` with `incl_prob = TRUE` draws the NCC sample and appends two
+columns needed for the IPW analysis:
+
+-   **`ipw_weight`** — the Samuelsen (1997) inverse inclusion probability
+    1/π_j for each sampled control; cases get weight 1. The inclusion
+    probability is the Kaplan-Meier-type formula
+    π_j = 1 − prod of (1 − m_i / n_elig_i) over all event times where j
+    was eligible, where m_i is the controls sampled and n_elig_i the eligible
+    pool size.
+-   **`.cohort_row`** — original cohort row index, used to deduplicate controls
+    that were sampled into multiple risk sets before fitting the Cox model.
+
+```{r}
+set.seed(1)
+ncc <- sample_ncc(cohort, time = "t", event = "d", m = 3, incl_prob = TRUE)
+ncc[1:6, c("id", "t", "d", "exposure", "case", "set", "risk_time",
+           "ipw_weight", ".cohort_row")]
+```
+
+## Fitting the IPW weighted Cox model
+
+With `estimator = "ipw_cox"`, matchatr:
+
+1.  Deduplicates the NCC data by `.cohort_row` (each cohort subject appears
+    once in the analysis).
+2.  Fits `coxph(Surv(t, d) ~ exposure + confounder, weights = ipw_weight,
+    robust = TRUE)`.
+3.  Returns the Lin-Wei robust sandwich variance via `coxph(robust = TRUE)`.
+
+```{r}
+fit_ipw <- matcha(
+  ncc,
+  outcome     = "d",          # cohort event indicator, not the per-set "case"
+  exposure    = "exposure",
+  design      = nested_cc(strata = "set", time = "t"),
+  confounders = ~confounder,
+  estimator   = "ipw_cox"
+)
+fit_ipw
+```
+
+```{r}
+contrast(fit_ipw)             # reports type = "hr" by default
+```
+
+## Comparison: classical NCC vs IPW NCC vs full cohort
+
+The conditional partial likelihood (`clogit`) and the IPW weighted Cox target
+the same hazard ratio; the IPW estimator is at least as efficient because it
+reuses controls across failure times.
+
+```{r}
+# Classical NCC (clogit, matched analysis)
+ncc_classical <- sample_ncc(cohort, time = "t", event = "d", m = 3,
+                             incl_prob = FALSE)
+set.seed(1)
+ncc_classical <- sample_ncc(cohort, time = "t", event = "d", m = 3)
+fit_clogit <- matcha(ncc_classical, "case", "exposure",
+                     nested_cc(strata = "set", time = "t"),
+                     confounders = ~confounder, estimator = "clogit")
+
+# Full-cohort Cox (the gold standard)
+fit_full <- survival::coxph(
+  survival::Surv(t, d) ~ exposure + confounder, data = cohort
+)
+
+cat("Full-cohort Cox HR: ", round(exp(coef(fit_full)["exposure"]), 3), "\n")
+cat("Classical NCC HR:   ", round(contrast(fit_clogit)$contrasts$estimate, 3), "\n")
+cat("IPW NCC HR:         ", round(contrast(fit_ipw)$contrasts$estimate, 3), "\n")
+```
+
+All three estimates target the same hazard ratio; the classical and IPW NCC
+estimates will differ by a small simulation noise term.
+
+## tidy() output
+
+```{r}
+tidy(contrast(fit_ipw))
+```
+
+## Rejection paths
+
+```{r}
+#| error: true
+# Requesting an odds ratio from an IPW NCC fit is rejected (wrong scale).
+contrast(fit_ipw, type = "or")
+```
+
+```{r}
+#| error: true
+# Bootstrap is not available for the IPW Cox estimator.
+contrast(fit_ipw, type = "hr", ci_method = "bootstrap")
+```
+
+```{r}
+#| error: true
+# The ipw_weight column is required; sample_ncc() without incl_prob = TRUE
+# produces data that lacks it.
+ncc_no_wts <- sample_ncc(cohort, "t", "d", m = 3)
+matcha(ncc_no_wts, "case", "exposure",
+       nested_cc(strata = "set", time = "t"),
+       estimator = "ipw_cox")
+```
+
+## References
+
+Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
+case-control studies. *Biometrika*, 84(2), 379–394.
+
+Stoer NC & Samuelsen SO (2013). Inverse probability weighting in nested
+case-control studies with additional matching — a simulation study.
+*Statistics in Medicine*, 32(30), 5328–5339.

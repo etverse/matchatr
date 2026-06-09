@@ -74,7 +74,30 @@ on person-period data) wherever possible.
 > unlike an uninformative analysis stratum, which `clogit` drops); a late failure
 > time with fewer than `m` eligible controls yields a smaller set, not an error.
 > The test-only `sample_ncc_riskset()` fixture now delegates to `sample_ncc()`.
-> Counter-matching remains a later chunk; PHASE_6+ remain `Status: DESIGN`.
+> **PHASE_5 Chunk 3 is complete**: `sample_ncc_counter_matched(cohort, time, event,
+> surrogate, m, match, entry)` generates a counter-matched NCC dataset (case matched
+> to `m` controls from the *opposite* surrogate stratum) and appends `log_w`
+> (Langholz-Borgan sampling weights); `matcha(design = counter_matched(strata, time,
+> weights = "log_w"), estimator = "weighted_cox")` fits `survival::coxph` with
+> `offset(log_w) + strata(set)` and `contrast()` reports the **hazard ratio**.
+> **PHASE_6 (case-cohort) is complete in three chunks**: Chunk 1 adds the
+> `case_cohort()` design constructor and the `cch` engine wrapping `survival::cch()`
+> for the Prentice, Self-Prentice, and Lin-Ying pseudo-likelihood HR; Chunk 2
+> extends `cch` with the Borgan I/II IPW estimators for stratified subcohort
+> sampling (per-stratum `N_s / n_sub_s` weights); Chunk 3 adds `absolute_risk(fit,
+> newdata, times)` returning `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))` with an IPW
+> Breslow cumulative baseline hazard and delta-method complementary-log-log CIs.
+> **PHASE_7 Chunk 1 is complete**: `sample_ncc(incl_prob = TRUE)` now also computes
+> Samuelsen (1997) KM inclusion probabilities via the internal `samuelsen_km_weights()`
+> helper — π_j = 1 − prod(1 − m_i/n_elig_i) over all event times where j was
+> eligible — and appends `ipw_weight` (1/π_j; cases forced to 1) and `.cohort_row`
+> (original cohort row index) to the NCC output. `matcha(design = nested_cc(...),
+> estimator = "ipw_cox")` deduplicates the NCC data by `.cohort_row`, fits
+> `coxph(weights = ipw_weight, robust = TRUE)`, and `contrast()` reports the
+> exposure's **hazard ratio** with the Lin-Wei robust sandwich variance; `type = "or"`,
+> `ci_method = "bootstrap"`, and a missing `ipw_weight` / `.cohort_row` are each
+> rejected. Oracle: `multipleNCC::wpl(weight.method = "KM")` — exact agreement on
+> log-HR and SE. PHASE_7 Chunks 2-3 and PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -104,10 +127,13 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   analysis-role / exposure / effect-modifier / strata-informativeness checks,
   `resolve.R` outcome / exposure / event column coercions — all classed
   `matchatr_*` errors), `print.R`, `tidy.R`, `summary.R`.
-  `risk_set_sampling.R` (PHASE_5 Chunk 2 — `sample_ncc()`: native risk-set
-  control sampling from a cohort, with population-stratum matching, delayed
-  entry, and the `matchatr_empty_risk_set` hard error; counter-matching to
-  come). Still to come: `weights_cc.R` (case-control / q₀ weights),
+  `risk_set_sampling.R` (PHASE_5 Chunks 2–3 + PHASE_7 Chunk 1 —
+  `sample_ncc()`: native risk-set control sampling with optional
+  `incl_prob = TRUE` to append `ipw_weight` (Samuelsen KM 1/π_j) and
+  `.cohort_row` via the internal `samuelsen_km_weights()` helper;
+  `sample_ncc_counter_matched()`: counter-matched NCC with `log_w`;
+  `resolve_surrogate()` helper; `matchatr_empty_risk_set` hard error).
+  Still to come: `weights_cc.R` (case-control / q₀ weights),
   `weights_design.R` (Samuelsen / Borgan inclusion-probability weights).
 - **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
   wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and
@@ -139,7 +165,15 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   log-ORs / covariance via `homogeneity_one_term()`, reusing
   `multinom_exposure_or()` and the `C V C'` pattern; `print` / `tidy` methods for
   the `matchatr_homogeneity` class),
-  `weighted_cox.R` (NCC IPW Cox), `case_cohort.R` (`cch` wrappers).
+  `weighted_cox.R` (PHASE_5 Chunk 3 — `fit_weighted_cox()` /
+  `contrast_weighted_cox()`: Langholz-Borgan weighted partial likelihood for
+  counter-matched NCC via `coxph(offset = log_w)`; PHASE_7 Chunk 1 —
+  `fit_ipw_cox()` / `contrast_ipw_cox()`: Samuelsen IPW weighted Cox for NCC
+  via `coxph(weights = ipw_weight, robust = TRUE)` with Lin-Wei robust sandwich
+  variance), `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
+  `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
+  Self-Prentice / Lin-Ying / Borgan I/II; `absolute_risk()` for IPW Breslow
+  `F̂_x(t)` with delta-method CIs).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).
@@ -170,6 +204,12 @@ fit <- matcha(data, outcome = "case", exposure = "x",
 # Nested case-control -> risk-set HR (conditional partial likelihood)
 fit <- matcha(data, outcome = "case", exposure = "x",
               design = nested_cc(strata = "set", time = "t"), estimator = "clogit")
+
+# Nested case-control -> IPW weighted HR (Samuelsen KM weights; breaks matching)
+ncc <- sample_ncc(cohort, time = "t", event = "d", m = 3, incl_prob = TRUE)
+fit <- matcha(ncc, outcome = "d", exposure = "x",
+              design = nested_cc(strata = "set", time = "t"), estimator = "ipw_cox")
+contrast(fit)                         # HR with Lin-Wei robust sandwich variance
 
 # Marginal causal effect from a case-control sample (Rose & van der Laan)
 fit <- matcha(data, outcome = "case", exposure = "x",

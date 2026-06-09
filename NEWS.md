@@ -1,5 +1,33 @@
 # matchatr (development version)
 
+## 2026-06-09 — Samuelsen KM IPW weights + `ipw_cox` engine for NCC data (PHASE_7 Chunk 1)
+
+Implements the IPW reformulation of nested case-control data: break the
+matching, weight each unique control by the inverse of its Samuelsen
+Kaplan-Meier inclusion probability, and fit a standard weighted Cox model.
+
+- **`sample_ncc(incl_prob = TRUE)`** gains two new output columns. `.cohort_row`
+  records the original cohort row index for each NCC row (used to deduplicate
+  controls that were sampled into multiple risk sets). `ipw_weight` holds the
+  Samuelsen (1997) KM inverse inclusion probability 1/π_j, where
+  π_j = 1 − prod(1 − m_i/n_elig_i) over all event times where j was eligible
+  (not just those where j was actually sampled); cohort cases are forced to
+  weight 1. The formula is computed in O(n × K) via the internal
+  `samuelsen_km_weights()` helper.
+- **`matcha(design = nested_cc(...), estimator = "ipw_cox")`** deduplicates the
+  NCC data by `.cohort_row`, fits `survival::coxph(weights = ipw_weight, robust
+  = TRUE)`, and `contrast()` reports the exposure's hazard ratio with the
+  Lin-Wei robust sandwich variance. The default `type = "hr"` is inherited from
+  the nested design; `type = "or"` and `ci_method = "bootstrap"` are rejected.
+- Missing `ipw_weight` or `.cohort_row` columns abort with
+  `matchatr_missing_ipw_weights` / `matchatr_bad_input`, pointing to
+  `sample_ncc(incl_prob = TRUE)`.
+- Validated: KM weights match the closed-form KM probability formula to 1e-8;
+  truth-based DGP recovers the full-cohort Cox HR within 3.5 SE; exact
+  agreement with `multipleNCC::wpl(weight.method = "KM")` on log-HR and SE
+  (tolerance 1e-6). New vignette `vignettes/ipw-ncc.qmd` demonstrates the full
+  pipeline alongside the classical NCC and full-cohort Cox comparisons.
+
 ## 2026-06-09 — IPW Breslow absolute risk from case-cohort fits (PHASE_6 Chunk 3)
 
 New exported verb `absolute_risk(fit, newdata, times)` for `matchatr_fit` objects

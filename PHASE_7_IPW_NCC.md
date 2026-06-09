@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: DESIGN**
+> **Status: Chunk 1 complete (KM weights + `ipw_cox`). Chunks 2-3 remain.**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -90,7 +90,12 @@ estimators than alternatives (Ch19 §19.3).
 
 ## Chunk plan
 
-1. Samuelsen KM weights + `fit_ipw_cox()` + robust variance + `multipleNCC` oracle.
+1. ✅ Samuelsen KM weights + `fit_ipw_cox()` + robust variance + `multipleNCC` oracle.
+   - `sample_ncc(incl_prob = TRUE)` appends `ipw_weight` (1/π_j) and `.cohort_row`
+   - `samuelsen_km_weights()` implements the KM product formula (O(n × K))
+   - `fit_ipw_cox()` deduplicates by `.cohort_row`, fits `coxph(robust = TRUE)`
+   - `contrast_ipw_cox()` reports HR with Lin-Wei robust variance
+   - Oracle: `multipleNCC::wpl(weight.method = "KM")` — exact agreement on log-HR and SE
 2. Working-model (GLM/GAM/Chen) weights + Phase-1-missing rejection.
 3. Multiple endpoints + IPW absolute risk + (optional) additive/AFT models.
 
