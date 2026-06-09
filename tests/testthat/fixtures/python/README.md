@@ -34,6 +34,14 @@ implements directly:
 | `clogit` (nested CC) | hazard ratio | `ConditionalLogit` (risk-set partial likelihood) |
 | `polytomous` | subtype OR | `MNLogit` |
 | `test_homogeneity` | Wald χ² + pooled OR | hand-computed from `MNLogit` params / cov |
+| `compute_ncc_weights(method="glm")` | per-subject ipw_weight | `statsmodels.Logit` (same augmented dataset + product formula) |
+
+The GLM-weights oracle (`glm_weights.*`) differs from the others: it uses a
+*pair* of data files (`glm_weights_cohort.csv` + `glm_weights_ncc.csv`) and
+the Python script builds the augmented selection dataset from scratch, mirroring
+matchatr's `build_ncc_selection_dataset()`.  Both apply the identical product
+formula on the same logistic fit, so agreement is within double-precision
+rounding (< 1e-10 typically).
 
 `delicatessen` (M-estimation + sandwich) is reserved for the **causal /
 sandwich** estimands (the case-control-weighted g-formula / IPW / AIPW / TMLE

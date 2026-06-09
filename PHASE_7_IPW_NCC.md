@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: Chunk 1 complete (KM weights + `ipw_cox`). Chunks 2-3 remain.**
+> **Status: Chunks 1–2 complete. Chunk 3 remains.**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -96,7 +96,12 @@ estimators than alternatives (Ch19 §19.3).
    - `fit_ipw_cox()` deduplicates by `.cohort_row`, fits `coxph(robust = TRUE)`
    - `contrast_ipw_cox()` reports HR with Lin-Wei robust variance
    - Oracle: `multipleNCC::wpl(weight.method = "KM")` — exact agreement on log-HR and SE
-2. Working-model (GLM/GAM/Chen) weights + Phase-1-missing rejection.
+2. ✅ Working-model (GLM/GAM) weights + Phase-1-missing rejection.
+   - `compute_ncc_weights(ncc, cohort, method, selection_formula, time, entry)` in `R/weights_design.R`
+   - Builds augmented selection dataset (one row per eligible subject × event time)
+   - Fits logistic GLM or GAM of selection indicator; applies product formula for π_j
+   - `matchatr_missing_phase1` fires when `cohort = NULL` or the time column is absent
+   - Oracle: `multipleNCC::wpl(weight.method = "glm")` agrees within 2e-2 in log-HR
 3. Multiple endpoints + IPW absolute risk + (optional) additive/AFT models.
 
 ## Deferred items

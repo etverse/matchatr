@@ -156,10 +156,86 @@ matcha(ncc_no_wts, "case", "exposure",
        estimator = "ipw_cox")
 ```
 
+## Working-model weights
+
+Samuelsen KM weights are **design-based**: they depend only on the risk-set
+structure and are computed during `sample_ncc()`. An alternative is to fit a
+**working model** for the selection probability — a logistic regression (or GAM)
+of whether a subject was selected as a control, given its covariates and the
+event time. Working-model weights can be more efficient when the logistic model
+is close to the truth.
+
+`compute_ncc_weights()` replaces the `ipw_weight` column with working-model
+estimates. It requires the **full Phase-1 cohort** to reconstruct who was
+eligible (but not selected) at each event time.
+
+```{r}
+# Replace KM weights with GLM working-model weights
+ncc_glm <- compute_ncc_weights(
+  ncc,
+  cohort           = cohort,
+  method           = "glm",
+  selection_formula = ~ risk_time,   # default: time-only logistic model
+  time             = "t"
+)
+ncc_glm[1:3, c("id", "case", "set", "ipw_weight")]
+```
+
+Fit and compare:
+
+```{r}
+fit_glm <- matcha(
+  ncc_glm,
+  outcome     = "d",
+  exposure    = "exposure",
+  design      = nested_cc(strata = "set", time = "t"),
+  confounders = ~confounder,
+  estimator   = "ipw_cox"
+)
+cat("KM weights HR: ", round(contrast(fit_ipw)$contrasts$estimate, 3), "\n")
+cat("GLM weights HR:", round(contrast(fit_glm)$contrasts$estimate, 3), "\n")
+```
+
+Both KM and GLM weights target the same Cox hazard ratio; differences reflect
+the working-model vs design-based weight formulas.
+
+A GAM can be used when the selection probability is non-linearly related to time:
+
+```{r}
+#| warning: false
+ncc_gam <- compute_ncc_weights(
+  ncc,
+  cohort           = cohort,
+  method           = "gam",
+  selection_formula = ~ s(risk_time),
+  time             = "t"
+)
+fit_gam <- matcha(
+  ncc_gam,
+  outcome     = "d",
+  exposure    = "exposure",
+  design      = nested_cc(strata = "set", time = "t"),
+  confounders = ~confounder,
+  estimator   = "ipw_cox"
+)
+cat("GAM weights HR:", round(contrast(fit_gam)$contrasts$estimate, 3), "\n")
+```
+
+The Phase-1 cohort is required: omitting it aborts with `matchatr_missing_phase1`.
+
+```{r}
+#| error: true
+compute_ncc_weights(ncc, cohort = NULL, method = "glm", time = "t")
+```
+
 ## References
 
 Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
 case-control studies. *Biometrika*, 84(2), 379–394.
+
+Borgan Ø, Samuelsen SO & Aastveit AH (2003). Estimation of excess risk from
+case-control data using Aalen's linear regression model. *Lifetime Data
+Analysis*, 9(2), 189–202.
 
 Stoer NC & Samuelsen SO (2013). Inverse probability weighting in nested
 case-control studies with additional matching — a simulation study.

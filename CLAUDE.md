@@ -87,7 +87,7 @@ on person-period data) wherever possible.
 > sampling (per-stratum `N_s / n_sub_s` weights); Chunk 3 adds `absolute_risk(fit,
 > newdata, times)` returning `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))` with an IPW
 > Breslow cumulative baseline hazard and delta-method complementary-log-log CIs.
-> **PHASE_7 Chunk 1 is complete**: `sample_ncc(incl_prob = TRUE)` now also computes
+> **PHASE_7 Chunks 1–2 are complete**: `sample_ncc(incl_prob = TRUE)` computes
 > Samuelsen (1997) KM inclusion probabilities via the internal `samuelsen_km_weights()`
 > helper — π_j = 1 − prod(1 − m_i/n_elig_i) over all event times where j was
 > eligible — and appends `ipw_weight` (1/π_j; cases forced to 1) and `.cohort_row`
@@ -97,7 +97,12 @@ on person-period data) wherever possible.
 > exposure's **hazard ratio** with the Lin-Wei robust sandwich variance; `type = "or"`,
 > `ci_method = "bootstrap"`, and a missing `ipw_weight` / `.cohort_row` are each
 > rejected. Oracle: `multipleNCC::wpl(weight.method = "KM")` — exact agreement on
-> log-HR and SE. PHASE_7 Chunks 2-3 and PHASE_8+ remain `Status: DESIGN`.
+> log-HR and SE. **Chunk 2** adds `compute_ncc_weights(ncc, cohort, method,
+> selection_formula, time, entry)` (`R/weights_design.R`): replaces `ipw_weight`
+> with GLM (`stats::glm`) or GAM (`mgcv::gam`) working-model inclusion probabilities
+> fitted on the augmented (eligible-subject × event-time) selection dataset; requires
+> the full Phase-1 cohort and aborts `matchatr_missing_phase1` when `cohort = NULL` or
+> `time` is absent. PHASE_7 Chunk 3 and PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -133,8 +138,11 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `.cohort_row` via the internal `samuelsen_km_weights()` helper;
   `sample_ncc_counter_matched()`: counter-matched NCC with `log_w`;
   `resolve_surrogate()` helper; `matchatr_empty_risk_set` hard error).
-  Still to come: `weights_cc.R` (case-control / q₀ weights),
-  `weights_design.R` (Samuelsen / Borgan inclusion-probability weights).
+  `weights_design.R` (PHASE_7 Chunk 2 — `compute_ncc_weights()`: GLM/GAM
+  working-model inclusion probabilities for NCC data via the augmented
+  selection dataset; `build_ncc_selection_dataset()` / `working_model_inclusion_probs()`
+  internals; `matchatr_missing_phase1` rejection when Phase-1 cohort is absent).
+  Still to come: `weights_cc.R` (case-control / q₀ weights).
 - **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
   wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and
   the `matchatr_unidentified_estimand` rejection), `mantel_haenszel.R` (PHASE_2

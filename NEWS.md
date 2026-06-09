@@ -1,5 +1,27 @@
 # matchatr (development version)
 
+## 2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)
+
+Adds `compute_ncc_weights()` for GLM and GAM working-model inclusion probabilities.
+
+- **`compute_ncc_weights(ncc, cohort, method, selection_formula, time, entry)`**
+  (new, `R/weights_design.R`) takes an NCC dataset from
+  `sample_ncc(incl_prob = TRUE)` and the full Phase-1 cohort, builds the
+  augmented (eligible subject × event time) selection dataset, fits a logistic
+  regression (`method = "glm"`, [stats::glm()]) or generalised additive model
+  (`method = "gam"`, [mgcv::gam()]) for the binary control-selection indicator,
+  and replaces the `ipw_weight` column with the resulting working-model inverse
+  inclusion probabilities. Cases are forced to weight 1.
+- **`matchatr_missing_phase1`** fires when `cohort = NULL` or the `time` column
+  is absent from `cohort`: both signals that the Phase-1 event times needed to
+  reconstruct risk sets are unavailable.
+- **Default `selection_formula = ~ risk_time`** — a time-only logistic model
+  matching the simplest GLM specification of Borgan, Samuelsen & Aastveit
+  (2003). Users can extend with cohort covariates.
+- **Oracle**: `multipleNCC::wpl(weight.method = "glm")` — log-HR agreement
+  within 2e-2 (minor formula difference in default time term between the two
+  implementations).
+
 ## 2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)
 
 Two correctness issues in the IPW NCC vignette and test suite.

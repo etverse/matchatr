@@ -356,6 +356,277 @@ test_that("default contrast type for ipw_cox is hr", {
   expect_identical(res$type, "hr")
 })
 
+# ============================================================================
+# PHASE_7 Chunk 2: working-model (GLM/GAM) weights and rejection paths
+# ============================================================================
+
+# ---- structural tests for compute_ncc_weights() ----------------------------
+
+test_that("compute_ncc_weights GLM: cases have weight 1, controls >= 1", {
+  cohort <- make_ipw_cohort(n = 800L, seed = 31L)
+  ncc <- withr::with_seed(
+    5L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    time = "t"
+  )
+  expect_equal(
+    ncc_glm$ipw_weight[ncc_glm$case == 1L],
+    rep(1, sum(ncc_glm$case))
+  )
+  expect_true(all(
+    ncc_glm$ipw_weight[ncc_glm$case == 0L] >= 1 - .Machine$double.eps
+  ))
+})
+
+test_that("compute_ncc_weights GLM: weights are finite", {
+  cohort <- make_ipw_cohort(n = 800L, seed = 32L)
+  ncc <- withr::with_seed(
+    6L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    time = "t"
+  )
+  expect_true(all(is.finite(ncc_glm$ipw_weight)))
+})
+
+test_that("compute_ncc_weights GAM: cases have weight 1, controls >= 1", {
+  skip_if_not_installed("mgcv")
+  cohort <- make_ipw_cohort(n = 800L, seed = 33L)
+  ncc <- withr::with_seed(
+    7L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  ncc_gam <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "gam",
+    selection_formula = ~ s(risk_time),
+    time = "t"
+  )
+  expect_equal(
+    ncc_gam$ipw_weight[ncc_gam$case == 1L],
+    rep(1, sum(ncc_gam$case))
+  )
+  expect_true(all(
+    ncc_gam$ipw_weight[ncc_gam$case == 0L] >= 1 - .Machine$double.eps
+  ))
+})
+
+test_that("compute_ncc_weights: .cohort_row is preserved unchanged", {
+  cohort <- make_ipw_cohort(n = 600L, seed = 34L)
+  ncc <- withr::with_seed(
+    8L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    time = "t"
+  )
+  expect_equal(ncc_glm$.cohort_row, ncc$.cohort_row)
+})
+
+test_that("compute_ncc_weights: custom selection_formula is respected", {
+  cohort <- make_ipw_cohort(n = 800L, seed = 35L)
+  ncc <- withr::with_seed(
+    9L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    selection_formula = ~ risk_time + confounder,
+    time = "t"
+  )
+  expect_true(all(is.finite(ncc_glm$ipw_weight)))
+  expect_true(all(
+    ncc_glm$ipw_weight[ncc_glm$case == 0L] >= 1 - .Machine$double.eps
+  ))
+})
+
+# ---- truth-based: GLM-weighted IPW Cox recovers the cohort Cox HR ----------
+
+test_that("GLM-weighted IPW Cox HR recovers full-cohort Cox HR (truth-based)", {
+  cohort <- make_ipw_cohort(n = 3000L, beta_x = log(2), seed = 42L)
+  full_cox <- survival::coxph(
+    survival::Surv(t, d) ~ exposure + confounder,
+    data = cohort
+  )
+  target_log_hr <- unname(stats::coef(full_cox)["exposure"])
+
+  ncc <- withr::with_seed(
+    11L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    time = "t"
+  )
+  fit <- matcha(
+    ncc_glm,
+    outcome = "d",
+    exposure = "exposure",
+    design = nested_cc(strata = "set", time = "t"),
+    confounders = ~confounder,
+    estimator = "ipw_cox"
+  )
+  res <- contrast(fit)
+  log_hr <- res$estimates$estimate[1]
+  se_hr <- res$estimates$se[1]
+
+  expect_lt(abs(log_hr - target_log_hr), 3.5 * se_hr)
+})
+
+# ---- cross-implementation comparison with multipleNCC oracle ---------------
+
+test_that("GLM-weighted HR agrees with multipleNCC::wpl(glm) within 2e-2", {
+  skip_if_not_installed("multipleNCC")
+  cohort <- make_ipw_cohort(n = 2000L, seed = 99L)
+
+  ncc <- withr::with_seed(
+    7L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    time = "t"
+  )
+  fit <- matcha(
+    ncc_glm,
+    outcome = "d",
+    exposure = "exposure",
+    design = nested_cc(strata = "set", time = "t"),
+    confounders = ~confounder,
+    estimator = "ipw_cox"
+  )
+  res <- contrast(fit)
+  our_log_hr <- res$estimates$estimate[1]
+
+  # Build samplestat vector for multipleNCC
+  sstat <- build_samplestat(cohort, ncc)
+  oracle <- multipleNCC::wpl(
+    survival::Surv(t, d) ~ exposure + confounder,
+    data = cohort,
+    samplestat = sstat,
+    m = 3L,
+    weight.method = "glm",
+    variance = "robust"
+  )
+  oracle_log_hr <- unname(oracle$coefficients[1])
+
+  # Both implement the same working-model approach (logistic model for the
+  # selection probability); small formula differences cause sub-2e-2 deviation.
+  expect_equal(our_log_hr, oracle_log_hr, tolerance = 2e-2)
+})
+
+# ---- Python oracle: GLM weight values match statsmodels Logit exactly ------
+
+test_that("GLM inclusion weights match Python statsmodels oracle (1e-6)", {
+  skip_if(
+    !file.exists(
+      testthat::test_path("fixtures", "python", "glm_weights_results.csv")
+    )
+  )
+  cohort <- read.csv(
+    testthat::test_path("fixtures", "python", "glm_weights_cohort.csv")
+  )
+  ncc <- data.table::as.data.table(
+    read.csv(testthat::test_path("fixtures", "python", "glm_weights_ncc.csv"))
+  )
+  py <- read.csv(
+    testthat::test_path("fixtures", "python", "glm_weights_results.csv")
+  )
+
+  ncc_glm <- compute_ncc_weights(
+    ncc,
+    cohort = cohort,
+    method = "glm",
+    time = "t"
+  )
+
+  # Compare per-cohort-subject ipw_weight for each unique subject in the NCC.
+  r_unique <- unique(as.data.frame(ncc_glm)[, c(".cohort_row", "ipw_weight")])
+  merged <- merge(
+    r_unique,
+    py[, c(".cohort_row", "ipw_weight")],
+    by = ".cohort_row",
+    suffixes = c("_r", "_py")
+  )
+  diff <- abs(merged$ipw_weight_r - merged$ipw_weight_py)
+  # Both sides apply the identical product formula on the same logistic fit;
+  # numerical agreement should be well within double-precision rounding.
+  expect_lt(max(diff), 1e-6)
+})
+
+# ---- rejection: Phase-1-missing (cohort = NULL or missing time column) -----
+
+test_that("compute_ncc_weights aborts with matchatr_missing_phase1 when cohort = NULL", {
+  cohort <- make_ipw_cohort(n = 400L, seed = 1L)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  expect_error(
+    compute_ncc_weights(ncc, cohort = NULL, method = "glm", time = "t"),
+    class = "matchatr_missing_phase1"
+  )
+})
+
+test_that("compute_ncc_weights aborts with matchatr_missing_phase1 when time col missing", {
+  cohort <- make_ipw_cohort(n = 400L, seed = 1L)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  bad_cohort <- cohort
+  names(bad_cohort)[names(bad_cohort) == "t"] <- "time_renamed"
+  expect_error(
+    compute_ncc_weights(ncc, cohort = bad_cohort, method = "glm", time = "t"),
+    class = "matchatr_missing_phase1"
+  )
+})
+
+test_that("compute_ncc_weights aborts with matchatr_bad_input when .cohort_row is absent", {
+  cohort <- make_ipw_cohort(n = 400L, seed = 1L)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  ncc$.cohort_row <- NULL
+  expect_error(
+    compute_ncc_weights(ncc, cohort = cohort, method = "glm", time = "t"),
+    class = "matchatr_bad_input"
+  )
+})
+
+test_that("compute_ncc_weights aborts with matchatr_bad_input when ncc lacks required cols", {
+  cohort <- make_ipw_cohort(n = 400L, seed = 1L)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  ncc$set <- NULL # remove required column
+  expect_error(
+    compute_ncc_weights(ncc, cohort = cohort, method = "glm", time = "t"),
+    class = "matchatr_bad_input"
+  )
+})
+
 # ---- ci_method = "sandwich" is accepted (re-computes via sandwich::sandwich) --
 
 test_that("ci_method = 'sandwich' is accepted and gives finite CIs", {

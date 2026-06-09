@@ -387,13 +387,19 @@ use standard R contrasts) rather than using `term_assign()`, because
 
 ## IPW for nested case-control (PHASE_7)
 
-**Chunk 1 (KM weights + `ipw_cox`) implemented.**
+**Chunks 1–2 implemented; Chunk 3 pending.**
 `sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and
 appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data.
 `matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits
 `coxph(weights = ipw_weight, robust = TRUE)`, and reports the hazard ratio with
 the Lin-Wei robust sandwich variance. Oracle: `multipleNCC::wpl(weight.method =
 "KM")` agrees exactly on log-HR and SE.
+**Chunk 2** adds `compute_ncc_weights(ncc, cohort, method, selection_formula, time, entry)`:
+replaces the `ipw_weight` column with GLM or GAM working-model inclusion
+probabilities fitted via logistic regression (`method = "glm"`) or a generalised
+additive model (`method = "gam"`) of the binary control-selection indicator across
+all (eligible subject, event-time) pairs. Requires the full Phase-1 cohort; omitting
+`cohort` or `time` aborts with `matchatr_missing_phase1`.
 
 | Weight | Estimator | Estimand | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -401,7 +407,11 @@ the Lin-Wei robust sandwich variance. Oracle: `multipleNCC::wpl(weight.method =
 | `ipw_cox` without `incl_prob = TRUE` data | — | — | — | ⛔ `matchatr_missing_ipw_weights` | `test-ipw_ncc.R` |
 | `ipw_cox` with `type = "or"` or `"difference"` | — | — | — | ⛔ `matchatr_unidentified_estimand` | `test-ipw_ncc.R` |
 | `ipw_cox` with `ci_method = "bootstrap"` | — | — | — | ⛔ `matchatr_unsupported_variance` | `test-ipw_ncc.R` |
-| GLM/GAM/Chen working-model weights | ipw_cox | HR | robust | Chunk 2 pending |
+| GLM working-model weights (`method = "glm"`) | `ipw_cox` | HR | Lin-Wei robust sandwich | ✅ `multipleNCC::wpl(glm)` oracle (2e-2); truth-DGP HR recovery (3.5-SE band); structural (cases = 1, controls ≥ 1, finite) | `test-ipw_ncc.R` |
+| GAM working-model weights (`method = "gam"`) | `ipw_cox` | HR | Lin-Wei robust sandwich | ✅ structural (cases = 1, controls ≥ 1, finite) | `test-ipw_ncc.R` |
+| `compute_ncc_weights` without `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
+| `compute_ncc_weights`, `time` col absent from `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
+| `compute_ncc_weights` without `.cohort_row` in `ncc` | — | — | — | ⛔ `matchatr_bad_input` | `test-ipw_ncc.R` |
 | multiple endpoints | ipw_cox | HR per endpoint | robust | Chunk 3 pending |
 | IPW absolute risk F_x(t) | — | F_x(t) | IPW Breslow | Chunk 3 pending |
 
@@ -469,3 +479,4 @@ are in `test-python-oracle.R`. `statsmodels` anchors the classical MLEs;
 | Mantel–Haenszel summary OR | `mh` | `StratifiedTable` (RBG) | ✅ 1e-4 |
 | polytomous subtype ORs | `polytomous` | `MNLogit` | ✅ 1e-4 |
 | homogeneity Wald χ² + pooled OR | `test_homogeneity` | `MNLogit` + GLS (hand-built) | ✅ 1e-3 |
+| GLM working-model ipw_weight | `compute_ncc_weights(glm)` | `statsmodels.Logit` + product formula | ✅ 1e-6 (same algorithm, double-precision rounding only) |
