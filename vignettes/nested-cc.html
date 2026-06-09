@@ -294,6 +294,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sample_ncc_counter_matched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/sample_ncc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">sample_ncc</span></a>
   </div>
@@ -374,6 +380,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#the-risk-set-hazard-ratio" id="toc-the-risk-set-hazard-ratio" class="nav-link" data-scroll-target="#the-risk-set-hazard-ratio">The risk-set hazard ratio</a></li>
   <li><a href="#or-hr-exactly" id="toc-or-hr-exactly" class="nav-link" data-scroll-target="#or-hr-exactly">OR = HR exactly</a></li>
   <li><a href="#one-scale-per-design" id="toc-one-scale-per-design" class="nav-link" data-scroll-target="#one-scale-per-design">One scale per design</a></li>
+  <li><a href="#counter-matching-concentrating-power-near-the-exposure-surrogate-boundary" id="toc-counter-matching-concentrating-power-near-the-exposure-surrogate-boundary" class="nav-link" data-scroll-target="#counter-matching-concentrating-power-near-the-exposure-surrogate-boundary">Counter-matching: concentrating power near the exposure-surrogate boundary</a></li>
   <li><a href="#covered-combinations" id="toc-covered-combinations" class="nav-link" data-scroll-target="#covered-combinations">Covered combinations</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
@@ -511,6 +518,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>As with the other case-control designs, a marginal risk difference / risk ratio needs a source-population prevalence <code>q0</code> and a case-control-weighted estimator, and the conditional fit reports the information-matrix interval only, so <code>ci_method = "sandwich"</code> / <code>"bootstrap"</code> are declined.</p>
 </section>
+<section id="counter-matching-concentrating-power-near-the-exposure-surrogate-boundary" class="level2">
+<h2 class="anchored" data-anchor-id="counter-matching-concentrating-power-near-the-exposure-surrogate-boundary">Counter-matching: concentrating power near the exposure-surrogate boundary</h2>
+<p>When a binary <strong>surrogate</strong> (e.g.&nbsp;the measured variant for a gene of interest) is correlated with the true exposure, counter-matching draws controls from the <em>opposite</em> surrogate stratum, concentrating the study in subjects whose surrogate value differs from the case. This is more efficient than uniform sampling when the surrogate is highly correlated with exposure.</p>
+<p><code>sample_ncc_counter_matched()</code> generates the dataset; analysis requires <code>survival::coxph</code> with the Langholz-Borgan log-weights as an offset (the unweighted clogit is biased for this design):</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cohort<span class="sc">$</span>z_bin <span class="ot">&lt;-</span> cohort<span class="sc">$</span>x          <span class="co"># binary surrogate</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ncc_cm <span class="ot">&lt;-</span> <span class="fu">sample_ncc_counter_matched</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">surrogate =</span> <span class="st">"z_bin"</span>, <span class="at">m =</span> <span class="dv">1</span>L</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>fit_cm <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_cm, <span class="st">"case"</span>, <span class="st">"x"</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">weights =</span> <span class="st">"log_w"</span>),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"weighted_cox"</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_cm)                   <span class="co"># hazard ratio by default</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>The log-weights (<code>log_w</code>) encode how many subjects each observation represents: the case represents its entire same-stratum risk set (log_w = log(n_same + 1)), and each control represents the opposite stratum divided by the number of controls drawn (log_w = log(n_opp / m_take)). Requesting <code>type = "or"</code> or a sandwich/bootstrap CI is declined.</p>
+</section>
 <section id="covered-combinations" class="level2">
 <h2 class="anchored" data-anchor-id="covered-combinations">Covered combinations</h2>
 <p><strong>Legend.</strong> ✅ truth-pinned in tests · ⛔ rejected with an informative error.</p>
@@ -572,6 +600,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>—</td>
 <td>⛔</td>
 </tr>
+<tr class="even">
+<td><code>sample_ncc_counter_matched()</code> draw</td>
+<td>—</td>
+<td>CM NCC sample</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td>counter-matched</td>
+<td><code>weighted_cox</code></td>
+<td>conditional hazard ratio</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td>counter-matched</td>
+<td><code>weighted_cox</code></td>
+<td>odds ratio</td>
+<td>⛔ use <code>type = "hr"</code></td>
+</tr>
+<tr class="odd">
+<td>counter-matched</td>
+<td><code>weighted_cox</code></td>
+<td>sandwich / bootstrap CI</td>
+<td>⛔</td>
+</tr>
 </tbody>
 </table>
 <p>See <code>FEATURE_COVERAGE_MATRIX.md</code> for the authoritative status of every combination.</p>
@@ -580,6 +632,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="references">References</h2>
 <p>Prentice RL, Breslow NE (1978). Retrospective studies and failure time models. <em>Biometrika</em> 65(1):153-158.</p>
 <p>Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control sampling in the Cox regression model. <em>Annals of Statistics</em> 20(4):1903-1928.</p>
+<p>Langholz B, Borgan Ø (1995). Counter-matching: a stratified nested case-control sampling method. <em>Biometrika</em> 82(1):69-79.</p>
 <p>Thomas DC (1977). Addendum to “Methods of cohort analysis: appraisal by application to asbestos mining” by Liddell FDK, McDonald JC, Thomas DC. <em>Journal of the Royal Statistical Society A</em> 140(4):469-491.</p>
 
 
@@ -1039,155 +1092,194 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Nested case-control hazard ratios"</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> show</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="an">vignette:</span><span class="co"> &gt;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Nested case-control hazard ratios}</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>A *nested* case-control (NCC) study samples controls from inside a cohort by</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>**risk-set (incidence-density) sampling**: at each case's failure time, a few</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>controls are drawn at random from the subjects still at risk. The design-faithful</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>analysis is the **conditional partial likelihood** with each sampled risk set as</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>a stratum — exactly the conditional logistic regression matchatr already uses for</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>matched case-control data, because a matched set and a sampled risk set are the</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>same stratum construction.</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>The estimand, however, is different. Under proper risk-set sampling the</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>conditional estimate is the **hazard ratio**, exactly — there is no rare-disease</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>approximation involved (Prentice &amp; Breslow, 1978). So matchatr reports it on the</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>hazard-ratio scale (<span class="in">`type = "hr"`</span>), which is the default for <span class="in">`nested_cc()`</span>.</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## A cohort and a nested sample</span></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>We simulate a cohort with a constant baseline hazard and a known Cox log hazard</span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>ratio for a binary exposure <span class="in">`x`</span>.</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">51</span>)</span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="fl">2.2</span>)                       <span class="co"># the true log hazard ratio for x</span></span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>rate <span class="ot">&lt;-</span> <span class="fl">0.08</span> <span class="sc">*</span> <span class="fu">exp</span>(beta <span class="sc">*</span> x)           <span class="co"># PH hazard: baseline times exp(lp)</span></span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, rate)</span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>tau  <span class="ot">&lt;-</span> <span class="dv">4</span>                              <span class="co"># administrative censoring</span></span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(n), <span class="at">t =</span> <span class="fu">pmin</span>(time, tau), <span class="at">d =</span> <span class="fu">as.integer</span>(time <span class="sc">&lt;=</span> tau), <span class="at">x =</span> x</span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="in">`sample_ncc()`</span> draws the risk-set (incidence-density) sample: for each case it</span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>takes <span class="in">`m`</span> controls at random from the subjects still at risk at that failure</span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>time. The result is analysis-ready — it carries a per-set <span class="in">`case`</span> indicator</span>
-<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>(distinct from the cohort-wide <span class="in">`event`</span>, since a sampled control may itself fail</span>
-<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>later), a matched-set id <span class="in">`set`</span>, and the set's <span class="in">`risk_time`</span>.</span>
-<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>)</span>
-<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ncc)</span>
-<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>Two further sampling options match real designs: <span class="in">`match = ~ sex + birth_cohort`</span></span>
-<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>confines each case's controls to its own population stratum, and <span class="in">`entry =`</span></span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>supplies a delayed-entry (left-truncation) column so a subject counts as at risk</span>
-<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>only after it enters follow-up. A case left with no eligible control aborts with</span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>an informative <span class="in">`matchatr_empty_risk_set`</span> error rather than a degenerate set.</span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="fu">## The risk-set hazard ratio</span></span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="in">`matcha()`</span> with <span class="in">`design = nested_cc()`</span> fits the conditional partial likelihood;</span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast()`</span> reports the hazard ratio with the partial-likelihood</span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>information-matrix Wald interval.</span>
-<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
-<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>),</span>
-<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
-<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>fit</span>
-<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)        <span class="co"># type = "hr" is the default for a nested design</span></span>
-<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>The estimate recovers the true log hazard ratio <span class="in">`log(2.2) ≈ 0.79`</span>. The design's</span>
-<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a><span class="in">`time`</span> column records how the controls were sampled; the risk-set membership is</span>
-<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>read from <span class="in">`strata`</span>, so the conditional likelihood does not enter <span class="in">`time`</span> here.</span>
-<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a><span class="fu">## OR = HR exactly</span></span>
-<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>The whole point of risk-set sampling is that the sampled odds ratio *is* the</span>
-<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>hazard ratio, with no rare-disease assumption. We can see this directly: the</span>
-<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>NCC estimate matches the Cox hazard ratio fit on the **full cohort** (within</span>
-<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>sampling error, since the NCC sample is a subset).</span>
-<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>full_cohort <span class="ot">&lt;-</span> survival<span class="sc">::</span><span class="fu">coxph</span>(survival<span class="sc">::</span><span class="fu">Surv</span>(t, d) <span class="sc">~</span> x, <span class="at">data =</span> cohort)</span>
-<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">ncc_HR    =</span> <span class="fu">exp</span>(<span class="fu">coef</span>(fit<span class="sc">$</span>model)[[<span class="st">"x"</span>]]),</span>
-<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort_HR =</span> <span class="fu">exp</span>(<span class="fu">coef</span>(full_cohort)[[<span class="st">"x"</span>]]))</span>
-<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a><span class="fu">## One scale per design</span></span>
-<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>Each conditional design identifies exactly one scale: the matched design reports</span>
-<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>the odds ratio, the nested design the hazard ratio. Asking for the off-design</span>
-<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>scale is declined — the value would be the same number, but it is not the</span>
-<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>estimand the design targets:</span>
-<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a>As with the other case-control designs, a marginal risk difference / risk ratio</span>
-<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>needs a source-population prevalence <span class="in">`q0`</span> and a case-control-weighted estimator,</span>
-<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>and the conditional fit reports the information-matrix interval only, so</span>
-<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a><span class="in">`ci_method = "sandwich"`</span> / <span class="in">`"bootstrap"`</span> are declined.</span>
-<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
-<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
-<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Sampling <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Status <span class="pp">|</span></span>
-<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`sample_ncc()`</span> risk-set draw (+ <span class="in">`match`</span> / <span class="in">`entry`</span>) <span class="pp">|</span> — <span class="pp">|</span> NCC sample from a cohort <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m:1 risk-set <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> conditional hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m:1 risk-set + confounder <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> conditional hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> risk-set + <span class="in">`effect_modifier`</span> <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> stratum-specific hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> nested <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> odds ratio <span class="pp">|</span> ⛔ use <span class="in">`type = "hr"`</span> <span class="pp">|</span></span>
-<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> nested <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
-<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> nested, non-binary outcome <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ <span class="pp">|</span></span>
-<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
-<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>combination.</span>
-<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>Prentice RL, Breslow NE (1978). Retrospective studies and failure time models.</span>
-<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>*Biometrika* 65(1):153-158.</span>
-<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control</span>
-<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>sampling in the Cox regression model. *Annals of Statistics* 20(4):1903-1928.</span>
-<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by</span>
-<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>application to asbestos mining" by Liddell FDK, McDonald JC, Thomas DC.</span>
-<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>*Journal of the Royal Statistical Society A* 140(4):469-491.</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Nested case-control hazard ratios"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> show</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="an">vignette:</span><span class="co"> &gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Nested case-control hazard ratios}</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>A *nested* case-control (NCC) study samples controls from inside a cohort by</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>**risk-set (incidence-density) sampling**: at each case's failure time, a few</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>controls are drawn at random from the subjects still at risk. The design-faithful</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>analysis is the **conditional partial likelihood** with each sampled risk set as</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>a stratum — exactly the conditional logistic regression matchatr already uses for</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>matched case-control data, because a matched set and a sampled risk set are the</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>same stratum construction.</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>The estimand, however, is different. Under proper risk-set sampling the</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>conditional estimate is the **hazard ratio**, exactly — there is no rare-disease</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>approximation involved (Prentice &amp; Breslow, 1978). So matchatr reports it on the</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>hazard-ratio scale (<span class="in">`type = "hr"`</span>), which is the default for <span class="in">`nested_cc()`</span>.</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## A cohort and a nested sample</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>We simulate a cohort with a constant baseline hazard and a known Cox log hazard</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>ratio for a binary exposure <span class="in">`x`</span>.</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">51</span>)</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="fl">2.2</span>)                       <span class="co"># the true log hazard ratio for x</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>rate <span class="ot">&lt;-</span> <span class="fl">0.08</span> <span class="sc">*</span> <span class="fu">exp</span>(beta <span class="sc">*</span> x)           <span class="co"># PH hazard: baseline times exp(lp)</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, rate)</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>tau  <span class="ot">&lt;-</span> <span class="dv">4</span>                              <span class="co"># administrative censoring</span></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(n), <span class="at">t =</span> <span class="fu">pmin</span>(time, tau), <span class="at">d =</span> <span class="fu">as.integer</span>(time <span class="sc">&lt;=</span> tau), <span class="at">x =</span> x</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a><span class="in">`sample_ncc()`</span> draws the risk-set (incidence-density) sample: for each case it</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>takes <span class="in">`m`</span> controls at random from the subjects still at risk at that failure</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>time. The result is analysis-ready — it carries a per-set <span class="in">`case`</span> indicator</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>(distinct from the cohort-wide <span class="in">`event`</span>, since a sampled control may itself fail</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>later), a matched-set id <span class="in">`set`</span>, and the set's <span class="in">`risk_time`</span>.</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>)</span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ncc)</span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>Two further sampling options match real designs: <span class="in">`match = ~ sex + birth_cohort`</span></span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>confines each case's controls to its own population stratum, and <span class="in">`entry =`</span></span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>supplies a delayed-entry (left-truncation) column so a subject counts as at risk</span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>only after it enters follow-up. A case left with no eligible control aborts with</span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>an informative <span class="in">`matchatr_empty_risk_set`</span> error rather than a degenerate set.</span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a><span class="fu">## The risk-set hazard ratio</span></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a><span class="in">`matcha()`</span> with <span class="in">`design = nested_cc()`</span> fits the conditional partial likelihood;</span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast()`</span> reports the hazard ratio with the partial-likelihood</span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>information-matrix Wald interval.</span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>),</span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>fit</span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)        <span class="co"># type = "hr" is the default for a nested design</span></span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>The estimate recovers the true log hazard ratio <span class="in">`log(2.2) ≈ 0.79`</span>. The design's</span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a><span class="in">`time`</span> column records how the controls were sampled; the risk-set membership is</span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>read from <span class="in">`strata`</span>, so the conditional likelihood does not enter <span class="in">`time`</span> here.</span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a><span class="fu">## OR = HR exactly</span></span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>The whole point of risk-set sampling is that the sampled odds ratio *is* the</span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>hazard ratio, with no rare-disease assumption. We can see this directly: the</span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a>NCC estimate matches the Cox hazard ratio fit on the **full cohort** (within</span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>sampling error, since the NCC sample is a subset).</span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>full_cohort <span class="ot">&lt;-</span> survival<span class="sc">::</span><span class="fu">coxph</span>(survival<span class="sc">::</span><span class="fu">Surv</span>(t, d) <span class="sc">~</span> x, <span class="at">data =</span> cohort)</span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">ncc_HR    =</span> <span class="fu">exp</span>(<span class="fu">coef</span>(fit<span class="sc">$</span>model)[[<span class="st">"x"</span>]]),</span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort_HR =</span> <span class="fu">exp</span>(<span class="fu">coef</span>(full_cohort)[[<span class="st">"x"</span>]]))</span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a><span class="fu">## One scale per design</span></span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>Each conditional design identifies exactly one scale: the matched design reports</span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>the odds ratio, the nested design the hazard ratio. Asking for the off-design</span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a>scale is declined — the value would be the same number, but it is not the</span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a>estimand the design targets:</span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>As with the other case-control designs, a marginal risk difference / risk ratio</span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a>needs a source-population prevalence <span class="in">`q0`</span> and a case-control-weighted estimator,</span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a>and the conditional fit reports the information-matrix interval only, so</span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a><span class="in">`ci_method = "sandwich"`</span> / <span class="in">`"bootstrap"`</span> are declined.</span>
+<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a><span class="fu">## Counter-matching: concentrating power near the exposure-surrogate boundary</span></span>
+<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a>When a binary **surrogate** (e.g. the measured variant for a gene of interest)</span>
+<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a>is correlated with the true exposure, counter-matching draws controls from the</span>
+<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a>*opposite* surrogate stratum, concentrating the study in subjects whose</span>
+<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a>surrogate value differs from the case. This is more efficient than uniform</span>
+<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a>sampling when the surrogate is highly correlated with exposure.</span>
+<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a><span class="in">`sample_ncc_counter_matched()`</span> generates the dataset; analysis requires</span>
+<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a><span class="in">`survival::coxph`</span> with the Langholz-Borgan log-weights as an offset (the</span>
+<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a>unweighted clogit is biased for this design):</span>
+<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a>cohort<span class="sc">$</span>z_bin <span class="ot">&lt;-</span> cohort<span class="sc">$</span>x          <span class="co"># binary surrogate</span></span>
+<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a>ncc_cm <span class="ot">&lt;-</span> <span class="fu">sample_ncc_counter_matched</span>(</span>
+<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a>  cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">surrogate =</span> <span class="st">"z_bin"</span>, <span class="at">m =</span> <span class="dv">1</span>L</span>
+<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a>fit_cm <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_cm, <span class="st">"case"</span>, <span class="st">"x"</span>,</span>
+<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>,</span>
+<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a>                           <span class="at">weights =</span> <span class="st">"log_w"</span>),</span>
+<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"weighted_cox"</span></span>
+<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_cm)                   <span class="co"># hazard ratio by default</span></span>
+<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a>The log-weights (<span class="in">`log_w`</span>) encode how many subjects each observation represents:</span>
+<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a>the case represents its entire same-stratum risk set (log_w = log(n_same + 1)),</span>
+<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a>and each control represents the opposite stratum divided by the number of</span>
+<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a>controls drawn (log_w = log(n_opp / m_take)). Requesting <span class="in">`type = "or"`</span> or a</span>
+<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a>sandwich/bootstrap CI is declined.</span>
+<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
+<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
+<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Sampling <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Status <span class="pp">|</span></span>
+<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb8-176"><a href="#cb8-176" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`sample_ncc()`</span> risk-set draw (+ <span class="in">`match`</span> / <span class="in">`entry`</span>) <span class="pp">|</span> — <span class="pp">|</span> NCC sample from a cohort <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb8-177"><a href="#cb8-177" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m:1 risk-set <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> conditional hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb8-178"><a href="#cb8-178" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m:1 risk-set + confounder <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> conditional hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb8-179"><a href="#cb8-179" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> risk-set + <span class="in">`effect_modifier`</span> <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> stratum-specific hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb8-180"><a href="#cb8-180" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> nested <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> odds ratio <span class="pp">|</span> ⛔ use <span class="in">`type = "hr"`</span> <span class="pp">|</span></span>
+<span id="cb8-181"><a href="#cb8-181" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> nested <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
+<span id="cb8-182"><a href="#cb8-182" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> nested, non-binary outcome <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ <span class="pp">|</span></span>
+<span id="cb8-183"><a href="#cb8-183" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`sample_ncc_counter_matched()`</span> draw <span class="pp">|</span> — <span class="pp">|</span> CM NCC sample <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb8-184"><a href="#cb8-184" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> counter-matched <span class="pp">|</span> <span class="in">`weighted_cox`</span> <span class="pp">|</span> conditional hazard ratio <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb8-185"><a href="#cb8-185" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> counter-matched <span class="pp">|</span> <span class="in">`weighted_cox`</span> <span class="pp">|</span> odds ratio <span class="pp">|</span> ⛔ use <span class="in">`type = "hr"`</span> <span class="pp">|</span></span>
+<span id="cb8-186"><a href="#cb8-186" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> counter-matched <span class="pp">|</span> <span class="in">`weighted_cox`</span> <span class="pp">|</span> sandwich / bootstrap CI <span class="pp">|</span> ⛔ <span class="pp">|</span></span>
+<span id="cb8-187"><a href="#cb8-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-188"><a href="#cb8-188" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
+<span id="cb8-189"><a href="#cb8-189" aria-hidden="true" tabindex="-1"></a>combination.</span>
+<span id="cb8-190"><a href="#cb8-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-191"><a href="#cb8-191" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb8-192"><a href="#cb8-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-193"><a href="#cb8-193" aria-hidden="true" tabindex="-1"></a>Prentice RL, Breslow NE (1978). Retrospective studies and failure time models.</span>
+<span id="cb8-194"><a href="#cb8-194" aria-hidden="true" tabindex="-1"></a>*Biometrika* 65(1):153-158.</span>
+<span id="cb8-195"><a href="#cb8-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-196"><a href="#cb8-196" aria-hidden="true" tabindex="-1"></a>Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control</span>
+<span id="cb8-197"><a href="#cb8-197" aria-hidden="true" tabindex="-1"></a>sampling in the Cox regression model. *Annals of Statistics* 20(4):1903-1928.</span>
+<span id="cb8-198"><a href="#cb8-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-199"><a href="#cb8-199" aria-hidden="true" tabindex="-1"></a>Langholz B, Borgan Ø (1995). Counter-matching: a stratified nested case-control</span>
+<span id="cb8-200"><a href="#cb8-200" aria-hidden="true" tabindex="-1"></a>sampling method. *Biometrika* 82(1):69-79.</span>
+<span id="cb8-201"><a href="#cb8-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-202"><a href="#cb8-202" aria-hidden="true" tabindex="-1"></a>Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by</span>
+<span id="cb8-203"><a href="#cb8-203" aria-hidden="true" tabindex="-1"></a>application to asbestos mining" by Liddell FDK, McDonald JC, Thomas DC.</span>
+<span id="cb8-204"><a href="#cb8-204" aria-hidden="true" tabindex="-1"></a>*Journal of the Royal Statistical Society A* 140(4):469-491.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

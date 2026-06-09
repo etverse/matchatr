@@ -294,6 +294,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sample_ncc_counter_matched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/sample_ncc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">sample_ncc</span></a>
   </div>
@@ -392,11 +398,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="unnumbered anchored" data-anchor-id="counter-matched-design">Counter-matched design</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Declares a counter-matched nested case-control sample: a stratified risk-set design in which controls are sampled to <em>differ</em> from the case on a surrogate of exposure, balancing each sampled risk set across exposure strata. The analysis is a weighted Cox partial likelihood that carries the counter-matching inclusion weights.</p>
+<p>Declares a counter-matched nested case-control (NCC) sample: a stratified risk-set design in which controls are drawn from the <em>opposite</em> surrogate stratum to the case, so each sampled risk set is balanced across surrogate exposure values. The analysis is a weighted Cox partial likelihood using log-sampling-weights as an offset (Langholz &amp; Borgan 1995); the counter- matching weights enter as <code>offset(weights)</code> in <code>survival::coxph</code>, and the result is a hazard ratio.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">counter_matched(strata, time, ratio = NULL)
+<pre><code class="language-R">counter_matched(strata, time, weights = NULL, ratio = NULL)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -407,7 +413,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="strata">strata</code>
 </td>
 <td>
-A non-empty character vector naming the counter-matching surrogate stratum column(s).
+A non-empty character vector naming the column(s) that identify the sampled risk sets (the matched-set id, e.g.&nbsp;<code>“set”</code>). Same role as the <code>strata</code> argument of <code>nested_cc()</code>.
 </td>
 </tr>
 <tr>
@@ -415,7 +421,15 @@ A non-empty character vector naming the counter-matching surrogate stratum colum
 <code id="time">time</code>
 </td>
 <td>
-A single character string naming the event/entry time column that defines the risk sets.
+A single character string naming the risk-time column that defines the failure time for each set (e.g.&nbsp;<code>“risk_time”</code>).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="weights">weights</code>
+</td>
+<td>
+<code>NULL</code> or a single character string naming the log-weight column in the data. <code>sample_ncc_counter_matched()</code> appends a <code>“log_w”</code> column carrying <code>log(n_stratum / m_stratum)</code> for each sampled subject; supply its name here so the analysis engine can enter it as a Cox offset. Required for <code>matcha()</code> to fit the weighted partial likelihood.
 </td>
 </tr>
 <tr>
@@ -423,18 +437,18 @@ A single character string naming the event/entry time column that defines the ri
 <code id="ratio">ratio</code>
 </td>
 <td>
-<code>NULL</code> or a single whole number &gt;= 1. Controls sampled per case within the counter-matched strata.
+<code>NULL</code> or a single whole number &gt;= 1. Controls sampled per case (from the opposite surrogate stratum).
 </td>
 </tr>
 </tbody></table>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_design</code> object of <code>type</code> <code>“counter_matched”</code> carrying the strata, time, and ratio, with a <code>weight_spec</code> flagged for counter-matching weights.</p>
+<p>A <code>matchatr_design</code> object of <code>type</code> <code>“counter_matched”</code> carrying the strata, time, weights, and ratio, with a <code>weight_spec</code> flagged for counter-matching weights.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>nested_cc()</code>, <code>matcha()</code></p>
+<p><code>nested_cc()</code>, <code>sample_ncc_counter_matched()</code>, <code>matcha()</code></p>
 <p>Other design constructors: <code>case_cohort()</code>, <code>matched_cc()</code>, <code>nested_cc()</code>, <code>two_phase()</code>, <code>unmatched_cc()</code></p>
 </section>
 <section id="examples" class="level3">
@@ -442,12 +456,24 @@ A single character string naming the event/entry time column that defines the ri
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"exposure_surrogate"</span>, <span class="at">time =</span> <span class="st">"t"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>, <span class="at">weights =</span> <span class="st">"log_w"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;matchatr_design&gt;
  Type:       Counter-matched
- Strata:     exposure_surrogate
- Time:       t
+ Strata:     set
+ Time:       risk_time
+ Log-weights:log_w
+ Weights:    counter-matching</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>, <span class="at">weights =</span> <span class="st">"log_w"</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">ratio =</span> <span class="dv">2</span>L)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_design&gt;
+ Type:       Counter-matched
+ Strata:     set
+ Time:       risk_time
+ Log-weights:log_w
+ Ratio:      2:1
  Weights:    counter-matching</code></pre>
 </div>
 </div>

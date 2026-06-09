@@ -259,6 +259,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sample_ncc_counter_matched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/sample_ncc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">sample_ncc</span></a>
   </div>
@@ -337,6 +343,10 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#remove-dead-n_dropped-warning-in-fit_cch-critical-review" id="toc-remove-dead-n_dropped-warning-in-fit_cch-critical-review" class="nav-link" data-scroll-target="#remove-dead-n_dropped-warning-in-fit_cch-critical-review">2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)</a></li>
+  <li><a href="#borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2" id="toc-borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2" class="nav-link" data-scroll-target="#borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2">2026-06-09 — Borgan I/II IPW case-cohort estimators (PHASE_6 Chunk 2)</a></li>
+  <li><a href="#case-cohort-cox-pseudo-likelihood-phase_6-chunk-1" id="toc-case-cohort-cox-pseudo-likelihood-phase_6-chunk-1" class="nav-link" data-scroll-target="#case-cohort-cox-pseudo-likelihood-phase_6-chunk-1">2026-06-08 — Case-cohort Cox pseudo-likelihood (PHASE_6 Chunk 1)</a></li>
+  <li><a href="#counter-matched-ncc-sampler-and-weighted-partial-likelihood-phase_5-chunk-3" id="toc-counter-matched-ncc-sampler-and-weighted-partial-likelihood-phase_5-chunk-3" class="nav-link" data-scroll-target="#counter-matched-ncc-sampler-and-weighted-partial-likelihood-phase_5-chunk-3">2026-06-08 — Counter-matched NCC sampler and weighted partial likelihood (PHASE_5 Chunk 3)</a></li>
   <li><a href="#python-cross-language-oracles-for-the-classical-estimators" id="toc-python-cross-language-oracles-for-the-classical-estimators" class="nav-link" data-scroll-target="#python-cross-language-oracles-for-the-classical-estimators">2026-06-08 — Python cross-language oracles for the classical estimators</a></li>
   <li><a href="#risk-set-control-sampling-sample_ncc-phase_5-chunk-2" id="toc-risk-set-control-sampling-sample_ncc-phase_5-chunk-2" class="nav-link" data-scroll-target="#risk-set-control-sampling-sample_ncc-phase_5-chunk-2">2026-06-08 — Risk-set control sampling: <code>sample_ncc()</code> (PHASE_5 Chunk 2)</a></li>
   <li><a href="#nested-case-control-hazard-ratio-phase_5-chunk-1" id="toc-nested-case-control-hazard-ratio-phase_5-chunk-1" class="nav-link" data-scroll-target="#nested-case-control-hazard-ratio-phase_5-chunk-1">2026-06-08 — Nested case-control hazard ratio (PHASE_5 Chunk 1)</a></li>
@@ -365,6 +375,45 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="remove-dead-n_dropped-warning-in-fit_cch-critical-review" class="level2">
+<h2 class="anchored" data-anchor-id="remove-dead-n_dropped-warning-in-fit_cch-critical-review">2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)</h2>
+<p><code>fit_cch()</code> computed <code>n_dropped = nrow(subset_dt) - model$n</code>, but <code>model$n</code> for a <code>survival::cch</code> object equals <code>subcohort_size + n_events</code> — it double-counts subjects who are both subcohort members and cases. <code>n_dropped</code> was therefore always negative and the warning could never fire. Removed the dead code; NA handling is left to <code>survival::cch</code>’s own <code>na.action</code>.</p>
+</section>
+<section id="borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2" class="level2">
+<h2 class="anchored" data-anchor-id="borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2">2026-06-09 — Borgan I/II IPW case-cohort estimators (PHASE_6 Chunk 2)</h2>
+<p>Extends the <code>cch</code> engine with the Borgan I/II IPW estimators for stratified subcohort sampling.</p>
+<ul>
+<li><strong><code>case_cohort(..., method = "I.Borgan", stratum = "&lt;col&gt;")</code></strong> and <code>"II.Borgan"</code> now work end-to-end. <code>stratum</code> names the column that defines the subcohort sampling strata; <code>survival::cch</code> weights each subject by the inverse of its stratum-specific subcohort sampling fraction (Borgan et al.&nbsp;2000).</li>
+<li><strong><code>cohort.size</code> is computed per stratum</strong> from the full cohort (not the cases+subcohort subset), so the denominator correctly reflects the total stratum size. A named integer vector is passed to <code>survival::cch</code>.</li>
+<li><code>method = "I.Borgan"</code> or <code>"II.Borgan"</code> without <code>stratum</code> aborts with <code>matchatr_bad_design</code>; a missing stratum column in the data aborts similarly.</li>
+<li><code>case_cohort()</code> gains the <code>stratum</code> parameter; <code>print.matchatr_design()</code> shows the stratum column when present.</li>
+<li>Tests in <code>test-case_cohort.R</code>: nwtco oracle for both Borgan methods (exact coefficient and SE match vs direct <code>survival::cch</code>), truth DGP with two sampling strata (<code>make_stratified_case_cohort_data()</code>), and rejection path snapshot.</li>
+</ul>
+</section>
+<section id="case-cohort-cox-pseudo-likelihood-phase_6-chunk-1" class="level2">
+<h2 class="anchored" data-anchor-id="case-cohort-cox-pseudo-likelihood-phase_6-chunk-1">2026-06-08 — Case-cohort Cox pseudo-likelihood (PHASE_6 Chunk 1)</h2>
+<p>Adds the <code>case_cohort()</code> design constructor and the <code>cch</code> engine wrapping <code>survival::cch()</code> for the Prentice, Self-Prentice, and Lin-Ying pseudo-likelihood hazard ratio.</p>
+<ul>
+<li><strong><code>case_cohort(subcohort, time, method, id)</code></strong> declares a case-cohort sampling structure. <code>method</code> selects the pseudo-likelihood variant (<code>"Prentice"</code>, <code>"SelfPrentice"</code>, <code>"LinYing"</code>, <code>"I.Borgan"</code>, <code>"II.Borgan"</code>); <code>id</code> names the subject-identifier column so <code>survival::cch</code> correctly pairs subjects that appear as both subcohort member and case. Default: <code>method = "Prentice"</code>.</li>
+<li><strong><code>matcha(design = case_cohort(subcohort, time, method), estimator = "cch")</code></strong> builds the <code>Surv(time, status) ~ exposure + confounders</code> call, subsets to cases + subcohort members (censored non-members contribute nothing to the pseudo-likelihood), and delegates to <code>survival::cch</code> with <code>cohort.size = nrow(data)</code>. <code>contrast()</code> reports the exposure’s <strong>hazard ratio</strong> (<code>type = "hr"</code>) using the variance that <code>survival::cch</code> returns for the chosen method — the correct asymptotic / pseudo-likelihood variance, not the naive information matrix.</li>
+<li>The pseudo-likelihood’s dependent score factors mean its controls (subcohort members) are reused across failure times, so the naive information-matrix SE is never used. Self-Prentice and Prentice share the same asymptotic variance; LinYing uses an independent robust variance estimator.</li>
+<li><code>type = "or"</code>, <code>"difference"</code>, <code>"ratio"</code> and <code>ci_method = "sandwich"</code>, <code>"bootstrap"</code> are rejected for this estimator.</li>
+<li>New functions: <code>fit_cch()</code>, <code>contrast_cch()</code>, <code>cch_exposure_coef_names()</code> in <code>R/case_cohort.R</code>. Wired in <code>R/dispatch.R</code>, <code>R/contrast.R</code>, <code>R/cc_design.R</code>.</li>
+<li>Tests in <code>tests/testthat/test-case_cohort.R</code>: nwtco oracle (3 methods vs direct <code>survival::cch</code> call), truth recovery within 3.5 SE, full-cohort <code>coxph</code> agreement, structural checks, and all rejection paths.</li>
+</ul>
+</section>
+<section id="counter-matched-ncc-sampler-and-weighted-partial-likelihood-phase_5-chunk-3" class="level2">
+<h2 class="anchored" data-anchor-id="counter-matched-ncc-sampler-and-weighted-partial-likelihood-phase_5-chunk-3">2026-06-08 — Counter-matched NCC sampler and weighted partial likelihood (PHASE_5 Chunk 3)</h2>
+<p>Adds <code>sample_ncc_counter_matched()</code> and the <code>weighted_cox</code> engine for the Langholz-Borgan (1995) counter-matched partial likelihood.</p>
+<ul>
+<li><strong><code>sample_ncc_counter_matched(cohort, time, event, surrogate, m, match, entry)</code></strong> generates a counter-matched NCC dataset: at each event time the case is matched to <code>m</code> controls drawn from the <em>opposite</em> surrogate stratum. The output appends <code>set</code>, <code>case</code>, <code>risk_time</code>, and <code>log_w</code> (the log-sampling-weight for the weighted partial likelihood). Optional population-stratum matching (<code>match =</code>) and delayed entry (<code>entry =</code>) are supported, mirroring <code>sample_ncc()</code>. A case with no eligible control in the opposite stratum aborts with <code>matchatr_empty_risk_set</code>.</li>
+<li><strong><code>matcha(design = counter_matched(strata, time, weights = "log_w"), estimator = "weighted_cox")</code></strong> fits <code>survival::coxph</code> with the log-weights as a Cox offset (<code>outcome ~ exposure + confounders + strata(set) + offset(log_w)</code>) and <code>contrast()</code> reports the hazard ratio (<code>type = "hr"</code>). <code>survival::coxph</code> is used directly (not the <code>clogit()</code> wrapper) because <code>clogit</code> does not pass <code>offset</code> through to its internal coxph call.</li>
+<li>The log-weight formula: the case represents its entire same-stratum risk set (log_w = log(n_same + 1)); each sampled control represents the opposite stratum divided by the controls drawn (log_w = log(n_opp / m_take)). This is the key correction that makes the weighted partial likelihood consistent for the Cox HR, while the unweighted clogit on counter-matched data is biased.</li>
+<li><code>type = "or"</code>, <code>"difference"</code>, <code>"ratio"</code> and <code>ci_method = "sandwich"</code>, <code>"bootstrap"</code> are rejected for this estimator.</li>
+<li>New functions: <code>sample_ncc_counter_matched()</code>, <code>resolve_surrogate()</code> (in <code>R/risk_set_sampling.R</code>); <code>fit_weighted_cox()</code>, <code>contrast_weighted_cox()</code> (in <code>R/weighted_cox.R</code>). Wired in <code>R/dispatch.R</code> and <code>R/contrast.R</code>.</li>
+<li>Tests in <code>tests/testthat/test-weighted_cox.R</code>: structural invariants, exact log-weight formula check, truth recovery within 3.5 SE, full-cohort coxph oracle, and rejection paths.</li>
+</ul>
+</section>
 <section id="python-cross-language-oracles-for-the-classical-estimators" class="level2">
 <h2 class="anchored" data-anchor-id="python-cross-language-oracles-for-the-classical-estimators">2026-06-08 — Python cross-language oracles for the classical estimators</h2>
 <p>Adds an independent <strong>Python (<code>statsmodels</code>) cross-language oracle</strong> for every implemented classical estimator, so a bug shared between matchatr and its R engine cannot hide behind a same-package comparison. Each oracle reads the same committed dataset both languages share and compares against a committed Python result CSV; tests never invoke Python, so CI needs no Python toolchain (each is guarded with <code>skip_if(!file.exists(...))</code>). The fixtures and a regeneration recipe live in <code>tests/testthat/fixtures/python/</code>; the comparisons are in <code>test-python-oracle.R</code>.</p>

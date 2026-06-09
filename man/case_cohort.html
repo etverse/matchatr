@@ -294,6 +294,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sample_ncc_counter_matched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/sample_ncc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">sample_ncc</span></a>
   </div>
@@ -396,7 +402,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">case_cohort(subcohort, time)
+<pre><code class="language-R">case_cohort(subcohort, time, method = "Prentice", id = NULL, stratum = NULL)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -418,11 +424,35 @@ A single character string naming the 0/1 (or logical) column flagging subcohort 
 A single character string naming the event/follow-up time column.
 </td>
 </tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="method">method</code>
+</td>
+<td>
+Character scalar naming the pseudo-likelihood method passed to <code>survival::cch()</code>. One of <code>“Prentice”</code> (the default), <code>“SelfPrentice”</code>, <code>“LinYing”</code>, <code>“I.Borgan”</code>, or <code>“II.Borgan”</code>. The first three are for simple (unstratified) subcohorts; the Borgan variants require stratified subcohort sampling and need <code>stratum</code> to be supplied. <code>“Prentice”</code> and <code>“SelfPrentice”</code> share the same asymptotic variance; <code>“LinYing”</code> uses an independent variance estimator; <code>“I.Borgan”</code> and <code>“II.Borgan”</code> are IPW estimators for stratified subcohorts with plug-in asymptotic variance.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="id">id</code>
+</td>
+<td>
+<code>NULL</code> or a single character string naming the subject-identifier column. When <code>NULL</code> (the default) the original row positions in the data are used as synthetic IDs. Supply an ID column when subjects can appear both as subcohort members and as cases (the common case-cohort situation): <code>survival::cch()</code> uses the ID to correctly pair each subject’s two appearances.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="stratum">stratum</code>
+</td>
+<td>
+<code>NULL</code> or a non-empty character vector naming the column(s) defining the subcohort sampling strata. Required when <code>method</code> is <code>“I.Borgan”</code> or <code>“II.Borgan”</code>: both IPW estimators weight each subject by the inverse of its stratum-specific subcohort sampling fraction, so the stratum boundaries must be known. When <code>method</code> is <code>“Prentice”</code>, <code>“SelfPrentice”</code>, or <code>“LinYing”</code> the <code>stratum</code> argument is ignored (those estimators assume a simple random subcohort).
+</td>
+</tr>
 </tbody></table>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_design</code> object of <code>type</code> <code>“case_cohort”</code> carrying the subcohort and time columns, with a <code>weight_spec</code> flagged for inclusion-probability weighting.</p>
+<p>A <code>matchatr_design</code> object of <code>type</code> <code>“case_cohort”</code> carrying the subcohort, time, method, stratum, and (optionally) id columns, with a <code>weight_spec</code> flagged for inclusion-probability weighting.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
@@ -440,6 +470,36 @@ A single character string naming the event/follow-up time column.
  Type:       Case-cohort
  Time:       t
  Subcohort:  in_subcohort
+ Method:     Prentice
+ Weights:    inclusion-probability</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"in_subcohort"</span>, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">method =</span> <span class="st">"LinYing"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_design&gt;
+ Type:       Case-cohort
+ Time:       t
+ Subcohort:  in_subcohort
+ Method:     LinYing
+ Weights:    inclusion-probability</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"in_subcohort"</span>, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">id =</span> <span class="st">"subject_id"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_design&gt;
+ Type:       Case-cohort
+ Time:       t
+ Subcohort:  in_subcohort
+ Method:     Prentice
+ Weights:    inclusion-probability</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"in_subcohort"</span>, <span class="at">time =</span> <span class="st">"t"</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">method =</span> <span class="st">"I.Borgan"</span>, <span class="at">stratum =</span> <span class="st">"region"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_design&gt;
+ Type:       Case-cohort
+ Time:       t
+ Subcohort:  in_subcohort
+ Method:     I.Borgan
+ Stratum:    region
  Weights:    inclusion-probability</code></pre>
 </div>
 </div>

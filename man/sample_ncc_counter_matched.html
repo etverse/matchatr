@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>tidy.matchatr_homogeneity – matchatr</title>
+<title>sample_ncc_counter_matched – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/tidy.matchatr_homogeneity.html">tidy.matchatr_homogeneity</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/sample_ncc_counter_matched.html">sample_ncc_counter_matched</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -294,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">sample_ncc_counter_matched</span></a>
   </div>
 </li>
@@ -324,7 +324,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/tidy.matchatr_homogeneity.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/tidy.matchatr_homogeneity.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tidy.matchatr_homogeneity</span></a>
   </div>
 </li>
@@ -376,11 +376,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#tidy-a-matchatr-homogeneity-test" id="toc-tidy-a-matchatr-homogeneity-test" class="nav-link active" data-scroll-target="#tidy-a-matchatr-homogeneity-test">Tidy a matchatr homogeneity test</a>
+  <li><a href="#draw-a-counter-matched-nested-case-control-sample-from-a-cohort" id="toc-draw-a-counter-matched-nested-case-control-sample-from-a-cohort" class="nav-link active" data-scroll-target="#draw-a-counter-matched-nested-case-control-sample-from-a-cohort">Draw a counter-matched nested case-control sample from a cohort</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
@@ -389,21 +390,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/tidy.matchatr_homogeneity.html">tidy.matchatr_homogeneity</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/case_cohort.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/sample_ncc_counter_matched.html">sample_ncc_counter_matched</a></li></ol></nav></header>
 
 
 
 
-<section id="tidy-a-matchatr-homogeneity-test" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="tidy-a-matchatr-homogeneity-test">Tidy a matchatr homogeneity test</h2>
+<section id="draw-a-counter-matched-nested-case-control-sample-from-a-cohort" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="draw-a-counter-matched-nested-case-control-sample-from-a-cohort">Draw a counter-matched nested case-control sample from a cohort</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Returns the per-exposure homogeneity results carried by a <code>matchatr_homogeneity</code> object as a tidy <code>data.table</code>, one row per exposure term, following the broom column convention shared with <code>tidy.matchatr_result()</code>: <code>estimate</code> is the common (pooled) odds ratio, <code>std.error</code> its delta-method standard error on the odds-ratio scale, <code>conf.low</code> / <code>conf.high</code> its Wald bounds, and <code>statistic</code> / <code>df</code> / <code>p.value</code> the homogeneity Wald chi-squared test.</p>
+<p>Generates a counter-matched nested case-control (NCC) dataset from a full cohort: at each event time the case is matched to <code>m</code> controls drawn exclusively from the <em>opposite</em> surrogate stratum, concentrating study resources in subjects whose surrogate exposure differs from the case. The analysis weights (log-sampling-weights) for the Langholz-Borgan (1995) weighted partial likelihood are appended as a <code>log_w</code> column: the case represents its entire surrogate stratum (log-weight = log(n_same + 1)) and each control represents the opposite stratum divided by the controls drawn (log-weight = log(n_other / m)). The result feeds straight into <code>matcha(design = counter_matched(strata = “set”, time = “risk_time”, weights = “log_w”))</code>, whose <code>survival::coxph</code> fit reports the hazard ratio.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">## S3 method for class 'matchatr_homogeneity'
-tidy(x, ...)
+<pre><code class="language-R">sample_ncc_counter_matched(
+  cohort,
+  time,
+  event,
+  surrogate,
+  m = 1L,
+  match = NULL,
+  entry = NULL
+)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -411,51 +419,110 @@ tidy(x, ...)
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
+<code id="cohort">cohort</code>
 </td>
 <td>
-A <code>matchatr_homogeneity</code> object returned by <code>test_homogeneity()</code>.
+A data.frame or data.table with one row per subject.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
+<code id="time">time</code>
 </td>
 <td>
-Unused; present for generic consistency.
+A single character string naming the exit / event-time column. Must be numeric.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="event">event</code>
+</td>
+<td>
+A single character string naming the event indicator (logical, two-level factor, or numeric 0/1); at least one event must occur.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="surrogate">surrogate</code>
+</td>
+<td>
+A single character string naming the binary surrogate exposure column. Controls are drawn from subjects whose surrogate value differs from the case’s. Must be logical, numeric 0/1, or a two-level factor; no missing values.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="m">m</code>
+</td>
+<td>
+A single whole number &gt;= 1, the number of controls sampled per case from the opposite surrogate stratum (default 1).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="match">match</code>
+</td>
+<td>
+<code>NULL</code> (no additional matching) or a one-sided formula naming population-stratum column(s) controls must share with the case (e.g.&nbsp;<code>~ sex + birth_cohort</code>).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="entry">entry</code>
+</td>
+<td>
+<code>NULL</code> (everyone enters at the time origin) or a single character string naming a delayed-entry / left-truncation column.
 </td>
 </tr>
 </tbody></table>
 </section>
+<section id="details" class="level3">
+<h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>Controls are drawn without replacement from subjects at risk at the case’s failure time (<code style="white-space: pre;">entry &lt; tc &lt;= time</code>) in the <em>opposite</em> surrogate stratum. When fewer than <code>m</code> eligible controls exist (late failure times or narrow strata), the smaller available set is returned rather than an error. A case with no eligible control in the opposite stratum — which means the entire at-risk population shares the case’s surrogate value — aborts with <code>matchatr_empty_risk_set</code>, signalling a sampling-design failure.</p>
+<p>Additional matching (<code>match = ~ s1 + s2</code>) restricts each risk set to subjects sharing the case’s population-stratum values on the named variables. The eligibility pool is first restricted by the match stratum, and the surrogate split is then applied within that pool.</p>
+<p>The surrogate column must be binary: logical, numeric 0/1, or a two-level factor. Missing values abort with <code>matchatr_bad_input</code>.</p>
+<p>The log-weights are the key difference from unweighted <code>sample_ncc()</code>: with pure counter-matching the unweighted clogit is biased because the controls were drawn non-uniformly (opposite-stratum only), so the weighted partial likelihood (coxph + offset) must be used for analysis.</p>
+</section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>data.table</code> with columns <code>term</code>, <code>estimate</code> (the common odds ratio), <code>std.error</code>, <code>conf.low</code>, <code>conf.high</code>, <code>statistic</code>, <code>df</code>, and <code>p.value</code>.</p>
+<p>A <code>data.table</code> with one row per sampled subject: the selected rows of <code>cohort</code> (all original columns) plus <code>set</code> (integer matched-set id), <code>case</code> (per-set 0/1 indicator), <code>risk_time</code> (the set’s failure time), and <code>log_w</code> (the log-sampling-weight for the weighted partial likelihood). Aborts with <code>matchatr_empty_risk_set</code> when any case has no eligible control in the opposite surrogate stratum.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>test_homogeneity()</code></p>
-<p>Other tidiers: <code>tidy.matchatr_fit()</code>, <code>tidy.matchatr_result()</code></p>
+<p><code>counter_matched()</code>, <code>matcha()</code>, <code>sample_ncc()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">2000</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="at">control =</span> <span class="dv">0</span>, <span class="at">A =</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x, <span class="at">B =</span> <span class="sc">-</span><span class="fl">1.4</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta) <span class="sc">/</span> <span class="fu">rowSums</span>(<span class="fu">exp</span>(eta))</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">apply</span>(prob, <span class="dv">1</span>, <span class="cf">function</span>(p) <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>), <span class="dv">1</span>, <span class="at">prob =</span> p))</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">g =</span> g, <span class="at">x =</span> x)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(d, <span class="at">outcome =</span> <span class="st">"g"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"polytomous"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">reference =</span> <span class="st">"control"</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">test_homogeneity</span>(fit))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">id  =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">t   =</span> <span class="fu">rexp</span>(<span class="dv">200</span>, <span class="fl">0.05</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">d   =</span> <span class="fu">rbinom</span>(<span class="dv">200</span>, <span class="dv">1</span>, <span class="fl">0.3</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">x   =</span> <span class="fu">rbinom</span>(<span class="dv">200</span>, <span class="dv">1</span>, <span class="fl">0.4</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">z   =</span> <span class="fu">rbinom</span>(<span class="dv">200</span>, <span class="dv">1</span>, <span class="fl">0.5</span>)   <span class="co"># binary surrogate correlated with x</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ncc_cm <span class="ot">&lt;-</span> <span class="fu">sample_ncc_counter_matched</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">surrogate =</span> <span class="st">"z"</span>, <span class="at">m =</span> <span class="dv">1</span>L)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyse: weighted partial likelihood identifies the HR.</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_cm, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">weights =</span> <span class="st">"log_w"</span>),</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>              <span class="at">estimator =</span> <span class="st">"weighted_cox"</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     term estimate std.error conf.low conf.high statistic    df   p.value
-   &lt;char&gt;    &lt;num&gt;     &lt;num&gt;    &lt;num&gt;     &lt;num&gt;     &lt;num&gt; &lt;int&gt;     &lt;num&gt;
-1:      x 2.168761 0.2006846 1.809033  2.600022 0.6589249     1 0.4169398</code></pre>
+<pre><code>&lt;matchatr_result&gt;
+ Estimator:  weighted_cox  (engine: weighted_cox)
+ Estimand:   hazard ratio
+ Contrast:   Hazard ratio
+ CI method:  model
+ N:          132
+
+Contrasts:
+   comparison  estimate        se  ci_lower ci_upper
+       &lt;char&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;    &lt;num&gt;
+1:          x 0.8474394 0.3078188 0.4158372 1.727007</code></pre>
 </div>
 </div>
 
