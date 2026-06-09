@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>counter_matched – matchatr</title>
+<title>print.matchatr_absolute_risk – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -22,41 +22,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -142,7 +107,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/counter_matched.html">counter_matched</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_absolute_risk.html">print.matchatr_absolute_risk</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -275,7 +240,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/counter_matched.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/counter_matched.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">counter_matched</span></a>
   </div>
 </li>
@@ -299,7 +264,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/print.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/print.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">print.matchatr_absolute_risk</span></a>
   </div>
 </li>
@@ -417,33 +382,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#counter-matched-design" id="toc-counter-matched-design" class="nav-link active" data-scroll-target="#counter-matched-design">Counter-matched design</a>
+  <li><a href="#print-a-matchatr_absolute_risk-object" id="toc-print-a-matchatr_absolute_risk-object" class="nav-link active" data-scroll-target="#print-a-matchatr_absolute_risk-object">Print a matchatr_absolute_risk object</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
-  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
   </ul>
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/counter_matched.html">counter_matched</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_absolute_risk.html">print.matchatr_absolute_risk</a></li></ol></nav></header>
 
 
 
 
-<section id="counter-matched-design" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="counter-matched-design">Counter-matched design</h2>
+<section id="print-a-matchatr_absolute_risk-object" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr_absolute_risk-object">Print a matchatr_absolute_risk object</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Declares a counter-matched nested case-control (NCC) sample: a stratified risk-set design in which controls are drawn from the <em>opposite</em> surrogate stratum to the case, so each sampled risk set is balanced across surrogate exposure values. The analysis is a weighted Cox partial likelihood using log-sampling-weights as an offset (Langholz &amp; Borgan 1995); the counter- matching weights enter as <code>offset(weights)</code> in <code>survival::coxph</code>, and the result is a hazard ratio.</p>
+<p>Displays a compact summary of the absolute-risk result: the engine, pseudo-likelihood method, CI method, the evaluation times, and the number of covariate patterns, followed by the estimates table.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">counter_matched(strata, time, weights = NULL, ratio = NULL)
+<pre><code class="language-R">## S3 method for class 'matchatr_absolute_risk'
+print(x, ...)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -451,73 +416,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="strata">strata</code>
+<code id="x">x</code>
 </td>
 <td>
-A non-empty character vector naming the column(s) that identify the sampled risk sets (the matched-set id, e.g.&nbsp;<code>“set”</code>). Same role as the <code>strata</code> argument of <code>nested_cc()</code>.
+A <code>matchatr_absolute_risk</code> object returned by <code>absolute_risk()</code>.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="time">time</code>
+<code id="...">…</code>
 </td>
 <td>
-A single character string naming the risk-time column that defines the failure time for each set (e.g.&nbsp;<code>“risk_time”</code>).
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="weights">weights</code>
-</td>
-<td>
-<code>NULL</code> or a single character string naming the log-weight column in the data. <code>sample_ncc_counter_matched()</code> appends a <code>“log_w”</code> column carrying <code>log(n_stratum / m_stratum)</code> for each sampled subject; supply its name here so the analysis engine can enter it as a Cox offset. Required for <code>matcha()</code> to fit the weighted partial likelihood.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="ratio">ratio</code>
-</td>
-<td>
-<code>NULL</code> or a single whole number &gt;= 1. Controls sampled per case (from the opposite surrogate stratum).
+Unused; present for S3 consistency.
 </td>
 </tr>
 </tbody></table>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_design</code> object of <code>type</code> <code>“counter_matched”</code> carrying the strata, time, weights, and ratio, with a <code>weight_spec</code> flagged for counter-matching weights.</p>
+<p>Invisibly returns <code>x</code>.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>nested_cc()</code>, <code>sample_ncc_counter_matched()</code>, <code>matcha()</code></p>
-<p>Other design constructors: <code>case_cohort()</code>, <code>matched_cc()</code>, <code>nested_cc()</code>, <code>two_phase()</code>, <code>unmatched_cc()</code></p>
-</section>
-<section id="examples" class="level3">
-<h3 class="anchored" data-anchor-id="examples">Examples</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>, <span class="at">weights =</span> <span class="st">"log_w"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Counter-matched
- Strata:     set
- Time:       risk_time
- Log-weights:log_w
- Weights:    counter-matching</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_matched</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"risk_time"</span>, <span class="at">weights =</span> <span class="st">"log_w"</span>,</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">ratio =</span> <span class="dv">2</span>L)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_design&gt;
- Type:       Counter-matched
- Strata:     set
- Time:       risk_time
- Log-weights:log_w
- Ratio:      2:1
- Weights:    counter-matching</code></pre>
-</div>
-</div>
+<p><code>absolute_risk()</code></p>
+<p>Other contrasts: <code>absolute_risk()</code>, <code>contrast()</code>, <code>tidy.matchatr_absolute_risk()</code></p>
 
 
 </section>

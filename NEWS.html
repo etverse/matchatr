@@ -174,7 +174,7 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
- <span class="menu-text">Risk-set designs</span></a>
+ <span class="menu-text">Case-cohort designs</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -182,8 +182,8 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./vignettes/nested-cc.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Nested case-control</span></a>
+  <a href="./vignettes/case-cohort.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case-cohort hazard ratios and absolute risk</span></a>
   </div>
 </li>
       </ul>
@@ -191,12 +191,41 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
- <span class="menu-text">Reference</span></a>
+ <span class="menu-text">Risk-set designs</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/nested-cc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nested case-control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/ipw-ncc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">IPW analysis of NCC data</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/absolute_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">absolute_risk</span></a>
+  </div>
+</li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./man/case_cohort.html" class="sidebar-item-text sidebar-link">
@@ -231,6 +260,12 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="./man/nested_cc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">nested_cc</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/print.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_absolute_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -279,6 +314,12 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="./man/test_homogeneity.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">test_homogeneity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/tidy.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_absolute_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -343,6 +384,9 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" id="toc-ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" class="nav-link" data-scroll-target="#ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review">2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)</a></li>
+  <li><a href="#samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" id="toc-samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" class="nav-link" data-scroll-target="#samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1">2026-06-09 — Samuelsen KM IPW weights + <code>ipw_cox</code> engine for NCC data (PHASE_7 Chunk 1)</a></li>
+  <li><a href="#ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3" id="toc-ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3" class="nav-link" data-scroll-target="#ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3">2026-06-09 — IPW Breslow absolute risk from case-cohort fits (PHASE_6 Chunk 3)</a></li>
   <li><a href="#remove-dead-n_dropped-warning-in-fit_cch-critical-review" id="toc-remove-dead-n_dropped-warning-in-fit_cch-critical-review" class="nav-link" data-scroll-target="#remove-dead-n_dropped-warning-in-fit_cch-critical-review">2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)</a></li>
   <li><a href="#borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2" id="toc-borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2" class="nav-link" data-scroll-target="#borgan-iii-ipw-case-cohort-estimators-phase_6-chunk-2">2026-06-09 — Borgan I/II IPW case-cohort estimators (PHASE_6 Chunk 2)</a></li>
   <li><a href="#case-cohort-cox-pseudo-likelihood-phase_6-chunk-1" id="toc-case-cohort-cox-pseudo-likelihood-phase_6-chunk-1" class="nav-link" data-scroll-target="#case-cohort-cox-pseudo-likelihood-phase_6-chunk-1">2026-06-08 — Case-cohort Cox pseudo-likelihood (PHASE_6 Chunk 1)</a></li>
@@ -375,6 +419,36 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" class="level2">
+<h2 class="anchored" data-anchor-id="ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review">2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)</h2>
+<p>Two correctness issues in the IPW NCC vignette and test suite.</p>
+<ul>
+<li><strong>Vignette DGP</strong>: <code>vignettes/ipw-ncc.qmd</code> generated the observed time <code>t</code> and event indicator <code>d</code> from two independent <code>rexp(n, rate)</code> draws, producing inconsistent censoring (658 subjects with <code>t &lt; 5</code> but <code>d = 0</code>, 675 with <code>t = 5</code> but <code>d = 1</code>). The biased DGP recovered HR ≈ 2.39 instead of the true 2.0. Fixed to a single draw: <code>tt &lt;- rexp(n, rate); t = pmin(tt, 5); d = as.integer(tt &lt;= 5)</code>. Also removed a dead first cohort block that was immediately overwritten.</li>
+<li><strong>Rejection test outcome column</strong>: the <code>ipw_weight</code>-missing rejection test passed <code>"case"</code> (the per-set NCC indicator) as the outcome; changed to <code>"d"</code> (the cohort event indicator) to match documented usage. The test was functionally correct (it errors before fitting) but modelled the wrong API call.</li>
+</ul>
+</section>
+<section id="samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" class="level2">
+<h2 class="anchored" data-anchor-id="samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1">2026-06-09 — Samuelsen KM IPW weights + <code>ipw_cox</code> engine for NCC data (PHASE_7 Chunk 1)</h2>
+<p>Implements the IPW reformulation of nested case-control data: break the matching, weight each unique control by the inverse of its Samuelsen Kaplan-Meier inclusion probability, and fit a standard weighted Cox model.</p>
+<ul>
+<li><strong><code>sample_ncc(incl_prob = TRUE)</code></strong> gains two new output columns. <code>.cohort_row</code> records the original cohort row index for each NCC row (used to deduplicate controls that were sampled into multiple risk sets). <code>ipw_weight</code> holds the Samuelsen (1997) KM inverse inclusion probability 1/π_j, where π_j = 1 − prod(1 − m_i/n_elig_i) over all event times where j was eligible (not just those where j was actually sampled); cohort cases are forced to weight 1. The formula is computed in O(n × K) via the internal <code>samuelsen_km_weights()</code> helper.</li>
+<li><strong><code>matcha(design = nested_cc(...), estimator = "ipw_cox")</code></strong> deduplicates the NCC data by <code>.cohort_row</code>, fits <code>survival::coxph(weights = ipw_weight, robust = TRUE)</code>, and <code>contrast()</code> reports the exposure’s hazard ratio with the Lin-Wei robust sandwich variance. The default <code>type = "hr"</code> is inherited from the nested design; <code>type = "or"</code> and <code>ci_method = "bootstrap"</code> are rejected.</li>
+<li>Missing <code>ipw_weight</code> or <code>.cohort_row</code> columns abort with <code>matchatr_missing_ipw_weights</code> / <code>matchatr_bad_input</code>, pointing to <code>sample_ncc(incl_prob = TRUE)</code>.</li>
+<li>Validated: KM weights match the closed-form KM probability formula to 1e-8; truth-based DGP recovers the full-cohort Cox HR within 3.5 SE; exact agreement with <code>multipleNCC::wpl(weight.method = "KM")</code> on log-HR and SE (tolerance 1e-6). New vignette <code>vignettes/ipw-ncc.qmd</code> demonstrates the full pipeline alongside the classical NCC and full-cohort Cox comparisons.</li>
+</ul>
+</section>
+<section id="ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3" class="level2">
+<h2 class="anchored" data-anchor-id="ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3">2026-06-09 — IPW Breslow absolute risk from case-cohort fits (PHASE_6 Chunk 3)</h2>
+<p>New exported verb <code>absolute_risk(fit, newdata, times)</code> for <code>matchatr_fit</code> objects fitted with the <code>"cch"</code> engine. Returns <code>F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))</code> at each evaluation time for each row of <code>newdata</code>.</p>
+<ul>
+<li><strong>IPW Breslow cumulative baseline hazard</strong> <code>Λ̂₀(t)</code>: at each event time t_k the denominator is scaled by <code>N / n_sub</code> (cohort size over subcohort size) so the subcohort-only risk set correctly represents the full cohort. For Borgan I/II stratified methods the per-stratum weight <code>N_s / n_sub_s</code> is used instead.</li>
+<li><strong>Pointwise CIs</strong> via the delta method on the complementary log-log scale (<code>log(−log(1 − F))</code>) — the standard log-log CI for the survival function inverted to the cumulative-incidence scale. Variance = <code>x′ V_β x + Σ (dΛ̂₀)² / Λ̂₀²</code>.</li>
+<li><strong>All five <code>cch</code> methods</strong> (Prentice, SelfPrentice, LinYing, I.Borgan, II.Borgan) are handled; Borgan I/II use per-stratum IPW weights.</li>
+<li>Times before the first event return <code>F̂ = 0</code> exactly (fence-post at <code>t = 0</code> in the Breslow step function). CIs are clamped to <code>[0, 1]</code>.</li>
+<li><code>tidy.matchatr_absolute_risk()</code> returns the long-form estimates <code>data.table</code>.</li>
+<li>Non-<code>cch</code> engines abort with <code>matchatr_not_implemented</code>.</li>
+</ul>
+</section>
 <section id="remove-dead-n_dropped-warning-in-fit_cch-critical-review" class="level2">
 <h2 class="anchored" data-anchor-id="remove-dead-n_dropped-warning-in-fit_cch-critical-review">2026-06-09 — Remove dead n_dropped warning in fit_cch (critical review)</h2>
 <p><code>fit_cch()</code> computed <code>n_dropped = nrow(subset_dt) - model$n</code>, but <code>model$n</code> for a <code>survival::cch</code> object equals <code>subcohort_size + n_events</code> — it double-counts subjects who are both subcohort members and cases. <code>n_dropped</code> was therefore always negative and the warning could never fire. Removed the dead code; NA handling is left to <code>survival::cch</code>’s own <code>na.action</code>.</p>
