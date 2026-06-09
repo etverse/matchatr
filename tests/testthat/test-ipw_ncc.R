@@ -374,5 +374,8 @@ test_that("ci_method = 'sandwich' is accepted and gives finite CIs", {
   res <- contrast(fit, type = "hr", ci_method = "sandwich")
   expect_true(is.finite(res$contrasts$ci_lower))
   expect_true(is.finite(res$contrasts$ci_upper))
-  expect_true(res$contrasts$ci_lower > 0 && res$contrasts$ci_upper > res$contrasts$ci_lower)
+  expect_true(
+    res$contrasts$ci_lower > 0 &&
+      res$contrasts$ci_upper > res$contrasts$ci_lower
+  )
 })
