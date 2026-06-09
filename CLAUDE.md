@@ -102,7 +102,16 @@ on person-period data) wherever possible.
 > with GLM (`stats::glm`) or GAM (`mgcv::gam`) working-model inclusion probabilities
 > fitted on the augmented (eligible-subject × event-time) selection dataset; requires
 > the full Phase-1 cohort and aborts `matchatr_missing_phase1` when `cohort = NULL` or
-> `time` is absent. PHASE_7 Chunk 3 and PHASE_8+ remain `Status: DESIGN`.
+> `time` is absent. **Chunk 3** extends `absolute_risk(fit, newdata, times)` to the
+> `ipw_cox` engine: `ipw_breslow_ncc()` (`R/absolute_risk_ncc.R`) computes a native
+> inverse-probability-weighted Breslow cumulative baseline hazard over the
+> deduplicated, Samuelsen-weighted NCC analysis sample (Horvitz-Thompson increment
+> `dΛ̂₀(t_k) = (Σ events) / (Σ_{at risk} w_j exp(β̂ᵀ x_j))`, cases at weight 1, controls
+> at 1/π_j), giving `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))` with delta-method
+> complementary-log-log CIs. The hand-rolled step function agrees with
+> `survival::survfit` on the same weighted Cox to machine precision (across KM and
+> GLM/GAM weights and factor confounders); CI coverage is conservative. PHASE_7
+> Chunk 4 (multiple endpoints, additive/AFT) and PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -178,10 +187,18 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   counter-matched NCC via `coxph(offset = log_w)`; PHASE_7 Chunk 1 —
   `fit_ipw_cox()` / `contrast_ipw_cox()`: Samuelsen IPW weighted Cox for NCC
   via `coxph(weights = ipw_weight, robust = TRUE)` with Lin-Wei robust sandwich
-  variance), `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
+  variance; PHASE_7 Chunk 3 — `ncc_ipw_analysis_data()`: the deduplicated,
+  case-weighted analysis sample shared by the weighted Cox and the IPW Breslow),
+  `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
   `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
-  Self-Prentice / Lin-Ying / Borgan I/II; `absolute_risk()` for IPW Breslow
-  `F̂_x(t)` with delta-method CIs).
+  Self-Prentice / Lin-Ying / Borgan I/II),
+  `absolute_risk.R` (the exported `absolute_risk()` verb dispatching on the `cch`
+  and `ipw_cox` engines, plus the shared `assemble_absolute_risk()` F_x(t) /
+  delta-method-CI assembly and `ar_lp_from_newdata()`), `absolute_risk_cch.R`
+  (PHASE_6 Chunk 3 — `ipw_breslow_cch()`: IPW Breslow `F̂_x(t)` for case-cohort),
+  `absolute_risk_ncc.R` (PHASE_7 Chunk 3 — `ipw_breslow_ncc()`: weighted IPW
+  Breslow `F̂_x(t)` for IPW nested case-control, agreeing with `survival::survfit`
+  to machine precision).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).

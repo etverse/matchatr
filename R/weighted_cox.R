@@ -11,7 +11,7 @@
 #' The weighted partial likelihood (Samuelsen 1997, Biometrika 84(2)):
 #'
 #'   L(β) = ∏_{k: cases} exp(β x_k) /
-#'            [exp(β x_k) + Σ_{j: sampled, at risk at t_k} w_j exp(β x_j)]
+#'            (exp(β x_k) + Σ_{j: sampled, at risk at t_k} w_j exp(β x_j))
 #'
 #' is identical to a standard Cox partial likelihood with observation weights
 #' w_j. This is fit via [survival::coxph()] with `robust = TRUE`, which
@@ -74,18 +74,10 @@ fit_ipw_cox <- function(fit) {
     )
   }
 
-  # Break the matching: deduplicate by cohort row index, keeping each unique
-  # subject once. A control sampled into k sets has k identical cohort-level
-  # rows; their ipw_weight is the same across rows (computed per cohort subject).
-  # A cohort case that also appeared as a control in an earlier set may have the
-  # control row first; the weight override below corrects it.
-  dt <- fit$data
-  dup_rows <- duplicated(dt[[row_col]])
-  dt_unique <- dt[!dup_rows, , drop = FALSE]
-
-  # Cohort cases (outcome = 1) are always sampled with probability 1; their
-  # IPW weight is 1 regardless of which row was retained by deduplication.
-  dt_unique[[ipw_col]][as.logical(dt_unique[[fit$outcome]])] <- 1.0
+  # Break the matching: deduplicate by cohort row index so each unique subject
+  # appears once, with cohort cases forced to weight 1. The same analysis sample
+  # backs the IPW Breslow absolute risk (`ipw_breslow_ncc()`).
+  dt_unique <- ncc_ipw_analysis_data(fit)
 
   conf_terms <- if (is.null(fit$confounders)) {
     character(0)
@@ -142,7 +134,7 @@ fit_ipw_cox <- function(fit) {
 #' estimation uncertainty from the NCC sampling.
 #'
 #' @param fit A `matchatr_fit` whose `model` is a `coxph` fitted by
-#'   [fit_ipw_cox()].
+#'   `fit_ipw_cox()`.
 #' @param type Character contrast scale; only `"hr"` is computed.
 #' @param ci_method Character variance source; `"model"` uses the robust
 #'   sandwich from `coxph(robust = TRUE)`; `"sandwich"` re-computes via
@@ -153,7 +145,7 @@ fit_ipw_cox <- function(fit) {
 #' @returns A `matchatr_result` carrying the hazard ratio(s) for the exposure
 #'   term with the Lin-Wei robust variance.
 #' @family estimators
-#' @seealso [contrast()], [fit_ipw_cox()]
+#' @seealso [contrast()], `fit_ipw_cox()`
 #' @noRd
 contrast_ipw_cox <- function(
   fit,
@@ -203,6 +195,31 @@ contrast_ipw_cox <- function(
     n = fit$model$n,
     call = call
   )
+}
+
+#' Deduplicated, case-weighted analysis sample for an IPW nested case-control fit
+#'
+#' Breaks the matching of an NCC dataset drawn by `sample_ncc(incl_prob = TRUE)`:
+#' a control sampled into several risk sets carries identical cohort-level rows,
+#' so the data is deduplicated by `.cohort_row` to keep each unique subject once,
+#' and cohort cases (outcome = 1, sampled with probability 1) are forced to weight
+#' 1 regardless of which duplicate row deduplication retained. This is the sample
+#' both `fit_ipw_cox()` (the weighted Cox) and `ipw_breslow_ncc()` (the IPW
+#' Breslow cumulative baseline hazard) operate on, so it is computed once here.
+#'
+#' @param fit A `matchatr_fit` whose `data` carries the `.cohort_row` and
+#'   `ipw_weight` columns and a binary `outcome` column.
+#' @returns A data frame with one row per unique cohort subject, the `ipw_weight`
+#'   column overridden to 1 for cases.
+#' @family estimators
+#' @seealso `fit_ipw_cox()`, `ipw_breslow_ncc()`
+#' @noRd
+ncc_ipw_analysis_data <- function(fit) {
+  dt <- fit$data
+  dup_rows <- duplicated(dt[[".cohort_row"]])
+  dt_unique <- dt[!dup_rows, , drop = FALSE]
+  dt_unique[["ipw_weight"]][as.logical(dt_unique[[fit$outcome]])] <- 1.0
+  dt_unique
 }
 
 #' Fit the counter-matched weighted partial likelihood via coxph + offset

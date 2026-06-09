@@ -16,8 +16,8 @@ Invisibly returns \code{x}.
 }
 \description{
 Displays a compact summary of the absolute-risk result: the engine,
-pseudo-likelihood method, CI method, the evaluation times, and the number
-of covariate patterns, followed by the estimates table.
+pseudo-likelihood / weighting method, CI method, the evaluation times, and the
+number of covariate patterns, followed by the estimates table.
 }
 \seealso{
 \code{\link[=absolute_risk]{absolute_risk()}}

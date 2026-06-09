@@ -68,7 +68,7 @@ column) aborts with \code{matchatr_missing_phase1}.
 \details{
 The working-model inclusion probability for subject j is:
 
-π_j = 1 − ∏_{k: j ∈ R(t_k)} (1 − p̂_jk)
+π_j = 1 − ∏_(k: j ∈ R(t_k)) (1 − p̂_jk)
 
 where the product runs over all event times t_k at which j was in the risk
 set R(t_k) (excluding the case's own failure time), and p̂_jk is the

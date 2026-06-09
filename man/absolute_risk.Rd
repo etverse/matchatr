@@ -3,15 +3,15 @@
 \name{absolute_risk}
 \alias{absolute_risk}
 \alias{absolute_risk.matchatr_fit}
-\title{Absolute risk from a case-cohort fit}
+\title{Absolute risk from a sampled-cohort survival fit}
 \usage{
 absolute_risk(fit, ...)
 
 \method{absolute_risk}{matchatr_fit}(fit, newdata, times, conf_level = 0.95, ...)
 }
 \arguments{
-\item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}. Currently only
-the case-cohort (\code{"cch"}) engine is supported.}
+\item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}. The case-cohort
+(\code{"cch"}) and IPW nested case-control (\code{"ipw_cox"}) engines are supported.}
 
 \item{...}{Unused; present for S3 consistency.}
 
@@ -43,10 +43,12 @@ on the probability scale).
 }
 }
 \description{
-Estimates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))
-from a fitted case-cohort pseudo-likelihood, where Λ̂₀(t) is the inverse-
-probability-weighted (IPW) Breslow cumulative baseline hazard (Borgan &
-Liestøl 1990). Pointwise confidence intervals use the delta method on the
+Estimates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from a
+fitted survival design, where Λ̂₀(t) is an inverse-probability-weighted (IPW)
+Breslow cumulative baseline hazard. Two engines are supported: the case-cohort
+pseudo-likelihood (\code{"cch"}, Borgan & Liestøl 1990) and the IPW nested
+case-control weighted Cox (\code{"ipw_cox"}, Samuelsen-weighted Breslow over the
+reused controls). Pointwise confidence intervals use the delta method on the
 complementary log-log scale (the "log-log" CI for the survival function,
 inverted to the risk scale).
 }
@@ -59,7 +61,7 @@ absolute_risk(fit, newdata = data.frame(x = 1, z = 0), times = c(1, 2, 3))
 }
 }
 \seealso{
-\code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=case_cohort]{case_cohort()}}
+\code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=case_cohort]{case_cohort()}}, \code{\link[=sample_ncc]{sample_ncc()}}
 
 Other contrasts: 
 \code{\link{contrast}()},
