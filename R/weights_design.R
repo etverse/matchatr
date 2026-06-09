@@ -69,10 +69,11 @@
 #'
 #' @examples
 #' set.seed(1)
+#' tt <- rexp(500, 0.1)
 #' cohort <- data.frame(
 #'   id = 1:500,
-#'   t  = rexp(500, 0.1),
-#'   d  = rbinom(500, 1, 0.15),
+#'   t  = pmin(tt, 15),          # bound follow-up to avoid empty late risk sets
+#'   d  = as.integer(tt <= 15),
 #'   x  = rbinom(500, 1, 0.4)
 #' )
 #' ncc <- sample_ncc(cohort, time = "t", event = "d", m = 2, incl_prob = TRUE)
