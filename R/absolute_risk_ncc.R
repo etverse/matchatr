@@ -69,19 +69,15 @@ ipw_breslow_ncc <- function(fit, beta) {
   t_col <- dt[[time_col]]
   is_ev <- as.logical(dt[[fit$outcome]])
 
-  # LP = β̂ᵀ x over the analysis sample; coxph coefficient names follow standard
-  # R contrasts, so they index the model.matrix columns directly.
-  conf_terms <- if (is.null(fit$confounders)) {
-    character(0)
-  } else {
-    attr(stats::terms(fit$confounders), "term.labels")
-  }
-  rhs <- stats::reformulate(c(fit$exposure, conf_terms))
-  mm <- stats::model.matrix(rhs, data = dt)
-  lp <- as.vector(mm[, names(beta), drop = FALSE] %*% beta)
+  # LP = β̂ᵀ x over the analysis sample, built from the fitted model's terms so
+  # any data-dependent confounder basis (poly / splines / scale) is reproduced
+  # rather than recomputed (see `ar_lp_from_newdata()`).
+  lp <- ar_lp_from_newdata(fit, dt, beta)$lp
 
   # Weighted Breslow step at each unique event time. The numerator sums the case
   # weights (1) of the events; the denominator is the IPW-weighted at-risk set.
+  # The coxph fit uses `ties = "breslow"`, so this baseline is consistent with β
+  # even when event times are tied.
   t_events <- sort(unique(t_col[is_ev]))
   n_times <- length(t_events)
   inc <- numeric(n_times)
@@ -100,10 +96,5 @@ ipw_breslow_ncc <- function(fit, beta) {
   inc_sq_cum <- cumsum(inc^2)
   var_log <- ifelse(cumhaz > 0, inc_sq_cum / cumhaz^2, 0)
 
-  # Fence post at t = 0 so times before the first event map to cumhaz = 0 (F = 0).
-  list(
-    times = c(0, t_events),
-    cumhaz = c(0, cumhaz),
-    var_log_cumhaz = c(0, var_log)
-  )
+  breslow_step_with_fence(t_events, cumhaz, var_log)
 }

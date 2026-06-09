@@ -90,11 +90,19 @@ fit_ipw_cox <- function(fit) {
   )
 
   n_rows <- nrow(dt_unique)
+  # `ties = "breslow"` (not the coxph default Efron) so the partial-likelihood
+  # coefficients and the Breslow cumulative baseline hazard used for absolute
+  # risk (`ipw_breslow_ncc()`) are mutually consistent. With Efron coefficients
+  # the plain Breslow baseline disagrees at tied event times; under the
+  # incidence-density sampling of an NCC the failure times are typically
+  # distinct, so this matches Efron in the no-tie case and only differs (by a
+  # negligible, well-understood amount) when events are tied.
   model <- survival::coxph(
     model_formula,
     data = dt_unique,
     weights = dt_unique[[ipw_col]],
-    robust = TRUE
+    robust = TRUE,
+    ties = "breslow"
   )
 
   # coxph's na.action silently drops rows with missing values. `model$n` is the

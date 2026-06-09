@@ -247,35 +247,98 @@ assemble_absolute_risk <- function(
   )
 }
 
-#' Linear predictor for new covariate patterns from a survival fit
+#' Prepend a t = 0 fence post to a Breslow step function
 #'
-#' Builds the model matrix for `newdata` using the same formula (exposure +
-#' confounders) as the fitted model, selects the columns corresponding to the
-#' fitted coefficients, and returns both the model matrix and the LP vector. Used
-#' by both the case-cohort and IPW nested case-control absolute-risk engines; the
-#' `survival::cch` and `survival::coxph` coefficient names both follow standard R
-#' contrasts, so the `model.matrix` column names match `names(beta)` directly.
+#' Adds a `t = 0` knot (cumulative hazard 0, variance 0) so that evaluation times
+#' before the first event map to `F = 0` rather than extrapolating to the first
+#' event's value. The fence is skipped when an event already occurs at `t = 0`
+#' (possible with rounded / discrete times): prepending another `0` would
+#' duplicate the knot and make `stats::approx()` collapse the two, silently
+#' dropping the real time-0 increment.
 #'
-#' @param fit A `matchatr_fit` with engine `"cch"` or `"ipw_cox"`.
-#' @param newdata A data frame of new covariate patterns.
-#' @param beta Named numeric vector of fitted coefficients.
-#' @returns A list with `$mm` (model matrix, p columns) and `$lp` (numeric
-#'   vector of length `nrow(newdata)`).
+#' @param t_events Sorted numeric vector of unique event times.
+#' @param cumhaz Cumulative baseline hazard at each event time.
+#' @param var_log Var(log Λ̂₀) at each event time.
+#' @returns A list with `$times`, `$cumhaz`, `$var_log_cumhaz`, strictly
+#'   increasing in `$times`.
 #' @family contrasts
 #' @noRd
-ar_lp_from_newdata <- function(fit, newdata, beta) {
-  conf_terms <- if (is.null(fit$confounders)) {
-    character(0)
+breslow_step_with_fence <- function(t_events, cumhaz, var_log) {
+  if (length(t_events) == 0L || t_events[1] > 0) {
+    list(
+      times = c(0, t_events),
+      cumhaz = c(0, cumhaz),
+      var_log_cumhaz = c(0, var_log)
+    )
   } else {
-    attr(stats::terms(fit$confounders), "term.labels")
+    # An event already sits at t = 0; the series starts there, no fence needed.
+    list(times = t_events, cumhaz = cumhaz, var_log_cumhaz = var_log)
   }
-  rhs <- stats::reformulate(c(fit$exposure, conf_terms))
+}
+
+#' Linear predictor for covariate patterns from a survival fit
+#'
+#' Builds the model matrix for `data` from the **fitted model's own terms**,
+#' selects the columns corresponding to the fitted coefficients, and returns both
+#' the model matrix and the linear predictor. Used by both the case-cohort and
+#' IPW nested case-control absolute-risk engines, for both `newdata` patterns and
+#' the analysis sample itself.
+#'
+#' @details
+#' For the IPW nested case-control (`ipw_cox`) engine the design is built with
+#' `model.matrix(delete.response(terms(model)), model.frame(..., xlev =
+#' model$xlevels))` rather than re-deriving the formula from `term.labels`. This
+#' is essential for any **data-dependent** term — `poly()`, `ns()` / `bs()`,
+#' `scale()`, `cut()` — whose basis depends on the rows it is computed over: the
+#' fitted `terms` object carries the original basis in its `"predvars"`
+#' attribute, so applying it to new rows reproduces the basis the model was
+#' fitted with. Re-deriving the formula and calling `model.matrix` on the new
+#' rows alone would recompute the basis from those rows, silently producing a
+#' different design with the *same* coefficient names (so a name-based guard
+#' would not catch it) and a wrong linear predictor.
+#'
+#' The case-cohort (`cch`) engine takes the original-formula path instead:
+#' `survival::cch` rewrites its model formula into a non-standard internal form,
+#' so its fitted `terms` object does not carry a `predvars`/contrasts map aligned
+#' with the reported coefficient names. The design is rebuilt from the
+#' user-facing `exposure + confounders` formula (whose standard R contrasts match
+#' the `cch` coefficient names); data-dependent confounder transforms are not
+#' reproduced for `cch`, which its designs do not use.
+#'
+#' @param fit A `matchatr_fit` with engine `"cch"` or `"ipw_cox"`.
+#' @param data A data frame of covariate patterns (a `newdata` grid or the
+#'   analysis sample). Must carry the columns the fitted model's terms reference.
+#' @param beta Named numeric vector of fitted coefficients.
+#' @returns A list with `$mm` (model matrix, p columns aligned to `names(beta)`)
+#'   and `$lp` (numeric vector of length `nrow(data)`).
+#' @family contrasts
+#' @noRd
+ar_lp_from_newdata <- function(fit, data, beta) {
   mm_new <- tryCatch(
-    stats::model.matrix(rhs, data = newdata),
+    if (identical(fit$engine, "cch")) {
+      # cch: rebuild from the user-facing formula (see @details).
+      conf_terms <- if (is.null(fit$confounders)) {
+        character(0)
+      } else {
+        attr(stats::terms(fit$confounders), "term.labels")
+      }
+      stats::model.matrix(
+        stats::reformulate(c(fit$exposure, conf_terms)),
+        data = data
+      )
+    } else {
+      # coxph: reuse the fitted terms (predvars basis) and factor levels so any
+      # data-dependent transform is reproduced, not recomputed.
+      mt <- stats::delete.response(stats::terms(fit$model))
+      stats::model.matrix(
+        mt,
+        stats::model.frame(mt, data = data, xlev = fit$model$xlevels)
+      )
+    },
     error = function(e) {
       rlang::abort(
         c(
-          "Could not build a model matrix from `newdata`.",
+          "Could not build a model matrix from the supplied covariate data.",
           i = conditionMessage(e)
         ),
         class = c("matchatr_bad_input", "matchatr_error")
@@ -287,7 +350,7 @@ ar_lp_from_newdata <- function(fit, newdata, beta) {
   if (length(missing_cols) > 0L) {
     rlang::abort(
       c(
-        "Columns in `newdata` do not match the fitted model.",
+        "Columns in the covariate data do not match the fitted model.",
         i = paste0(
           "Missing or mismatched columns: ",
           paste(missing_cols, collapse = ", ")

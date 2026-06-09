@@ -163,6 +163,25 @@ Project-specific rules that override / extend the etverse-wide rules at
   pseudo-cohort, before claiming a numerical bug.
 - **`survival`, `multipleNCC`, `survey`, `Epi` are oracles / delegated engines**,
   not things to reimplement.
+- **`fit_ipw_cox()` fits the weighted Cox with `ties = "breslow"` (NOT the coxph
+  default Efron).** This is deliberate: the IPW Breslow cumulative baseline hazard
+  used for absolute risk (`ipw_breslow_ncc()`) is a plain Breslow step, which is
+  inconsistent with Efron coefficients at tied event times. With `ties = "breslow"`
+  the partial-likelihood β and the Breslow baseline agree (verified to machine
+  precision against `survival::survfit` under heavy ties). Under incidence-density
+  NCC sampling failure times are typically distinct, so it equals Efron there. Do
+  NOT "restore" the Efron default or flag this as a non-standard choice.
+- **Absolute-risk linear predictors are built from the FITTED model's terms, not
+  a re-derived formula.** `ar_lp_from_newdata()` builds the design for the
+  `ipw_cox`/coxph engine via `model.matrix(delete.response(terms(model)),
+  model.frame(..., xlev = model$xlevels))` so a data-dependent confounder basis
+  (`poly`/`ns`/`bs`/`scale`) is reproduced from the fit's `predvars`, not
+  recomputed from `newdata` (which would give a different basis with identical
+  coefficient names — a silent, catastrophic LP error). The `cch` engine
+  deliberately uses the original-formula path instead, because `survival::cch`'s
+  non-standard internal formula has no `predvars` map aligned to its coefficient
+  names; data-dependent transforms are therefore not reproduced for `cch` (its
+  designs do not use them). Do NOT unify these two paths.
 - **For a `clogit`/`coxph` fit, `model$n` is the rows used, `nobs()` is the
   event count.** The analysis size and the missing-data count
   (`n_dropped = nrow(data) - model$n`) must read `model$n`, never `nobs()`.

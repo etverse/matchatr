@@ -128,11 +128,5 @@ ipw_breslow_cch <- function(fit, beta) {
   inc_sq_cum <- cumsum(inc^2)
   var_log <- ifelse(cumhaz > 0, inc_sq_cum / cumhaz^2, 0)
 
-  # Prepend a fence post at t = 0 so that times before the first event map to
-  # cumhaz = 0 (and F = 0) rather than extrapolating to the first event's value.
-  list(
-    times = c(0, t_events),
-    cumhaz = c(0, cumhaz),
-    var_log_cumhaz = c(0, var_log)
-  )
+  breslow_step_with_fence(t_events, cumhaz, var_log)
 }

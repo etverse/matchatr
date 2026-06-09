@@ -1,5 +1,34 @@
 # matchatr (development version)
 
+## 2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)
+
+Three correctness fixes to the IPW nested case-control absolute risk, all in the
+"complicated case" regime the initial tests (plain factors, continuous times) did
+not exercise.
+
+- **Data-dependent confounder bases** (`poly()`, `ns()`/`bs()`, `scale()`):
+  `ar_lp_from_newdata()` rebuilt the design from `term.labels` and called
+  `model.matrix()` on `newdata` alone, recomputing the basis from those rows — a
+  *different* basis than the fit, with the *same* coefficient names (so the
+  name-based guard passed) and a silently wrong linear predictor (F off by ~0.4).
+  It now builds the design from the fitted model's `terms` (reusing the
+  `predvars` basis) and `xlevels` for the `ipw_cox`/coxph engine. The `cch` engine
+  keeps the original-formula path (its non-standard internal formula has no usable
+  `predvars`).
+- **Tied event times**: `fit_ipw_cox()` fitted the weighted Cox with the coxph
+  default Efron ties, but `ipw_breslow_ncc()` uses the plain Breslow baseline, so
+  the two disagreed at tied event times (F off by ~0.03). The fit now uses
+  `ties = "breslow"` so the partial-likelihood coefficients and the Breslow
+  cumulative baseline hazard are mutually consistent; for continuous failure times
+  (the usual NCC setting) this is identical to Efron.
+- **Event at the time origin**: the `t = 0` fence post prepended on top of a real
+  `t = 0` event time (possible with rounded times) duplicated the knot and made
+  `approx()` collapse it. `breslow_step_with_fence()` now skips the fence when an
+  event already sits at `t = 0`.
+- The hand-rolled Breslow now agrees with `survival::survfit` to machine precision
+  across all three regimes; regression tests in `test-absolute_risk_ncc.R` cover a
+  tied-time design, a `poly(z, 2)` confounder, and an event at `t = 0`.
+
 ## 2026-06-09 — IPW Breslow absolute risk for nested case-control (PHASE_7 Chunk 3)
 
 Extends `absolute_risk(fit, newdata, times)` to the IPW nested case-control

@@ -257,6 +257,135 @@ test_that("IPW absolute risk recovers truth under a factor confounder (complex D
   )
 })
 
+# -- Complicated design: tied event times -------------------------------------
+
+test_that("IPW absolute risk matches survfit exactly under tied event times", {
+  skip_if_not_installed("survival")
+  # Discrete (ceiling) times force heavily tied event times. The coxph fit uses
+  # ties = "breslow", so the partial-likelihood coefficients and the hand-rolled
+  # Breslow baseline stay mutually consistent; a default Efron fit would leave the
+  # plain Breslow baseline inconsistent at ties (off by several points in F).
+  cohort <- withr::with_seed(55L, {
+    n <- 2500L
+    x <- stats::rbinom(n, 1L, 0.4)
+    z <- stats::rnorm(n)
+    tt <- stats::rexp(n, 0.15 * exp(log(2) * x + 0.3 * z))
+    data.frame(
+      id = seq_len(n),
+      t = pmin(ceiling(tt), 8),
+      d = as.integer(tt <= 8),
+      x = x,
+      z = z
+    )
+  })
+  expect_true(any(duplicated(cohort$t[cohort$d == 1])))
+
+  ncc <- withr::with_seed(
+    3L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  fit <- matcha(
+    ncc,
+    outcome = "d",
+    exposure = "x",
+    design = nested_cc(strata = "set", time = "t"),
+    confounders = ~z,
+    estimator = "ipw_cox"
+  )
+  t_eval <- c(2, 4, 6)
+  ar <- absolute_risk(fit, newdata = data.frame(x = 1L, z = 0), times = t_eval)
+  sf <- survival::survfit(fit$model, newdata = data.frame(x = 1, z = 0))
+  f_sf <- 1 - summary(sf, times = t_eval)$surv
+
+  expect_equal(ar$estimates$estimate, f_sf, tolerance = 1e-8)
+})
+
+# -- Complicated design: data-dependent confounder basis (poly / splines) -----
+
+test_that("IPW absolute risk matches survfit under a poly() confounder", {
+  skip_if_not_installed("survival")
+  # poly(z, 2) builds an orthogonal basis that depends on the rows it is computed
+  # over. The linear predictor for newdata must reuse the FIT's basis (stored in
+  # the terms' predvars), not recompute it from newdata alone -- the latter
+  # silently yields a different basis with the same coefficient names and a wrong,
+  # often catastrophic, F (off by ~0.4).
+  cohort <- make_exp_ncc_cohort(n = 4000L, seed = 88L)
+  ncc <- withr::with_seed(
+    4L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  fit <- matcha(
+    ncc,
+    outcome = "d",
+    exposure = "x",
+    design = nested_cc(strata = "set", time = "t"),
+    confounders = ~ poly(z, 2),
+    estimator = "ipw_cox"
+  )
+  nd <- data.frame(x = c(1L, 1L, 0L), z = c(-1, 1, 0))
+  t_eval <- c(2, 4, 6)
+  ar <- absolute_risk(fit, newdata = nd, times = t_eval)
+
+  for (r in seq_len(nrow(nd))) {
+    sf <- survival::survfit(fit$model, newdata = nd[r, , drop = FALSE])
+    f_sf <- 1 - summary(sf, times = t_eval)$surv
+    f_mt <- ar$estimates$estimate[ar$estimates$row == r]
+    expect_equal(f_mt, f_sf, tolerance = 1e-8)
+  }
+})
+
+# -- Edge case: an event exactly at the time origin ---------------------------
+
+test_that("IPW absolute risk handles an event at t = 0 without collapsing the baseline", {
+  skip_if_not_installed("survival")
+  # Rounded times can place an event exactly at t = 0. The t = 0 fence post must
+  # not be prepended on top of a real t = 0 event time, which would duplicate the
+  # knot and make approx() collapse it, silently dropping the time-0 increment.
+  cohort <- withr::with_seed(71L, {
+    n <- 1500L
+    x <- stats::rbinom(n, 1L, 0.4)
+    z <- stats::rnorm(n)
+    tt <- stats::rexp(n, 0.3 * exp(log(2) * x + 0.3 * z))
+    data.frame(
+      id = seq_len(n),
+      t = pmin(round(tt), 6),
+      d = as.integer(tt <= 6),
+      x = x,
+      z = z
+    )
+  })
+  expect_true(any(cohort$t[cohort$d == 1] == 0))
+
+  ncc <- withr::with_seed(
+    2L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  fit <- matcha(
+    ncc,
+    outcome = "d",
+    exposure = "x",
+    design = nested_cc(strata = "set", time = "t"),
+    confounders = ~z,
+    estimator = "ipw_cox"
+  )
+  # No "collapsing to unique 'x' values" warning from approx().
+  expect_no_warning(
+    ar <- absolute_risk(
+      fit,
+      newdata = data.frame(x = 1L, z = 0),
+      times = c(0, 1, 3, 5)
+    )
+  )
+  e <- ar$estimates
+  expect_true(all(is.finite(e$estimate)))
+  expect_true(all(diff(e$estimate) >= -1e-10))
+  # Still exact against survfit on the positive evaluation times.
+  sf <- survival::survfit(fit$model, newdata = data.frame(x = 1, z = 0))
+  f_sf <- 1 - summary(sf, times = c(1, 3, 5))$surv
+  f_mt <- e$estimate[e$time %in% c(1, 3, 5)]
+  expect_equal(f_mt, f_sf, tolerance = 1e-8)
+})
+
 # -- Oracle: full-cohort survfit ----------------------------------------------
 
 test_that("absolute_risk(ipw_cox) agrees with full-cohort survfit (sampling tol)", {
