@@ -234,6 +234,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/compute_ncc_weights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">compute_ncc_weights</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/contrast.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">contrast</span></a>
   </div>
@@ -384,6 +390,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" id="toc-working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" class="nav-link" data-scroll-target="#working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2">2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)</a></li>
   <li><a href="#ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" id="toc-ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" class="nav-link" data-scroll-target="#ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review">2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)</a></li>
   <li><a href="#samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" id="toc-samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" class="nav-link" data-scroll-target="#samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1">2026-06-09 — Samuelsen KM IPW weights + <code>ipw_cox</code> engine for NCC data (PHASE_7 Chunk 1)</a></li>
   <li><a href="#ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3" id="toc-ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3" class="nav-link" data-scroll-target="#ipw-breslow-absolute-risk-from-case-cohort-fits-phase_6-chunk-3">2026-06-09 — IPW Breslow absolute risk from case-cohort fits (PHASE_6 Chunk 3)</a></li>
@@ -419,6 +426,16 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" class="level2">
+<h2 class="anchored" data-anchor-id="working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2">2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)</h2>
+<p>Adds <code>compute_ncc_weights()</code> for GLM and GAM working-model inclusion probabilities.</p>
+<ul>
+<li><strong><code>compute_ncc_weights(ncc, cohort, method, selection_formula, time, entry)</code></strong> (new, <code>R/weights_design.R</code>) takes an NCC dataset from <code>sample_ncc(incl_prob = TRUE)</code> and the full Phase-1 cohort, builds the augmented (eligible subject × event time) selection dataset, fits a logistic regression (<code>method = "glm"</code>, [stats::glm()]) or generalised additive model (<code>method = "gam"</code>, [mgcv::gam()]) for the binary control-selection indicator, and replaces the <code>ipw_weight</code> column with the resulting working-model inverse inclusion probabilities. Cases are forced to weight 1.</li>
+<li><strong><code>matchatr_missing_phase1</code></strong> fires when <code>cohort = NULL</code> or the <code>time</code> column is absent from <code>cohort</code>: both signals that the Phase-1 event times needed to reconstruct risk sets are unavailable.</li>
+<li><strong>Default <code>selection_formula = ~ risk_time</code></strong> — a time-only logistic model matching the simplest GLM specification of Borgan, Samuelsen &amp; Aastveit (2003). Users can extend with cohort covariates.</li>
+<li><strong>Oracle</strong>: <code>multipleNCC::wpl(weight.method = "glm")</code> — log-HR agreement within 2e-2 (minor formula difference in default time term between the two implementations).</li>
+</ul>
+</section>
 <section id="ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" class="level2">
 <h2 class="anchored" data-anchor-id="ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review">2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)</h2>
 <p>Two correctness issues in the IPW NCC vignette and test suite.</p>

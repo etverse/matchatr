@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>print.matchatr_homogeneity – matchatr</title>
+<title>compute_ncc_weights – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_homogeneity.html">print.matchatr_homogeneity</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/compute_ncc_weights.html">compute_ncc_weights</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -269,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/compute_ncc_weights.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/compute_ncc_weights.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">compute_ncc_weights</span></a>
   </div>
 </li>
@@ -323,7 +323,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/print.matchatr_homogeneity.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/print.matchatr_homogeneity.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_homogeneity</span></a>
   </div>
 </li>
@@ -423,11 +423,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#print-a-matchatr-homogeneity-test" id="toc-print-a-matchatr-homogeneity-test" class="nav-link active" data-scroll-target="#print-a-matchatr-homogeneity-test">Print a matchatr homogeneity test</a>
+  <li><a href="#compute-working-model-inclusion-probability-weights-for-an-ncc-sample" id="toc-compute-working-model-inclusion-probability-weights-for-an-ncc-sample" class="nav-link active" data-scroll-target="#compute-working-model-inclusion-probability-weights-for-an-ncc-sample">Compute working-model inclusion probability weights for an NCC sample</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
@@ -436,21 +437,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_homogeneity.html">print.matchatr_homogeneity</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/compute_ncc_weights.html">compute_ncc_weights</a></li></ol></nav></header>
 
 
 
 
-<section id="print-a-matchatr-homogeneity-test" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr-homogeneity-test">Print a matchatr homogeneity test</h2>
+<section id="compute-working-model-inclusion-probability-weights-for-an-ncc-sample" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="compute-working-model-inclusion-probability-weights-for-an-ncc-sample">Compute working-model inclusion probability weights for an NCC sample</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Displays a compact summary of a <code>matchatr_homogeneity</code> object: the estimator and engine, the baseline reference group, the analysis size, and the table of per-exposure common (pooled) odds ratios with their homogeneity Wald chi-squared statistic, degrees of freedom, and p-value.</p>
+<p>Replaces or sets the <code>ipw_weight</code> column of a nested case-control dataset using a <strong>working model</strong> for the probability that a subject is selected as a control at each event time. Two estimation strategies are available:</p>
+<ul>
+<li>
+<p><code>“glm”</code> — fits a logistic regression of the binary selection indicator (<code>selected ~ selection_formula</code>) across all (subject, event-time) pairs where the subject is in the risk set; uses <code>stats::glm()</code>.</p>
+</li>
+<li>
+<p><code>“gam”</code> — same but uses <code>mgcv::gam()</code> so that smooth terms (e.g.&nbsp;<code>s(risk_time)</code>) are available in <code>selection_formula</code>.</p>
+</li>
+</ul>
+<p>Both methods require the <strong>full Phase-1 cohort</strong> to reconstruct the risk set at every event time and determine which subjects were eligible but not selected. Omitting <code>cohort</code> (or supplying a cohort without the <code>time</code> column) aborts with <code>matchatr_missing_phase1</code>.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">## S3 method for class 'matchatr_homogeneity'
-print(x, ...)
+<pre><code class="language-R">compute_ncc_weights(
+  ncc,
+  cohort,
+  method = c("glm", "gam"),
+  selection_formula = NULL,
+  time,
+  entry = NULL
+)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -458,65 +474,106 @@ print(x, ...)
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
+<code id="ncc">ncc</code>
 </td>
 <td>
-A <code>matchatr_homogeneity</code> object returned by <code>test_homogeneity()</code>.
+A <code>data.table</code> or <code>data.frame</code> from <code>sample_ncc()</code> with <code>incl_prob = TRUE</code>. Must contain the columns <code>.cohort_row</code> (integer cohort row index), <code>ipw_weight</code>, <code>set</code> (matched-set id), <code>case</code> (per-set 0/1 indicator), and <code>risk_time</code> (set’s event time).
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="...">…</code>
+<code id="cohort">cohort</code>
 </td>
 <td>
-Unused; present for S3 consistency.
+A <code>data.frame</code> or <code>data.table</code> — the <strong>full Phase-1 cohort</strong> from which <code>ncc</code> was drawn. Must contain the <code>time</code> column and any covariates referenced in <code>selection_formula</code>. Required for working-model methods; <code>NULL</code> is rejected with <code>matchatr_missing_phase1</code>.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="method">method</code>
+</td>
+<td>
+Character scalar; the weight estimation strategy. One of <code>“glm”</code> (logistic regression via <code>stats::glm()</code>) or <code>“gam”</code> (generalised additive model via <code>mgcv::gam()</code>).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="selection_formula">selection_formula</code>
+</td>
+<td>
+<code>NULL</code> (the default) or a one-sided formula naming the predictors for the selection model. The response is always <code>selected</code> (the binary indicator of being chosen as a control). Default <code>NULL</code> maps to <code>~ risk_time</code>. Smooth terms (e.g.&nbsp;<code>s(risk_time)</code>) are supported only for <code>method = “gam”</code>.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="time">time</code>
+</td>
+<td>
+A single character string naming the <strong>event/follow-up time</strong> column in <code>cohort</code>. Determines which cohort subjects are at risk at each event time: a subject is eligible if <code>cohort[[time]] &gt;= risk_time_k</code> (and <code>cohort[[entry]] &lt; risk_time_k</code> when <code>entry</code> is supplied).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="entry">entry</code>
+</td>
+<td>
+<code>NULL</code> (everyone enters at the origin) or a single character string naming a <strong>delayed-entry</strong> column in <code>cohort</code>.
 </td>
 </tr>
 </tbody></table>
 </section>
+<section id="details" class="level3">
+<h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>The working-model inclusion probability for subject j is:</p>
+<p>π_j = 1 − ∏_k: j ∈ R(t_k) (1 − p̂_jk)</p>
+<p>where the product runs over all event times t_k at which j was in the risk set R(t_k) (excluding the case’s own failure time), and p̂_jk is the predicted probability from the fitted selection model. Cases (cohort events) are always included with weight 1.</p>
+<p>The default <code>selection_formula = NULL</code> maps to <code>~ risk_time</code>, a time-only logistic model matching the simplest GLM specification of Borgan, Samuelsen &amp; Aastveit (2003, <em>Lifetime Data Analysis</em> 9(2)). Richer models can include cohort covariates: <code>~ risk_time + age + sex</code>.</p>
+<p><strong>Population-stratum matching caveat.</strong> If <code>ncc</code> was generated with <code>sample_ncc()</code> using a <code>match</code> argument (e.g.&nbsp;<code>match = ~ sex</code>), controls were drawn only from subjects in the case’s matching stratum. The default working model does not condition on the matching variable, which causes all at-risk subjects (including those from other strata) to be treated as "eligible but not selected". Add the matching variable to <code>selection_formula</code> (e.g.&nbsp;<code>selection_formula = ~ risk_time + sex</code>) to partially account for this.</p>
+</section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>Invisibly returns <code>x</code>.</p>
+<p>A copy of <code>ncc</code> (as a <code>data.table</code>) with the <code>ipw_weight</code> column set to the working-model inverse inclusion probabilities: 1 for cases, 1/π_j (&gt;= 1) for sampled controls. The <code>.cohort_row</code> column is preserved unchanged.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>test_homogeneity()</code></p>
+<p><code>sample_ncc()</code>, <code>matcha()</code>, <code>nested_cc()</code></p>
+<p>Other sampling: <code>sample_ncc()</code>, <code>sample_ncc_counter_matched()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">2000</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="at">control =</span> <span class="dv">0</span>, <span class="at">A =</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x, <span class="at">B =</span> <span class="sc">-</span><span class="fl">1.4</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta) <span class="sc">/</span> <span class="fu">rowSums</span>(<span class="fu">exp</span>(eta))</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">apply</span>(prob, <span class="dv">1</span>, <span class="cf">function</span>(p) <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>), <span class="dv">1</span>, <span class="at">prob =</span> p))</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">g =</span> g, <span class="at">x =</span> x)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(d, <span class="at">outcome =</span> <span class="st">"g"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"polytomous"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">reference =</span> <span class="st">"control"</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">test_homogeneity</span>(fit))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">rexp</span>(<span class="dv">500</span>, <span class="fl">0.1</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">t  =</span> <span class="fu">pmin</span>(tt, <span class="dv">15</span>),          <span class="co"># bound follow-up to avoid empty late risk sets</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">d  =</span> <span class="fu">as.integer</span>(tt <span class="sc">&lt;=</span> <span class="dv">15</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">x  =</span> <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">2</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace Samuelsen KM weights with GLM working-model weights</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ncc_glm <span class="ot">&lt;-</span> <span class="fu">compute_ncc_weights</span>(ncc, <span class="at">cohort =</span> cohort, <span class="at">method =</span> <span class="st">"glm"</span>, <span class="at">time =</span> <span class="st">"t"</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit IPW Cox using the GLM weights</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_glm, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_homogeneity&gt;
- Estimator:  polytomous  (engine: multinom)
- Test:       Homogeneity of subtype odds ratios (Wald)
- Reference:  control
- N:          2000
+<pre><code>&lt;matchatr_result&gt;
+ Estimator:  ipw_cox  (engine: ipw_cox)
+ Estimand:   hazard ratio
+ Contrast:   Hazard ratio
+ CI method:  model
+ N:          494
 
-Common (pooled) odds ratio per exposure term and homogeneity test:
-     term common_or        se ci_lower ci_upper statistic    df   p.value
-   &lt;char&gt;     &lt;num&gt;     &lt;num&gt;    &lt;num&gt;    &lt;num&gt;     &lt;num&gt; &lt;int&gt;     &lt;num&gt;
-1:      x  2.168761 0.2006846 1.809033 2.600022 0.6589249     1 0.4169398
-
-Per-subtype odds ratios (pooled):
-   comparison       or ci_lower ci_upper
-       &lt;char&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
-1:       A: x 2.267207 1.836532 2.798877
-2:       B: x 2.035590 1.605604 2.580728
-
-A small p-value is evidence the exposure odds ratio differs across subtypes.</code></pre>
+Contrasts:
+   comparison  estimate        se  ci_lower ci_upper
+       &lt;char&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;    &lt;num&gt;
+1:          x 0.9800633 0.1004238 0.8017416 1.198047</code></pre>
 </div>
 </div>
 
