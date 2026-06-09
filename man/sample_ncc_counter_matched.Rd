@@ -81,14 +81,15 @@ were drawn non-uniformly (opposite-stratum only), so the weighted partial
 likelihood (coxph + offset) must be used for analysis.
 }
 \examples{
+set.seed(1)
+tt <- rexp(200, 0.1)
 cohort <- data.frame(
   id  = 1:200,
-  t   = rexp(200, 0.05),
-  d   = rbinom(200, 1, 0.3),
+  t   = pmin(tt, 15),
+  d   = as.integer(tt <= 15),
   x   = rbinom(200, 1, 0.4),
-  z   = rbinom(200, 1, 0.5)   # binary surrogate correlated with x
+  z   = rbinom(200, 1, 0.5)   # binary surrogate
 )
-set.seed(1)
 ncc_cm <- sample_ncc_counter_matched(cohort, time = "t", event = "d",
                                      surrogate = "z", m = 1L)
 # Analyse: weighted partial likelihood identifies the HR.

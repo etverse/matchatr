@@ -55,11 +55,24 @@
 #'   string naming a delayed-entry / left-truncation column. Must be numeric when
 #'   supplied; a subject is at risk at `tc` only if `entry < tc`.
 #'
+#' @param incl_prob Logical; if `TRUE`, compute Samuelsen (1997) Kaplan-Meier
+#'   inclusion probabilities for each sampled subject and append two columns to
+#'   the output: `.cohort_row` (integer row index of the subject in `cohort`)
+#'   and `ipw_weight` (inverse inclusion probability: 1 for cases, 1/pi_j for
+#'   sampled controls). The weights are needed by the IPW nested case-control
+#'   analysis (`estimator = "ipw_cox"`). The inclusion probability for control
+#'   j is pi_j = 1 - prod over event times where j was eligible of
+#'   (1 - m_i / n_elig_i), where m_i is the controls sampled and n_elig_i the
+#'   eligible pool size at event i (Samuelsen 1997, Biometrika). Computation
+#'   is O(n x K) where n is the cohort size and K is the number of events.
+#'   Default `FALSE`.
+#'
 #' @returns A `data.table` with one row per sampled subject: the selected rows of
 #'   `cohort` (all original columns) plus `set` (integer matched-set id), `case`
 #'   (per-set 0/1 indicator, 1 for the case), and `risk_time` (the set's failure
-#'   time). Aborts with `matchatr_empty_risk_set` when any case has no eligible
-#'   control.
+#'   time). When `incl_prob = TRUE`, also `.cohort_row` (integer, 1-indexed row
+#'   index in the original `cohort`) and `ipw_weight` (numeric, 1/pi_j).
+#'   Aborts with `matchatr_empty_risk_set` when any case has no eligible control.
 #'
 #' @examples
 #' # A small cohort with event times; draw 2 controls per case.
@@ -79,10 +92,23 @@
 #'               estimator = "clogit")
 #' contrast(fit)
 #'
+#' # With Samuelsen KM inclusion probabilities for IPW analysis.
+#' set.seed(1)
+#' ncc_ipw <- sample_ncc(cohort, time = "t", event = "d", m = 2, incl_prob = TRUE)
+#' ncc_ipw[, c("id", "case", "set", "ipw_weight", ".cohort_row")]
+#'
 #' @family sampling
 #' @seealso [nested_cc()], [matcha()], [Epi::ccwc()]
 #' @export
-sample_ncc <- function(cohort, time, event, m = 1, match = NULL, entry = NULL) {
+sample_ncc <- function(
+  cohort,
+  time,
+  event,
+  m = 1,
+  match = NULL,
+  entry = NULL,
+  incl_prob = FALSE
+) {
   call <- rlang::current_env()
   if (!is.data.frame(cohort)) {
     rlang::abort(
@@ -262,6 +288,39 @@ sample_ncc <- function(cohort, time, event, m = 1, match = NULL, entry = NULL) {
   out[["case"]] <- case_ind
   out[["risk_time"]] <- risk_t
   rownames(out) <- NULL
+
+  if (isTRUE(incl_prob)) {
+    added_ipw <- c(".cohort_row", "ipw_weight")
+    clash_ipw <- intersect(added_ipw, names(df))
+    if (length(clash_ipw) > 0L) {
+      rlang::abort(
+        c(
+          paste0(
+            "`cohort` already has column(s) ",
+            paste0("`", clash_ipw, "`", collapse = ", "),
+            ", which `sample_ncc(incl_prob = TRUE)` appends to the output."
+          ),
+          i = "Rename them before calling `sample_ncc()`."
+        ),
+        class = c("matchatr_bad_input", "matchatr_error"),
+        call = call
+      )
+    }
+    # Samuelsen (1997) KM inclusion probability for each cohort subject:
+    # π_j = 1 − ∏_{i: j ∈ elig(t_i)} (1 − m_i / |elig(t_i)|)
+    # where the product runs over ALL event times where j was eligible, and
+    # m_i = min(m, |elig(t_i)|) is the controls actually sampled at event i.
+    ipw <- samuelsen_km_weights(
+      n = n,
+      case_rows = case_rows,
+      elig_list = elig_list,
+      m_requested = m
+    )
+    out[[".cohort_row"]] <- all_rows
+    # ipw already contains 1/π_j with cases forced to 1; no further override.
+    out[["ipw_weight"]] <- ipw[all_rows]
+  }
+
   data.table::as.data.table(out)
 }
 
@@ -294,6 +353,66 @@ eligible_controls <- function(case_row, tvec, entryvec, match_key) {
   }
   at_risk[case_row] <- FALSE
   which(at_risk)
+}
+
+#' Samuelsen KM inclusion probabilities for a nested case-control sample
+#'
+#' Computes the Kaplan-Meier inclusion probability pi_j for each subject in the
+#' full cohort using the Samuelsen (1997) formula:
+#'
+#'   pi_j = 1 - prod_{i: j in elig(t_i)} (1 - m_i / n_elig_i)
+#'
+#' where the product runs over ALL event times t_i where subject j was eligible
+#' (in the risk set), m_i = min(m_requested, |elig(t_i)|) is the number of
+#' controls actually sampled, and |elig(t_i)| is the eligible pool size at t_i.
+#' Cases (in case_rows) are not eligible for their own risk set; they may be
+#' eligible at earlier events. The returned vector has length n (cohort
+#' dimension); non-sampled subjects with π_j = 0 indicate that they were never
+#' eligible as a control (no event time placed them in any risk set).
+#'
+#' @param n Integer cohort size.
+#' @param case_rows Integer vector of case row indices in the cohort.
+#' @param elig_list List with one element per event (aligned with case_rows);
+#'   each element is an integer vector of eligible control row indices.
+#' @param m_requested Integer; the nominal number of controls per case.
+#' @returns Numeric vector of length `n` with IPW weights (1/π_j). Cohort
+#'   cases (in `case_rows`) get weight 1; sampled controls get 1/π_j >= 1;
+#'   never-eligible subjects get weight 0 (they cannot be in the NCC sample).
+#' @family sampling
+#' @seealso [sample_ncc()]
+#' @noRd
+samuelsen_km_weights <- function(n, case_rows, elig_list, m_requested) {
+  n_elig <- lengths(elig_list)
+  m_actual <- pmin(m_requested, n_elig)
+
+  # Accumulate log(1 - m_i / |elig(t_i)|) for each cohort subject across all
+  # event times where they appear in the eligible pool.
+  log_surv_fac <- numeric(n) # starts at 0 (product = 1 -> π = 0)
+  for (k in seq_along(case_rows)) {
+    ne <- n_elig[k]
+    if (ne == 0L) {
+      next
+    }
+    # log(1 - m_actual / n_elig): when m_actual == n_elig the factor is 0 (log = -Inf),
+    # meaning any subject in this pool was certainly sampled (contributes π -> 1).
+    log_fac <- log1p(-m_actual[k] / ne)
+    log_surv_fac[elig_list[[k]]] <- log_surv_fac[elig_list[[k]]] + log_fac
+  }
+  # π_j = 1 - exp(sum of log-factors); -expm1(x) = 1 - exp(x) is numerically
+  # stable near zero. A subject eligible at every event where all eligible
+  # controls were sampled gets log_surv_fac = -Inf -> π = 1.
+  pi_j <- -expm1(log_surv_fac)
+
+  # Cohort cases are always included in the NCC sample (as the failing subject
+  # of their risk set), so their IPW weight is 1 regardless of what the control-
+  # sampling probability formula gives. This also avoids 1/0 for cases whose
+  # pi from the formula is 0 (never eligible as a control before their event).
+  pi_j[case_rows] <- 1.0
+
+  # Return inverse probabilities (weights for the Cox model). Non-sampled
+  # subjects with pi = 0 get Inf but are never in all_rows, so they never
+  # appear in the NCC output (1/0 is safe to return as-is).
+  1 / pi_j
 }
 
 #' Draw a counter-matched nested case-control sample from a cohort
@@ -358,14 +477,15 @@ eligible_controls <- function(case_row, tvec, entryvec, match_key) {
 #'   control in the opposite surrogate stratum.
 #'
 #' @examples
+#' set.seed(1)
+#' tt <- rexp(200, 0.1)
 #' cohort <- data.frame(
 #'   id  = 1:200,
-#'   t   = rexp(200, 0.05),
-#'   d   = rbinom(200, 1, 0.3),
+#'   t   = pmin(tt, 15),
+#'   d   = as.integer(tt <= 15),
 #'   x   = rbinom(200, 1, 0.4),
-#'   z   = rbinom(200, 1, 0.5)   # binary surrogate correlated with x
+#'   z   = rbinom(200, 1, 0.5)   # binary surrogate
 #' )
-#' set.seed(1)
 #' ncc_cm <- sample_ncc_counter_matched(cohort, time = "t", event = "d",
 #'                                      surrogate = "z", m = 1L)
 #' # Analyse: weighted partial likelihood identifies the HR.

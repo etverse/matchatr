@@ -148,6 +148,13 @@ contrast <- function(
       conf_level = conf_level,
       call = call
     ),
+    ipw_cox = contrast_ipw_cox(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
     cch = contrast_cch(
       fit,
       type = type,
