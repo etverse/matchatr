@@ -1,7 +1,8 @@
 # Phase 6 — Case-Cohort: Prentice, Self-Prentice, and Borgan Estimators
 
-> **Status: Chunks 1–2 IMPLEMENTED (Prentice + Self-Prentice + LinYing + Borgan
-> I/II IPW + stratified subcohort + design rejections). Chunk 3 DESIGN.**
+> **Status: Chunks 1–3 IMPLEMENTED (Prentice + Self-Prentice + LinYing + Borgan
+> I/II IPW + stratified subcohort + design rejections + IPW Breslow absolute
+> risk F_x(t) with delta-method CIs).**
 > Book chapters: 16 (Overview), 17 (Survival Analysis / Sample Survey).
 
 ## Scope
@@ -52,7 +53,8 @@ absolute_risk(fit, x = newdata, times = c(2, 5))   # IPW Breslow F_x(t)
 | simple | Self-Prentice / LinYing | HR | asymptotic | needs-test |
 | simple | Borgan I (IPW) | HR | asymptotic | ✅ nwtco oracle + truth DGP |
 | stratified | Borgan II (IPW) | HR | plug-in asymptotic | ✅ nwtco oracle + truth DGP |
-| simple | — | absolute risk F_x(t) | Breslow + delta | needs-test |
+| simple | Prentice / SelfPrentice / LinYing | absolute risk F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ nwtco oracle + truth DGP |
+| stratified | Borgan I/II | absolute risk F̂_x(t) | per-stratum IPW Breslow + delta-method CI | ✅ structural check |
 | case_cohort, no subcohort/time | — | — | ⛔ `matchatr_bad_design` |
 
 ## Implementation plan
