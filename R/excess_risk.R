@@ -19,10 +19,10 @@
 #'
 #' where X̃ is the at-risk design matrix (an intercept column plus the covariates),
 #' W = diag(w) the Samuelsen inclusion weights, and dN(t_i) the event indicator
-#' over the risk set. B̂_j(t) = Σ_{t_i ≤ t} dB̂_j(t_i). Pointwise variances use the
-#' Aalen (martingale) estimator
+#' over the risk set. B̂_j(t) = Σ over (t_i ≤ t) of dB̂_j(t_i). Pointwise variances
+#' use the Aalen (martingale) estimator
 #'
-#'   V̂(t) = Σ_{t_i ≤ t} (X̃ᵀ W X̃)⁻¹ {Σ_{i fails} w_i² x̃_i x̃_iᵀ} (X̃ᵀ W X̃)⁻¹,
+#'   V̂(t) = Σ over (t_i ≤ t) of (X̃ᵀ W X̃)⁻¹ (Σ over failures w_i² x̃_i x̃_iᵀ) (X̃ᵀ W X̃)⁻¹,
 #'
 #' and the pointwise interval is B̂_j(t) ± z·sqrt(V̂_jj(t)) on the linear scale
 #' (symmetric, possibly negative — an excess hazard is a rate difference). The
@@ -173,8 +173,8 @@ excess_risk.matchatr_fit <- function(fit, times, conf_level = 0.95, ...) {
 #' @details
 #' At each unique event time t_i the increment of the cumulative regression
 #' function is dB̂(t_i) = (X̃ᵀWX̃)⁻¹ X̃ᵀW dN(t_i) and the increment of the
-#' martingale variance is (X̃ᵀWX̃)⁻¹ {Σ_{i fails} w_i² x̃_i x̃_iᵀ} (X̃ᵀWX̃)⁻¹, both
-#' over the risk set {j : T_j ≥ t_i}. The estimator is only defined while X̃ᵀWX̃ is
+#' martingale variance is (X̃ᵀWX̃)⁻¹ (Σ over failures w_i² x̃_i x̃_iᵀ) (X̃ᵀWX̃)⁻¹, both
+#' over the risk set (j : T_j ≥ t_i). The estimator is only defined while X̃ᵀWX̃ is
 #' invertible; accumulation stops at the first event time where it is singular.
 #'
 #' @param time Numeric vector of exit / event times.

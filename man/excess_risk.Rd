@@ -56,10 +56,10 @@ dB̂(t_i) = (X̃ᵀ W X̃)⁻¹ X̃ᵀ W dN(t_i),
 
 where X̃ is the at-risk design matrix (an intercept column plus the covariates),
 W = diag(w) the Samuelsen inclusion weights, and dN(t_i) the event indicator
-over the risk set. B̂_j(t) = Σ_{t_i ≤ t} dB̂_j(t_i). Pointwise variances use the
-Aalen (martingale) estimator
+over the risk set. B̂_j(t) = Σ over (t_i ≤ t) of dB̂_j(t_i). Pointwise variances
+use the Aalen (martingale) estimator
 
-V̂(t) = Σ_{t_i ≤ t} (X̃ᵀ W X̃)⁻¹ {Σ_{i fails} w_i² x̃_i x̃_iᵀ} (X̃ᵀ W X̃)⁻¹,
+V̂(t) = Σ over (t_i ≤ t) of (X̃ᵀ W X̃)⁻¹ (Σ over failures w_i² x̃_i x̃_iᵀ) (X̃ᵀ W X̃)⁻¹,
 
 and the pointwise interval is B̂_j(t) ± z·sqrt(V̂_jj(t)) on the linear scale
 (symmetric, possibly negative — an excess hazard is a rate difference). The
