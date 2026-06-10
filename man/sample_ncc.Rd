@@ -124,6 +124,7 @@ ncc_ipw[, c("id", "case", "set", "ipw_weight", ".cohort_row")]
 
 Other sampling: 
 \code{\link{compute_ncc_weights}()},
+\code{\link{reuse_ncc_endpoint}()},
 \code{\link{sample_ncc_counter_matched}()}
 }
 \concept{sampling}

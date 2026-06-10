@@ -105,6 +105,7 @@ contrast(fit)
 
 Other sampling: 
 \code{\link{compute_ncc_weights}()},
+\code{\link{reuse_ncc_endpoint}()},
 \code{\link{sample_ncc}()}
 }
 \concept{sampling}

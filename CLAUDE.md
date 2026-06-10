@@ -110,8 +110,26 @@ on person-period data) wherever possible.
 > at 1/π_j), giving `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))` with delta-method
 > complementary-log-log CIs. The hand-rolled step function agrees with
 > `survival::survfit` on the same weighted Cox to machine precision (across KM and
-> GLM/GAM weights and factor confounders); CI coverage is conservative. PHASE_7
-> Chunk 4 (multiple endpoints, additive/AFT) and PHASE_8+ remain `Status: DESIGN`.
+> GLM/GAM weights and factor confounders); CI coverage is conservative. **Chunk 4
+> is complete**: one NCC control set is reused for multiple endpoints through the
+> same `ipw_cox` weighted Cox. Two modes — (A) sampling on the union "any-failure"
+> event ascertains every endpoint's cases at once, so each cause-specific endpoint
+> is analysed directly via `matcha(outcome = "<cause>", estimator = "ipw_cox")`;
+> (B) the exported `reuse_ncc_endpoint(ncc, cohort, time, event)`
+> (`R/multi_endpoint.R`) reuses a primary-endpoint control set for a secondary
+> endpoint, keeping the controls' primary inclusion weights 1/π_j (a property of
+> the sampling, not the endpoint) and augmenting the secondary endpoint's
+> unsampled cohort cases at weight 1 (`matchatr_missing_phase1` / `matchatr_bad_input`
+> / `matchatr_bad_outcome` guard the inputs). Both modes rest on the generalised
+> `ncc_ipw_analysis_data()`: a subject ascertained with probability 1 — a case of
+> the analysed endpoint **or** the failing subject of some sampled risk set (a
+> competing-endpoint case) — keeps weight 1 rather than reverting to 1/π_j on a row
+> where it was drawn as a control (a no-op for the single-endpoint analysis, so the
+> `multipleNCC::wpl` exact-agreement tests are unchanged). Oracles: `multipleNCC::wpl`
+> (exact per endpoint of a combined-event NCC) and an independent `KMprob` +
+> `survival::coxph` reconstruction of the augmented fit (machine precision), plus a
+> competing-risks truth DGP. **Additive/AFT models (Ch19 §19.5) remain deferred**;
+> PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -151,6 +169,10 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   working-model inclusion probabilities for NCC data via the augmented
   selection dataset; `build_ncc_selection_dataset()` / `working_model_inclusion_probs()`
   internals; `matchatr_missing_phase1` rejection when Phase-1 cohort is absent).
+  `multi_endpoint.R` (PHASE_7 Chunk 4 — `reuse_ncc_endpoint()`: augments a
+  primary-endpoint NCC with a secondary endpoint's unsampled cohort cases so one
+  control set can be reused across endpoints; pairs with the generalised
+  `ncc_ipw_analysis_data()` in `weighted_cox.R`).
   Still to come: `weights_cc.R` (case-control / q₀ weights).
 - **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
   wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and

@@ -1,5 +1,39 @@
 # matchatr (development version)
 
+## 2026-06-10 — Multiple endpoints from one reused NCC control set (PHASE_7 Chunk 4)
+
+Reuses a single nested case-control control set to estimate hazard ratios for
+more than one endpoint, the IPW reformulation's payoff over the matched analysis
+(Samuelsen 1997; Støer & Samuelsen 2012). Two modes feed the existing `ipw_cox`
+weighted Cox:
+
+- **Combined-event reuse.** Drawing the NCC on the union "any-failure" event
+  ascertains every endpoint's cases at once, so each cause-specific endpoint is
+  analysed directly: `matcha(ncc, outcome = "<cause>", estimator = "ipw_cox")`.
+  This required generalising the analysis-sample builder (`ncc_ipw_analysis_data()`,
+  `R/weighted_cox.R`) to keep weight 1 for any subject that is a case of the
+  analysed endpoint **or** the failing subject of some sampled risk set — a
+  competing-endpoint case is ascertained by the sampling and must not revert to
+  the control weight 1/π_j on a row where it happened to be drawn as a control.
+  For the single-endpoint analysis the two clauses coincide, so this is a no-op
+  generalisation (the `multipleNCC::wpl` exact-agreement tests still hold).
+- **Cohort-augmented reuse.** New exported `reuse_ncc_endpoint(ncc, cohort, time,
+  event)` (`R/multi_endpoint.R`) reuses a control set sampled for a *primary*
+  endpoint to fit a *secondary* one: the controls keep their primary Samuelsen
+  inclusion weights 1/π_j (the inclusion probability is a property of the
+  sampling, not the endpoint), and the secondary endpoint's cases that were not
+  sampled are augmented from the Phase-1 cohort with weight 1. Requires the
+  cohort; `matchatr_missing_phase1` / `matchatr_bad_input` / `matchatr_bad_outcome`
+  guard the inputs.
+
+Tested in `test-multi_endpoint.R` against: `multipleNCC::wpl` (exact agreement on
+log-HR and SE for each endpoint of a combined-event NCC, since `wpl` ascertains
+all cases and computes π over all event times); an independent `KMprob` +
+`survival::coxph` reconstruction of the cohort-augmented fit (machine precision);
+and a competing-risks truth DGP with known cause-specific Cox log-HRs (each mode
+recovers the full-cohort HR within a 3.5-SE band). Additive/AFT models
+(Ch19 §19.5) remain deferred.
+
 ## 2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)
 
 Three correctness fixes to the IPW nested case-control absolute risk, all in the
