@@ -14,6 +14,11 @@
 #     full-cohort Weibull AFT curve within sampling tolerance.
 # Truth DGP: a Weibull AFT cohort, F_x(t) = 1 − exp(−(t·exp(−η))^(1/σ)) known in
 #   closed form.
+#
+# No Python / delicatessen oracle: F̂_x(t) is a deterministic transform of the
+# fitted survreg parameters (a parametric survival curve), not an M-estimator
+# delicatessen stacks; the predict.survreg round-trip and the numDeriv gradient
+# reconstruction are the independent checks.
 
 # -- Shared DGP ----------------------------------------------------------------
 

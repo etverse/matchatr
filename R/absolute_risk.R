@@ -351,13 +351,14 @@ breslow_step_with_fence <- function(t_events, cumhaz, var_log) {
 #'
 #' Builds the model matrix for `data` from the **fitted model's own terms**,
 #' selects the columns corresponding to the fitted coefficients, and returns both
-#' the model matrix and the linear predictor. Used by both the case-cohort and
-#' IPW nested case-control absolute-risk engines, for both `newdata` patterns and
+#' the model matrix and the linear predictor. Used by all three absolute-risk
+#' engines (case-cohort `cch`, IPW nested case-control weighted Cox `ipw_cox`, and
+#' IPW nested case-control Weibull AFT `ipw_aft`), for both `newdata` patterns and
 #' the analysis sample itself.
 #'
 #' @details
-#' For the IPW nested case-control (`ipw_cox`) engine the design is built with
-#' `model.matrix(delete.response(terms(model)), model.frame(..., xlev =
+#' For the model-terms engines (`ipw_cox` coxph, `ipw_aft` survreg) the design is
+#' built with `model.matrix(delete.response(terms(model)), model.frame(..., xlev =
 #' model$xlevels))` rather than re-deriving the formula from `term.labels`. This
 #' is essential for any **data-dependent** term — `poly()`, `ns()` / `bs()`,
 #' `scale()`, `cut()` — whose basis depends on the rows it is computed over: the
@@ -376,7 +377,7 @@ breslow_step_with_fence <- function(t_events, cumhaz, var_log) {
 #' the `cch` coefficient names); data-dependent confounder transforms are not
 #' reproduced for `cch`, which its designs do not use.
 #'
-#' @param fit A `matchatr_fit` with engine `"cch"` or `"ipw_cox"`.
+#' @param fit A `matchatr_fit` with engine `"cch"`, `"ipw_cox"`, or `"ipw_aft"`.
 #' @param data A data frame of covariate patterns (a `newdata` grid or the
 #'   analysis sample). Must carry the columns the fitted model's terms reference.
 #' @param beta Named numeric vector of fitted coefficients.
@@ -398,8 +399,8 @@ ar_lp_from_newdata <- function(fit, data, beta) {
         data = data
       )
     } else {
-      # coxph: reuse the fitted terms (predvars basis) and factor levels so any
-      # data-dependent transform is reproduced, not recomputed.
+      # coxph / survreg: reuse the fitted terms (predvars basis) and factor levels
+      # so any data-dependent transform is reproduced, not recomputed.
       mt <- stats::delete.response(stats::terms(fit$model))
       stats::model.matrix(
         mt,
