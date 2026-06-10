@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6a358ec7f71e7b72aeeebd1cb1aadac4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -390,6 +390,8 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#ipw-absolute-risk-correctness-for-complicated-designs-critical-review" id="toc-ipw-absolute-risk-correctness-for-complicated-designs-critical-review" class="nav-link" data-scroll-target="#ipw-absolute-risk-correctness-for-complicated-designs-critical-review">2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)</a></li>
+  <li><a href="#ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3" id="toc-ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3" class="nav-link" data-scroll-target="#ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3">2026-06-09 — IPW Breslow absolute risk for nested case-control (PHASE_7 Chunk 3)</a></li>
   <li><a href="#working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" id="toc-working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" class="nav-link" data-scroll-target="#working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2">2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)</a></li>
   <li><a href="#ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" id="toc-ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review" class="nav-link" data-scroll-target="#ipw-ncc-vignette-dgp-and-test-quality-fixes-critical-review">2026-06-09 — IPW NCC vignette DGP and test quality fixes (critical review)</a></li>
   <li><a href="#samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" id="toc-samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1" class="nav-link" data-scroll-target="#samuelsen-km-ipw-weights-ipw_cox-engine-for-ncc-data-phase_7-chunk-1">2026-06-09 — Samuelsen KM IPW weights + <code>ipw_cox</code> engine for NCC data (PHASE_7 Chunk 1)</a></li>
@@ -426,6 +428,27 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="ipw-absolute-risk-correctness-for-complicated-designs-critical-review" class="level2">
+<h2 class="anchored" data-anchor-id="ipw-absolute-risk-correctness-for-complicated-designs-critical-review">2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)</h2>
+<p>Three correctness fixes to the IPW nested case-control absolute risk, all in the “complicated case” regime the initial tests (plain factors, continuous times) did not exercise.</p>
+<ul>
+<li><strong>Data-dependent confounder bases</strong> (<code>poly()</code>, <code>ns()</code>/<code>bs()</code>, <code>scale()</code>): <code>ar_lp_from_newdata()</code> rebuilt the design from <code>term.labels</code> and called <code>model.matrix()</code> on <code>newdata</code> alone, recomputing the basis from those rows — a <em>different</em> basis than the fit, with the <em>same</em> coefficient names (so the name-based guard passed) and a silently wrong linear predictor (F off by ~0.4). It now builds the design from the fitted model’s <code>terms</code> (reusing the <code>predvars</code> basis) and <code>xlevels</code> for the <code>ipw_cox</code>/coxph engine. The <code>cch</code> engine keeps the original-formula path (its non-standard internal formula has no usable <code>predvars</code>).</li>
+<li><strong>Tied event times</strong>: <code>fit_ipw_cox()</code> fitted the weighted Cox with the coxph default Efron ties, but <code>ipw_breslow_ncc()</code> uses the plain Breslow baseline, so the two disagreed at tied event times (F off by ~0.03). The fit now uses <code>ties = "breslow"</code> so the partial-likelihood coefficients and the Breslow cumulative baseline hazard are mutually consistent; for continuous failure times (the usual NCC setting) this is identical to Efron.</li>
+<li><strong>Event at the time origin</strong>: the <code>t = 0</code> fence post prepended on top of a real <code>t = 0</code> event time (possible with rounded times) duplicated the knot and made <code>approx()</code> collapse it. <code>breslow_step_with_fence()</code> now skips the fence when an event already sits at <code>t = 0</code>.</li>
+<li>The hand-rolled Breslow now agrees with <code>survival::survfit</code> to machine precision across all three regimes; regression tests in <code>test-absolute_risk_ncc.R</code> cover a tied-time design, a <code>poly(z, 2)</code> confounder, and an event at <code>t = 0</code>.</li>
+</ul>
+</section>
+<section id="ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3" class="level2">
+<h2 class="anchored" data-anchor-id="ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3">2026-06-09 — IPW Breslow absolute risk for nested case-control (PHASE_7 Chunk 3)</h2>
+<p>Extends <code>absolute_risk(fit, newdata, times)</code> to the IPW nested case-control (<code>"ipw_cox"</code>) engine, alongside the existing case-cohort (<code>"cch"</code>) path. Returns <code>F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))</code> for each covariate pattern at each time.</p>
+<ul>
+<li><strong>Native IPW Breslow cumulative baseline hazard</strong> (<code>ipw_breslow_ncc()</code>, <code>R/absolute_risk_ncc.R</code>) over the deduplicated, Samuelsen-weighted NCC analysis sample (cases at weight 1, each unique control at 1/π_j): the increment <code>dΛ̂₀(t_k) = (Σ events) / (Σ_{at risk} w_j exp(β̂ᵀ x_j))</code> is the Horvitz-Thompson weighted Breslow step, so the upweighted controls stand in for the unsampled cohort. The hand-rolled step function agrees with <code>survival::survfit</code> on the same weighted Cox to machine precision — across KM and GLM/GAM weights, factor and continuous confounders, and multiple covariate patterns.</li>
+<li><strong>Pointwise CIs</strong> via the delta method on the complementary log-log scale, <code>Var(log Λ_x(t)) = x' V_β x + Var(log Λ̂₀(t))</code> with the IPW robust sandwich for the β part. Monte Carlo coverage is conservative (errs wide, never anti-conservative); the baseline-hazard variance is the within-sample Nelson-Aalen approximation, as in the case-cohort path.</li>
+<li><strong>Refactor</strong>: the per-time / per-pattern F_x(t) assembly and the delta-method CI are shared by both engines via <code>assemble_absolute_risk()</code> (<code>R/absolute_risk.R</code>); the case-cohort Breslow moved to <code>R/absolute_risk_cch.R</code>. The deduplication of the NCC analysis sample is shared between the weighted Cox fit and the Breslow via <code>ncc_ipw_analysis_data()</code> (<code>R/weighted_cox.R</code>).</li>
+<li>A non-<code>cch</code>/<code>ipw_cox</code> engine still aborts with <code>matchatr_not_implemented</code> (message updated to name both supported engines).</li>
+<li>Validated in <code>tests/testthat/test-absolute_risk_ncc.R</code>: exact <code>survival::survfit</code> agreement (1e-8) including a GLM-weighted factor-confounder design, full-cohort survfit cross-check, and analytical exponential truth recovery with CI coverage.</li>
+</ul>
+</section>
 <section id="working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" class="level2">
 <h2 class="anchored" data-anchor-id="working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2">2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)</h2>
 <p>Adds <code>compute_ncc_weights()</code> for GLM and GAM working-model inclusion probabilities.</p>

@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-6a358ec7f71e7b72aeeebd1cb1aadac4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -525,7 +525,7 @@ A single character string naming the <strong>event/follow-up time</strong> colum
 <section id="details" class="level3">
 <h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>The working-model inclusion probability for subject j is:</p>
-<p>π_j = 1 − ∏_k: j ∈ R(t_k) (1 − p̂_jk)</p>
+<p>π_j = 1 − ∏_(k: j ∈ R(t_k)) (1 − p̂_jk)</p>
 <p>where the product runs over all event times t_k at which j was in the risk set R(t_k) (excluding the case’s own failure time), and p̂_jk is the predicted probability from the fitted selection model. Cases (cohort events) are always included with weight 1.</p>
 <p>The default <code>selection_formula = NULL</code> maps to <code>~ risk_time</code>, a time-only logistic model matching the simplest GLM specification of Borgan, Samuelsen &amp; Aastveit (2003, <em>Lifetime Data Analysis</em> 9(2)). Richer models can include cohort covariates: <code>~ risk_time + age + sex</code>.</p>
 <p><strong>Population-stratum matching caveat.</strong> If <code>ncc</code> was generated with <code>sample_ncc()</code> using a <code>match</code> argument (e.g.&nbsp;<code>match = ~ sex</code>), controls were drawn only from subjects in the case’s matching stratum. The default working model does not condition on the matching variable, which causes all at-risk subjects (including those from other strata) to be treated as "eligible but not selected". Add the matching variable to <code>selection_formula</code> (e.g.&nbsp;<code>selection_formula = ~ risk_time + sex</code>) to partially account for this.</p>
