@@ -169,12 +169,17 @@ estimators than alternatives (Ch19 §19.3).
 
 ### Within Phase 7's alternative-model family (pick up here to extend Chunk 5)
 
-- **Non-Weibull AFT distributions.** `fit_ipw_aft()` hardcodes `dist = "weibull"`
-  (the canonical AFT, also PH). Lognormal / loglogistic / exponential are a small
-  extension but need a way to pass `dist` through `matcha()` — there is no engine
-  option slot today (`model_fn` is the logistic fitter only). Decide the API
-  (a `matcha(... , dist = )` arg, or an `ipw_aft(dist = )`-style spec on the
-  design) before adding them.
+- ✅ **Non-Weibull AFT distributions (done).** `matcha(estimator = "ipw_aft",
+  dist = )` accepts `"weibull"` (default), `"exponential"`, `"lognormal"`, or
+  `"loglogistic"`, threaded to `survival::survreg` via `fit$details$aft_dist`.
+  The API chosen is an estimator-specific `matcha()` argument (matching the
+  existing `model_fn` / `effect_modifier` / `reference` pattern), rejected
+  off-estimator or for an unsupported distribution (`matchatr_bad_input`). All
+  four are log-location-scale AFT models, so `contrast(type = "af")` reports the
+  same time ratio exp(β); `absolute_risk()` reads each baseline's survival curve
+  as F̂_x(t) = G((log t − η̂)/σ̂) with G the error CDF (`aft_risk_ci()`). Oracles:
+  per-distribution `KMprob` + `survreg` reconstruction and `predict.survreg`
+  round-trip (`test-aft_ncc.R`, `test-absolute_risk_aft.R`).
 - **Time-varying additive effects / cumulative regression function B(t).** The
   current additive engine fits the *constant-effect* Lin-Ying model (one excess
   hazard per covariate). The fully nonparametric Aalen model gives the cumulative

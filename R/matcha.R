@@ -61,6 +61,14 @@
 #'   It must name one of the observed groups; when `NULL` the first factor level
 #'   (or the first level in sorted order, for a character outcome) is used.
 #'   Supplying it for a non-polytomous estimator is an error. Defaults to `NULL`.
+#' @param dist `NULL` or a character scalar naming the parametric baseline for
+#'   `estimator = "ipw_aft"`: one of `"weibull"` (the default), `"exponential"`,
+#'   `"lognormal"`, or `"loglogistic"`. All four are accelerated failure time
+#'   models, so `contrast(type = "af")` reports the same time-ratio estimand
+#'   `exp(beta)`; they differ in the baseline error distribution (and hence the
+#'   survival-curve shape used by [absolute_risk()]). `"weibull"` and
+#'   `"exponential"` are additionally proportional-hazards. Supplying it for a
+#'   non-AFT estimator is an error. Defaults to `NULL` (Weibull).
 #'
 #' @returns A `matchatr_fit` object: a list with the validated specification
 #'   (`data`, `outcome`, `exposure`, `confounders`, `design`, `estimator`,
@@ -100,7 +108,8 @@ matcha <- function(
   estimator = NULL,
   model_fn = NULL,
   effect_modifier = NULL,
-  reference = NULL
+  reference = NULL,
+  dist = NULL
 ) {
   # Record the user's call so the fit can echo it in print().
   call <- match.call()
@@ -235,6 +244,44 @@ matcha <- function(
     )
   }
 
+  # The parametric baseline `dist` is meaningful only for the AFT engine, whose
+  # four accelerated-failure-time distributions all report the same time ratio;
+  # reject it elsewhere so a mis-routed `dist` cannot be silently ignored.
+  if (!is.null(dist)) {
+    check_string(dist)
+    if (!identical(routing$engine, "ipw_aft")) {
+      rlang::abort(
+        c(
+          "`dist` is only used by the accelerated failure time estimator.",
+          i = paste0(
+            "Use `estimator = \"ipw_aft\"` with a nested case-control design; ",
+            "got engine `",
+            routing$engine,
+            "`."
+          )
+        ),
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
+    if (!dist %in% aft_supported_dists()) {
+      rlang::abort(
+        c(
+          paste0(
+            "`dist = \"",
+            dist,
+            "\"` is not a supported AFT distribution."
+          ),
+          i = paste0(
+            "Choose one of: ",
+            paste0('"', aft_supported_dists(), '"', collapse = ", "),
+            "."
+          )
+        ),
+        class = c("matchatr_bad_input", "matchatr_error")
+      )
+    }
+  }
+
   # Case-control weighting reweights the sample to the source population, which
   # is impossible without the marginal prevalence q0.
   if (identical(routing$kind, "ccw") && is.null(design$prevalence)) {
@@ -302,7 +349,13 @@ matcha <- function(
       variance_kind = NULL,
       # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
       # engine; e.g. mgcv::gam for smooth confounder adjustment.
-      model_fn = model_fn
+      model_fn = model_fn,
+      # AFT baseline distribution (NULL -> "weibull"), used by the ipw_aft engine.
+      aft_dist = if (identical(routing$engine, "ipw_aft")) {
+        if (is.null(dist)) "weibull" else dist
+      } else {
+        NULL
+      }
     ),
     outcome_details
   )

@@ -49,12 +49,15 @@ engines are supported: the case-cohort pseudo-likelihood (\code{"cch"}, Borgan &
 Liestøl 1990) and the IPW nested case-control weighted Cox (\code{"ipw_cox"},
 Samuelsen-weighted Breslow over the reused controls) both build
 F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from an inverse-probability-weighted (IPW)
-Breslow cumulative baseline hazard Λ̂₀(t); the IPW nested case-control weighted
-Weibull AFT (\code{"ipw_aft"}) builds F_x(t) = 1 − exp(−exp((log t − η)/σ̂))
-directly from the fitted parametric survival curve (η is the AFT linear
-predictor, σ̂ the scale). Pointwise confidence intervals use the delta method on
-the complementary log-log scale (the "log-log" CI for the survival function,
-inverted to the risk scale).
+Breslow cumulative baseline hazard Λ̂₀(t); the IPW nested case-control
+parametric AFT (\code{"ipw_aft"}, any of the Weibull / exponential / lognormal /
+loglogistic baselines) builds F_x(t) = G((log t − η̂)/σ̂) directly from the
+fitted survival curve, where η̂ is the AFT linear predictor, σ̂ the scale, and G
+the baseline error CDF. Pointwise confidence intervals use the delta method:
+for the Cox-type engines and the extreme-value AFT baselines this is the
+complementary log-log scale inverted to the risk scale; for the lognormal /
+loglogistic baselines it is the Wald interval on the standardised residual
+mapped through G.
 }
 \examples{
 \dontrun{

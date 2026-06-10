@@ -81,7 +81,13 @@ make_aft_ar_cohort_factor <- function(n = 6000L, seed = 606L) {
 }
 
 # Fit the ipw_aft engine on an NCC sample drawn from such a cohort.
-make_aft_ar_fit <- function(cohort, confounders = ~z, m = 3L, seed = 9L) {
+make_aft_ar_fit <- function(
+  cohort,
+  confounders = ~z,
+  m = 3L,
+  seed = 9L,
+  dist = NULL
+) {
   ncc <- withr::with_seed(
     seed,
     sample_ncc(cohort, "t", "d", m = m, incl_prob = TRUE)
@@ -92,37 +98,56 @@ make_aft_ar_fit <- function(cohort, confounders = ~z, m = 3L, seed = 9L) {
     exposure = "x",
     design = nested_cc(strata = "set", time = "t"),
     confounders = confounders,
-    estimator = "ipw_aft"
+    estimator = "ipw_aft",
+    dist = dist
   )
 }
 
-# Independent reconstruction of the cumulative incidence and its complementary
-# log-log CI via a numerically differentiated ξ(θ) gradient.
+# The survreg baseline error CDF G: F(t | x) = G((log t − η)/σ).
+aft_cdf <- function(dist) {
+  switch(
+    dist,
+    weibull = ,
+    exponential = function(z) 1 - exp(-exp(z)),
+    lognormal = stats::pnorm,
+    loglogistic = stats::plogis
+  )
+}
+
+# Independent reconstruction of the cumulative incidence and its CI via a
+# numerically differentiated z(θ) gradient and the baseline error CDF. The
+# exponential fixes σ = 1 (no log-scale parameter), so θ omits it there.
 recon_aft_ar <- function(fit, nd_row, times, conf_level = 0.95) {
   beta <- stats::coef(fit$model)
   vmat <- stats::vcov(fit$model)
   sigma <- fit$model$scale
+  has_scale <- ncol(vmat) > length(beta)
+  G <- aft_cdf(fit$model$dist)
   mt <- stats::delete.response(stats::terms(fit$model))
   mm <- stats::model.matrix(
     mt,
     stats::model.frame(mt, data = nd_row, xlev = fit$model$xlevels)
   )[, names(beta), drop = FALSE]
-  theta0 <- c(beta, log(sigma))
+  theta0 <- if (has_scale) c(beta, log(sigma)) else beta
   z_crit <- stats::qnorm(1 - (1 - conf_level) / 2)
   do.call(
     rbind,
     lapply(times, function(tt) {
-      xi <- (log(tt) - as.numeric(mm %*% beta)) / sigma
-      xifun <- function(th) {
-        p <- length(th)
-        (log(tt) - sum(mm * th[-p])) / exp(th[p])
+      z <- (log(tt) - as.numeric(mm %*% beta)) / sigma
+      zfun <- function(th) {
+        if (has_scale) {
+          p <- length(th)
+          (log(tt) - sum(mm * th[-p])) / exp(th[p])
+        } else {
+          (log(tt) - sum(mm * th)) / sigma
+        }
       }
-      g <- numDeriv::grad(xifun, theta0)
+      g <- numDeriv::grad(zfun, theta0)
       se <- sqrt(as.numeric(t(g) %*% vmat %*% g))
       c(
-        estimate = 1 - exp(-exp(xi)),
-        ci_lower = 1 - exp(-exp(xi - z_crit * se)),
-        ci_upper = 1 - exp(-exp(xi + z_crit * se))
+        estimate = G(z),
+        ci_lower = G(z - z_crit * se),
+        ci_upper = G(z + z_crit * se)
       )
     })
   )
@@ -143,7 +168,7 @@ test_that("absolute_risk(ipw_aft) returns correct S3 class and structure", {
     c("row", "time", "estimate", "ci_lower", "ci_upper")
   )
   expect_identical(ar$engine, "ipw_aft")
-  expect_identical(ar$method, "IPW AFT (Weibull)")
+  expect_identical(ar$method, "IPW AFT (weibull)")
 })
 
 test_that("absolute_risk(ipw_aft) returns one row per (newdata row, time)", {
@@ -216,6 +241,39 @@ test_that("AFT absolute-risk estimate and CI match a numDeriv reconstruction", {
     expect_equal(sub$estimate, unname(recon[, "estimate"]), tolerance = 1e-7)
     expect_equal(sub$ci_lower, unname(recon[, "ci_lower"]), tolerance = 1e-7)
     expect_equal(sub$ci_upper, unname(recon[, "ci_upper"]), tolerance = 1e-7)
+  }
+})
+
+# -- Non-Weibull baselines: each distribution's survival curve ----------------
+
+test_that("AFT absolute risk is exact across all four baseline distributions", {
+  skip_if_not_installed("survival")
+  cohort <- make_aft_ar_cohort()
+  nd <- data.frame(x = c(1L, 0L), z = c(0, 0.5))
+  t_eval <- c(1, 2, 3, 4)
+
+  for (dd in c("weibull", "exponential", "lognormal", "loglogistic")) {
+    fit <- make_aft_ar_fit(cohort, dist = dd)
+    ar <- absolute_risk(fit, newdata = nd, times = t_eval)
+    expect_identical(ar$method, paste0("IPW AFT (", dd, ")"))
+
+    for (r in seq_len(nrow(nd))) {
+      # Independent point oracle: round-trip through survreg's own inverse CDF.
+      p_hat <- ar$estimates$estimate[ar$estimates$row == r]
+      q <- stats::predict(
+        fit$model,
+        newdata = nd[r, , drop = FALSE],
+        type = "quantile",
+        p = p_hat
+      )
+      expect_equal(as.numeric(q), t_eval, tolerance = 1e-7)
+      # Estimate + CI vs the numDeriv reconstruction with the dist's error CDF.
+      recon <- recon_aft_ar(fit, nd[r, , drop = FALSE], t_eval)
+      sub <- ar$estimates[ar$estimates$row == r, ]
+      expect_equal(sub$estimate, unname(recon[, "estimate"]), tolerance = 1e-7)
+      expect_equal(sub$ci_lower, unname(recon[, "ci_lower"]), tolerance = 1e-7)
+      expect_equal(sub$ci_upper, unname(recon[, "ci_upper"]), tolerance = 1e-7)
+    }
   }
 })
 

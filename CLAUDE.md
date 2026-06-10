@@ -151,7 +151,16 @@ on person-period data) wherever possible.
 > no Breslow step. It shares the cloglog inversion (`cloglog_risk_ci()`) and result
 > assembly (`new_matchatr_absolute_risk()`) factored out of `assemble_absolute_risk()`;
 > oracles are `predict.survreg(type = "quantile")` (round-trip) and a `numDeriv`
-> ξ(θ)-gradient reconstruction (estimate + CI). PHASE_8+ remain `Status: DESIGN`.
+> ξ(θ)-gradient reconstruction (estimate + CI). A second **Phase-7 follow-up**
+> adds non-Weibull AFT baselines: `matcha(estimator = "ipw_aft", dist = )` accepts
+> `"weibull"` (default), `"exponential"`, `"lognormal"`, or `"loglogistic"` (an
+> estimator-specific `matcha()` arg like `model_fn` / `reference`; off-estimator or
+> unsupported `dist` is `matchatr_bad_input`). All four are log-location-scale AFT
+> models, so `contrast(type = "af")` reports the same time ratio exp(β); they
+> differ in the error distribution, so `absolute_risk()` reads
+> `F̂_x(t) = G((log t − η̂)/σ̂)` with G the baseline error CDF (extreme-value /
+> cloglog for weibull-exponential, Φ for lognormal, `plogis` for loglogistic) via
+> the shared `aft_risk_ci()`. PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 

@@ -15,9 +15,12 @@
 #' so exp(β_j) is the **time ratio** (acceleration factor): a unit increase in
 #' covariate j multiplies the survival time by exp(β_j) (> 1 prolongs, < 1
 #' shortens survival). This is the time-scale analogue of the Cox hazard ratio
-#' and a different estimand. A Weibull baseline is used (`dist = "weibull"`): it
-#' is the canonical AFT distribution and the only one that is simultaneously an
-#' AFT and a proportional-hazards model. Estimation is by
+#' and a different estimand. The baseline error distribution is selected by
+#' `fit$details$aft_dist` — one of `"weibull"` (default), `"exponential"`,
+#' `"lognormal"`, or `"loglogistic"`. All four are accelerated failure time
+#' models, so exp(β) is the time ratio for each; `"weibull"` and `"exponential"`
+#' are additionally proportional-hazards, while `"lognormal"` / `"loglogistic"`
+#' are AFT-only (allowing non-monotone / unimodal hazards). Estimation is by
 #' [survival::survreg()] with the IPW observation weights and `robust = TRUE`,
 #' which returns the Lin-Wei robust sandwich variance appropriate when the
 #' weights reuse controls across the cohort (Kang, Lu & Liu 2017, Biometrics
@@ -25,13 +28,19 @@
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"ipw_aft"`, carrying
 #'   the NCC analysis `data` with `.cohort_row` / `ipw_weight` columns plus the
-#'   `outcome` / `exposure` / `confounders` slots and the design `time`.
-#' @returns The fitted [survival::survreg] object (Weibull, robust variance).
+#'   `outcome` / `exposure` / `confounders` slots, the design `time`, and the
+#'   `details$aft_dist` baseline distribution.
+#' @returns The fitted [survival::survreg] object (robust variance).
 #' @family estimators
 #' @seealso [matcha()], [contrast()], [sample_ncc()], [survival::survreg()]
 #' @noRd
 fit_ipw_aft <- function(fit) {
   time_col <- require_ipw_ncc_columns(fit, "ipw_aft")
+  # The AFT baseline distribution; matcha() resolves NULL to "weibull".
+  aft_dist <- fit$details$aft_dist
+  if (is.null(aft_dist)) {
+    aft_dist <- "weibull"
+  }
 
   # Break the matching: the same deduplicated, case-weight-forced analysis
   # sample the IPW Cox uses.
@@ -48,14 +57,13 @@ fit_ipw_aft <- function(fit) {
   )
 
   n_rows <- nrow(dt_unique)
-  # Weibull baseline: the canonical AFT distribution (and the only AFT that is
-  # also proportional-hazards), with the Lin-Wei robust sandwich (`robust =
-  # TRUE`) for the reused-control IPW weights.
+  # Parametric AFT baseline (default Weibull), with the Lin-Wei robust sandwich
+  # (`robust = TRUE`) for the reused-control IPW weights.
   model <- survival::survreg(
     model_formula,
     data = dt_unique,
     weights = dt_unique[["ipw_weight"]],
-    dist = "weibull",
+    dist = aft_dist,
     robust = TRUE
   )
 
@@ -164,4 +172,20 @@ contrast_ipw_aft <- function(
     n = length(fit$model$linear.predictors),
     call = call
   )
+}
+
+#' Supported AFT baseline distributions for the IPW NCC accelerated failure model
+#'
+#' The accelerated-failure-time distributions `matcha(estimator = "ipw_aft",
+#' dist = )` accepts. All four are log-location-scale models, so exp(β) is the
+#' time ratio under each; they differ in the baseline error distribution
+#' ([survival::survreg()] names), which sets the survival-curve shape that
+#' [absolute_risk()] reads. Used to validate `dist` in [matcha()] and to map a
+#' distribution to its error CDF in the AFT absolute-risk engine.
+#'
+#' @returns A character vector of the accepted `survreg` distribution names.
+#' @family estimators
+#' @noRd
+aft_supported_dists <- function() {
+  c("weibull", "exponential", "lognormal", "loglogistic")
 }

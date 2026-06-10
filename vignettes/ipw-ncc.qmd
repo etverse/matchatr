@@ -395,6 +395,20 @@ ar_aft <- absolute_risk(fit_aft, newdata = newdata, times = c(1, 2, 3, 4))
 ar_aft
 ```
 
+The baseline defaults to Weibull, but `dist` selects any of four AFT
+distributions — `"weibull"`, `"exponential"`, `"lognormal"`, `"loglogistic"`.
+All report the same time ratio `exp(β)`; they differ in the survival-curve shape
+(`"lognormal"` / `"loglogistic"` allow a non-monotone hazard). `absolute_risk()`
+follows the chosen baseline automatically:
+
+```{r}
+fit_ln <- matcha(ncc, outcome = "d", exposure = "exposure",
+                 design = nested_cc(strata = "set", time = "t"),
+                 confounders = ~ confounder, estimator = "ipw_aft",
+                 dist = "lognormal")
+contrast(fit_ln)
+```
+
 The **additive-hazards** model (`estimator = "ipw_aalen"`) acts on the *rate*
 scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so
 `contrast(type = "excess")` reports the **excess hazard** γ — an additive rate

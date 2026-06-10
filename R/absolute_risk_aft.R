@@ -1,33 +1,37 @@
-#' Absolute risk from an IPW nested case-control Weibull AFT fit
+#' Absolute risk from an IPW nested case-control AFT fit
 #'
 #' Engine for `absolute_risk.matchatr_fit` when `fit$engine == "ipw_aft"`.
 #' Computes the cumulative incidence F_x(t) = 1 − S(t | x) directly from the
-#' fitted parametric Weibull accelerated-failure-time survival curve, with a
-#' delta-method complementary-log-log confidence interval. Unlike the Cox-type
-#' engines (`cch`, `ipw_cox`) there is no Breslow step function: the Weibull AFT
-#' gives a closed-form S(t | x), so F is parametric and smooth in `t`.
+#' fitted parametric accelerated-failure-time survival curve, with a delta-method
+#' confidence interval. Unlike the Cox-type engines (`cch`, `ipw_cox`) there is no
+#' Breslow step function: the parametric AFT gives a closed-form S(t | x), so F is
+#' smooth in `t`. All four AFT baselines are supported (`weibull`, `exponential`,
+#' `lognormal`, `loglogistic`).
 #'
 #' @details
-#' For a Weibull AFT, `survival::survreg` parameterises log T = η + σ ε with ε a
-#' standard least-extreme-value variate, so the survival function is
+#' `survival::survreg` parameterises any of its AFT baselines as a
+#' log-location-scale model log T = η + σ ε, with ε a standardised error whose
+#' survivor function fixes the shape: extreme-value for `"weibull"` /
+#' `"exponential"`, Gaussian for `"lognormal"`, logistic for `"loglogistic"`.
+#' Writing the **standardised residual**
 #'
-#'   S(t | x) = exp(−exp((log t − η) / σ)),
+#'   z(t | x) = (log t − η) / σ,   η = x̃ᵀβ̂,   σ̂ = `fit$model$scale`,
 #'
-#' where η = x̃ᵀβ̂ is the linear predictor (the model's `(Intercept)` plus
-#' covariate effects) and σ̂ = `fit$model$scale`. Writing the cumulative incidence
-#' on the complementary log-log scale,
+#' the cumulative incidence is F(t | x) = G(z), where G is the error CDF
+#' (G_ev(z) = 1 − exp(−exp(z)) for weibull/exponential, Φ(z) for lognormal,
+#' plogis(z) for loglogistic). z is linear in the regression coefficients, so the
+#' delta method is exact in the gradient: with θ = (β, log σ),
 #'
-#'   ξ(t | x) = log(−log S(t | x)) = (log t − η) / σ,
+#'   ∂z/∂β = −x̃ / σ,   ∂z/∂(log σ) = −z,
 #'
-#' is linear in the regression coefficients, so the delta method is exact in
-#' the gradient. With θ = (β, log σ) the gradient is
-#'
-#'   ∂ξ/∂β = −x̃ / σ,   ∂ξ/∂(log σ) = −ξ,
-#'
-#' and Var(ξ) = gᵀ V g, where V is the robust Lin-Wei sandwich
-#' `survival::survreg(robust = TRUE)` stores in `vcov()`. The interval ξ ± z·SE(ξ)
-#' is inverted to the risk scale by `cloglog_risk_ci()` — the same inversion the
-#' Cox-type engines use, sharing the result assembly.
+#' and Var(z) = gᵀ V g, where V is the robust Lin-Wei sandwich
+#' `survival::survreg(robust = TRUE)` stores in `vcov()`. The Wald interval
+#' z ± k·SE(z) is mapped to the risk scale through the (monotone) G by
+#' `aft_risk_ci()`; for weibull/exponential this is exactly the
+#' complementary-log-log inversion the Cox-type engines use (`cloglog_risk_ci()`).
+#' The `"exponential"` baseline fixes σ = 1, so `vcov()` carries no log-scale
+#' parameter and the scale term drops out of the gradient (correctly, since σ is
+#' not estimated).
 #'
 #' Evaluation times at or below the time origin return F = 0 (the survival
 #' function is 1 at t = 0; log t is undefined for t ≤ 0).
@@ -39,14 +43,15 @@
 #' @param conf_level Numeric confidence level in (0, 1).
 #' @returns A `matchatr_absolute_risk` object.
 #' @family contrasts
-#' @seealso [absolute_risk()], `fit_ipw_aft()`, `cloglog_risk_ci()`
+#' @seealso [absolute_risk()], `fit_ipw_aft()`, `aft_risk_ci()`
 #' @noRd
 absolute_risk_aft <- function(fit, newdata, times, conf_level = 0.95) {
   model <- fit$model
   beta <- stats::coef(model) # regression coefficients, including (Intercept)
-  sigma <- model$scale # AFT scale σ (> 0)
-  # vcov() is the robust sandwich under robust = TRUE: a (p + 1) × (p + 1) matrix
-  # over θ = (β, log σ); the trailing parameter is the log scale.
+  sigma <- model$scale # AFT scale σ (> 0; fixed at 1 for the exponential)
+  aft_dist <- model$dist # the survreg baseline distribution name
+  # vcov() is the robust sandwich under robust = TRUE: over θ = (β, log σ); the
+  # trailing parameter is the log scale (absent when σ is fixed, e.g. exponential).
   vcov_theta <- stats::vcov(model)
 
   param_names <- colnames(vcov_theta)
@@ -91,18 +96,20 @@ absolute_risk_aft <- function(fit, newdata, times, conf_level = 0.95) {
         next
       }
 
-      # ξ = log(-log S) = (log t - η) / σ
-      xi <- (log(tt) - eta_r) / sigma
+      # Standardised residual z = (log t - η) / σ.
+      z_std <- (log(tt) - eta_r) / sigma
 
-      # Delta-method gradient over θ = (β, log σ), aligned to vcov's columns.
+      # Delta-method gradient of z over θ = (β, log σ), aligned to vcov's columns.
+      # `scale_names` is empty for a fixed-scale baseline (exponential), so the
+      # scale term is correctly skipped.
       grad <- numeric(length(param_names))
       names(grad) <- param_names
       grad[names(beta)] <- -x_r / sigma
-      grad[scale_names] <- -xi
-      var_xi <- as.numeric(t(grad) %*% vcov_theta %*% grad)
-      se_xi <- sqrt(max(0, var_xi))
+      grad[scale_names] <- -z_std
+      var_z <- as.numeric(t(grad) %*% vcov_theta %*% grad)
+      se_z <- sqrt(max(0, var_z))
 
-      ci <- cloglog_risk_ci(xi, se_xi, z_crit)
+      ci <- aft_risk_ci(z_std, se_z, z_crit, aft_dist)
       rows[[k <- k + 1L]] <- list(
         row = r,
         time = tt,
@@ -118,9 +125,51 @@ absolute_risk_aft <- function(fit, newdata, times, conf_level = 0.95) {
     times = times,
     newdata = newdata,
     conf_level = conf_level,
-    ci_method = "delta (log-log)",
+    # The interval is the Wald interval on z mapped through the error CDF; for
+    # the extreme-value baselines this is the complementary log-log inversion.
+    ci_method = if (aft_dist %in% c("weibull", "exponential")) {
+      "delta (log-log)"
+    } else {
+      "delta (standardised residual)"
+    },
     engine = fit$engine,
     estimator = fit$estimator,
-    method = "IPW AFT (Weibull)"
+    method = paste0("IPW AFT (", aft_dist, ")")
+  )
+}
+
+#' Risk estimate and CI from an AFT standardised residual
+#'
+#' Maps a Wald interval on the standardised residual z = (log t − η)/σ to the
+#' cumulative incidence F = G(z), where G is the survreg baseline's error CDF.
+#' Because G is monotone increasing, z − k·SE gives the lower risk bound. For the
+#' extreme-value baselines (`weibull`, `exponential`) G(z) = 1 − exp(−exp(z)), so
+#' this reduces to the complementary-log-log inversion the Cox-type engines share
+#' (`cloglog_risk_ci()`), reused here to keep those distributions byte-identical.
+#'
+#' @param z Numeric scalar standardised residual z = (log t − η)/σ.
+#' @param se_z Numeric scalar standard error of z (delta method).
+#' @param z_crit Numeric critical value (e.g. `qnorm(0.975)`).
+#' @param dist Character `survreg` baseline distribution name (one of
+#'   [aft_supported_dists()]).
+#' @returns A list with `$estimate`, `$ci_lower`, `$ci_upper` on the probability
+#'   scale.
+#' @family contrasts
+#' @noRd
+aft_risk_ci <- function(z, se_z, z_crit, dist) {
+  if (dist %in% c("weibull", "exponential")) {
+    # Extreme-value error: F = 1 − exp(−exp(z)); identical to the cloglog path.
+    return(cloglog_risk_ci(z, se_z, z_crit))
+  }
+  # Gaussian (lognormal) or logistic (loglogistic) error CDF.
+  cdf <- switch(
+    dist,
+    lognormal = stats::pnorm,
+    loglogistic = stats::plogis
+  )
+  list(
+    estimate = cdf(z),
+    ci_lower = max(0, min(1, cdf(z - z_crit * se_z))),
+    ci_upper = max(0, min(1, cdf(z + z_crit * se_z)))
   )
 }

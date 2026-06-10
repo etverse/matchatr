@@ -1,5 +1,34 @@
 # matchatr (development version)
 
+## 2026-06-10 — Non-Weibull AFT distributions for IPW NCC (PHASE_7 follow-up)
+
+`matcha(estimator = "ipw_aft")` gains a `dist` argument selecting the
+accelerated-failure-time baseline — `"weibull"` (default), `"exponential"`,
+`"lognormal"`, or `"loglogistic"` — completing the Phase-7 deferred item
+"non-Weibull AFT distributions". All four are log-location-scale AFT models, so
+`contrast(type = "af")` reports the same time-ratio estimand exp(β) under each;
+they differ in the baseline error distribution (and therefore the survival-curve
+shape). `"exponential"` is the one-parameter Weibull (it fixes σ = 1).
+
+`absolute_risk()` follows the distribution: the cumulative incidence is
+F̂_x(t) = G((log t − η̂)/σ̂), where G is the baseline error CDF — extreme-value
+(complementary log-log) for weibull/exponential, Φ for lognormal, plogis for
+loglogistic. The delta-method CI is the Wald interval on the standardised
+residual mapped through the monotone G; for the extreme-value baselines this is
+exactly the cloglog inversion the Cox-type engines share. The exponential's fixed
+scale carries no log-scale parameter, so the scale term correctly drops out of
+the gradient.
+
+`dist` joins `model_fn` / `effect_modifier` / `reference` as an estimator-specific
+`matcha()` argument: supplying it for a non-AFT estimator, or naming an
+unsupported `survreg` distribution, is `matchatr_bad_input`.
+
+Validated in `test-aft_ncc.R` / `test-absolute_risk_aft.R`: each distribution's
+coefficient/SE matches an independent `multipleNCC::KMprob` + `survreg`
+reconstruction (1e-6); each survival curve round-trips through
+`predict.survreg(type = "quantile")` and matches a numDeriv reconstruction
+through its error CDF (1e-7).
+
 ## 2026-06-10 — AFT survival-curve absolute risk for IPW NCC (PHASE_7 follow-up)
 
 `absolute_risk()` gains an `ipw_aft` engine path, completing the Phase-7 deferred
