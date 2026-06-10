@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-6a358ec7f71e7b72aeeebd1cb1aadac4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -300,6 +300,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/reuse_ncc_endpoint.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">reuse_ncc_endpoint</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/sample_ncc_counter_matched.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">sample_ncc_counter_matched</span></a>
   </div>
@@ -390,6 +396,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4" id="toc-multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4" class="nav-link" data-scroll-target="#multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4">2026-06-10 — Multiple endpoints from one reused NCC control set (PHASE_7 Chunk 4)</a></li>
   <li><a href="#ipw-absolute-risk-correctness-for-complicated-designs-critical-review" id="toc-ipw-absolute-risk-correctness-for-complicated-designs-critical-review" class="nav-link" data-scroll-target="#ipw-absolute-risk-correctness-for-complicated-designs-critical-review">2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)</a></li>
   <li><a href="#ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3" id="toc-ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3" class="nav-link" data-scroll-target="#ipw-breslow-absolute-risk-for-nested-case-control-phase_7-chunk-3">2026-06-09 — IPW Breslow absolute risk for nested case-control (PHASE_7 Chunk 3)</a></li>
   <li><a href="#working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" id="toc-working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2" class="nav-link" data-scroll-target="#working-model-inclusion-probability-weights-for-ncc-phase_7-chunk-2">2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)</a></li>
@@ -428,6 +435,16 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4" class="level2">
+<h2 class="anchored" data-anchor-id="multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4">2026-06-10 — Multiple endpoints from one reused NCC control set (PHASE_7 Chunk 4)</h2>
+<p>Reuses a single nested case-control control set to estimate hazard ratios for more than one endpoint, the IPW reformulation’s payoff over the matched analysis (Samuelsen 1997; Støer &amp; Samuelsen 2012). Two modes feed the existing <code>ipw_cox</code> weighted Cox:</p>
+<ul>
+<li><strong>Combined-event reuse.</strong> Drawing the NCC on the union “any-failure” event ascertains every endpoint’s cases at once, so each cause-specific endpoint is analysed directly: <code>matcha(ncc, outcome = "&lt;cause&gt;", estimator = "ipw_cox")</code>. This required generalising the analysis-sample builder (<code>ncc_ipw_analysis_data()</code>, <code>R/weighted_cox.R</code>) to keep weight 1 for any subject that is a case of the analysed endpoint <strong>or</strong> the failing subject of some sampled risk set — a competing-endpoint case is ascertained by the sampling and must not revert to the control weight 1/π_j on a row where it happened to be drawn as a control. For the single-endpoint analysis the two clauses coincide, so this is a no-op generalisation (the <code>multipleNCC::wpl</code> exact-agreement tests still hold).</li>
+<li><strong>Cohort-augmented reuse.</strong> New exported <code>reuse_ncc_endpoint(ncc, cohort, time, event)</code> (<code>R/multi_endpoint.R</code>) reuses a control set sampled for a <em>primary</em> endpoint to fit a <em>secondary</em> one: the controls keep their primary Samuelsen inclusion weights 1/π_j (the inclusion probability is a property of the sampling, not the endpoint), and the secondary endpoint’s cases that were not sampled are augmented from the Phase-1 cohort with weight 1. Requires the cohort; <code>matchatr_missing_phase1</code> / <code>matchatr_bad_input</code> / <code>matchatr_bad_outcome</code> guard the inputs.</li>
+</ul>
+<p>Tested in <code>test-multi_endpoint.R</code> against: <code>multipleNCC::wpl</code> (exact agreement on log-HR and SE for each endpoint of a combined-event NCC, since <code>wpl</code> ascertains all cases and computes π over all event times); an independent <code>KMprob</code> + <code>survival::coxph</code> reconstruction of the cohort-augmented fit (machine precision); and a competing-risks truth DGP with known cause-specific Cox log-HRs (each mode recovers the full-cohort HR within a 3.5-SE band). Additive/AFT models (Ch19 §19.5) remain deferred.</p>
+<p><code>reuse_ncc_endpoint()</code> rejects two malformed inputs with <code>matchatr_bad_input</code> rather than producing degenerate output: an empty NCC sample (whose augmented set ids would come from <code>max(integer(0)) = -Inf</code>), and an augmented secondary case with a missing / non-finite event time (which the downstream weighted Cox would silently drop) — mirroring <code>sample_ncc()</code>’s rejection of cases whose risk set cannot be formed.</p>
+</section>
 <section id="ipw-absolute-risk-correctness-for-complicated-designs-critical-review" class="level2">
 <h2 class="anchored" data-anchor-id="ipw-absolute-risk-correctness-for-complicated-designs-critical-review">2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)</h2>
 <p>Three correctness fixes to the IPW nested case-control absolute risk, all in the “complicated case” regime the initial tests (plain factors, continuous times) did not exercise.</p>

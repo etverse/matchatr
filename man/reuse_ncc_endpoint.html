@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>compute_ncc_weights – matchatr</title>
+<title>reuse_ncc_endpoint – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/compute_ncc_weights.html">compute_ncc_weights</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/reuse_ncc_endpoint.html">reuse_ncc_endpoint</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -269,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/compute_ncc_weights.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/compute_ncc_weights.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">compute_ncc_weights</span></a>
   </div>
 </li>
@@ -335,7 +335,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/reuse_ncc_endpoint.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/reuse_ncc_endpoint.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">reuse_ncc_endpoint</span></a>
   </div>
 </li>
@@ -429,7 +429,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#compute-working-model-inclusion-probability-weights-for-an-ncc-sample" id="toc-compute-working-model-inclusion-probability-weights-for-an-ncc-sample" class="nav-link active" data-scroll-target="#compute-working-model-inclusion-probability-weights-for-an-ncc-sample">Compute working-model inclusion probability weights for an NCC sample</a>
+  <li><a href="#reuse-a-nested-case-control-control-set-for-a-second-endpoint" id="toc-reuse-a-nested-case-control-control-set-for-a-second-endpoint" class="nav-link active" data-scroll-target="#reuse-a-nested-case-control-control-set-for-a-second-endpoint">Reuse a nested case-control control set for a second endpoint</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
@@ -443,36 +443,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/compute_ncc_weights.html">compute_ncc_weights</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/reuse_ncc_endpoint.html">reuse_ncc_endpoint</a></li></ol></nav></header>
 
 
 
 
-<section id="compute-working-model-inclusion-probability-weights-for-an-ncc-sample" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="compute-working-model-inclusion-probability-weights-for-an-ncc-sample">Compute working-model inclusion probability weights for an NCC sample</h2>
+<section id="reuse-a-nested-case-control-control-set-for-a-second-endpoint" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="reuse-a-nested-case-control-control-set-for-a-second-endpoint">Reuse a nested case-control control set for a second endpoint</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Replaces or sets the <code>ipw_weight</code> column of a nested case-control dataset using a <strong>working model</strong> for the probability that a subject is selected as a control at each event time. Two estimation strategies are available:</p>
-<ul>
-<li>
-<p><code>“glm”</code> — fits a logistic regression of the binary selection indicator (<code>selected ~ selection_formula</code>) across all (subject, event-time) pairs where the subject is in the risk set; uses <code>stats::glm()</code>.</p>
-</li>
-<li>
-<p><code>“gam”</code> — same but uses <code>mgcv::gam()</code> so that smooth terms (e.g.&nbsp;<code>s(risk_time)</code>) are available in <code>selection_formula</code>.</p>
-</li>
-</ul>
-<p>Both methods require the <strong>full Phase-1 cohort</strong> to reconstruct the risk set at every event time and determine which subjects were eligible but not selected. Omitting <code>cohort</code> (or supplying a cohort without the <code>time</code> column) aborts with <code>matchatr_missing_phase1</code>.</p>
+<p>Prepares a nested case-control (NCC) sample drawn for one (primary) endpoint so it can be reused to fit a weighted Cox model for a <em>different</em> (secondary) endpoint, sharing the single sampled control set. The sampled controls keep their primary Samuelsen inclusion weights 1/π_j (the inclusion probability is a property of the sampling, not of the endpoint analysed), and the secondary endpoint’s cases that were not already drawn into the sample are augmented from the full Phase-1 cohort with weight 1 (every case of an analysed endpoint is ascertained with probability 1). The result feeds straight into <code>matcha(design = nested_cc(…), estimator = “ipw_cox”)</code> with the secondary endpoint as <code>outcome</code>.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">compute_ncc_weights(
-  ncc,
-  cohort,
-  method = c("glm", "gam"),
-  selection_formula = NULL,
-  time,
-  entry = NULL
-)
+<pre><code class="language-R">reuse_ncc_endpoint(ncc, cohort, time, event)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -483,7 +467,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <code id="ncc">ncc</code>
 </td>
 <td>
-A <code>data.table</code> or <code>data.frame</code> from <code>sample_ncc()</code> with <code>incl_prob = TRUE</code>. Must contain the columns <code>.cohort_row</code> (integer cohort row index), <code>ipw_weight</code>, <code>set</code> (matched-set id), <code>case</code> (per-set 0/1 indicator), and <code>risk_time</code> (set’s event time).
+A <code>data.table</code> or <code>data.frame</code> from <code>sample_ncc()</code> with <code>incl_prob = TRUE</code>. Must contain <code>.cohort_row</code>, <code>ipw_weight</code>, <code>set</code>, <code>case</code>, and <code>risk_time</code>, plus the cohort columns (carried by <code>sample_ncc()</code>) and a binary column for the secondary <code>event</code>.
 </td>
 </tr>
 <tr>
@@ -491,23 +475,7 @@ A <code>data.table</code> or <code>data.frame</code> from <code>sample_ncc()</co
 <code id="cohort">cohort</code>
 </td>
 <td>
-A <code>data.frame</code> or <code>data.table</code> — the <strong>full Phase-1 cohort</strong> from which <code>ncc</code> was drawn. Must contain the <code>time</code> column and any covariates referenced in <code>selection_formula</code>. Required for working-model methods; <code>NULL</code> is rejected with <code>matchatr_missing_phase1</code>.
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="method">method</code>
-</td>
-<td>
-Character scalar; the weight estimation strategy. One of <code>“glm”</code> (logistic regression via <code>stats::glm()</code>) or <code>“gam”</code> (generalised additive model via <code>mgcv::gam()</code>).
-</td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="selection_formula">selection_formula</code>
-</td>
-<td>
-<code>NULL</code> (the default) or a one-sided formula naming the predictors for the selection model. The response is always <code>selected</code> (the binary indicator of being chosen as a control). Default <code>NULL</code> maps to <code>~ risk_time</code>. Smooth terms (e.g.&nbsp;<code>s(risk_time)</code>) are supported only for <code>method = “gam”</code>.
+A <code>data.frame</code> or <code>data.table</code> — the <strong>full Phase-1 cohort</strong> from which <code>ncc</code> was drawn. Used to recover the secondary endpoint’s cases that were not sampled. <code>NULL</code> is rejected with <code>matchatr_missing_phase1</code>.
 </td>
 </tr>
 <tr>
@@ -515,35 +483,45 @@ Character scalar; the weight estimation strategy. One of <code>“glm”</code> 
 <code id="time">time</code>
 </td>
 <td>
-A single character string naming the <strong>event/follow-up time</strong> column in <code>cohort</code>. Determines which cohort subjects are at risk at each event time: a subject is eligible if <code>cohort[[time]] &gt;= risk_time_k</code> (and <code>cohort[[entry]] &lt; risk_time_k</code> when <code>entry</code> is supplied).
+A single character string naming the cohort follow-up / event-time column (the same column passed to <code>nested_cc(time = …)</code>). Augmented cases take their <code>risk_time</code> from it. Must be present in <code>cohort</code>.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="entry">entry</code>
+<code id="event">event</code>
 </td>
 <td>
-<code>NULL</code> (everyone enters at the origin) or a single character string naming a <strong>delayed-entry</strong> column in <code>cohort</code>.
+A single character string naming the secondary endpoint’s binary indicator column in <code>cohort</code> (logical, two-level factor, or numeric 0/1) with at least one case. The same column must be present in <code>ncc</code> (it is, as a carried cohort column) and is passed as <code>outcome</code> to <code>matcha()</code>.
 </td>
 </tr>
 </tbody></table>
 </section>
 <section id="details" class="level3">
 <h3 class="anchored" data-anchor-id="details">Details</h3>
-<p>The working-model inclusion probability for subject j is:</p>
-<p>π_j = 1 − ∏_(k: j ∈ R(t_k)) (1 − p̂_jk)</p>
-<p>where the product runs over all event times t_k at which j was in the risk set R(t_k) (excluding the case’s own failure time), and p̂_jk is the predicted probability from the fitted selection model. Cases (cohort events) are always included with weight 1.</p>
-<p>The default <code>selection_formula = NULL</code> maps to <code>~ risk_time</code>, a time-only logistic model matching the simplest GLM specification of Borgan, Samuelsen &amp; Aastveit (2003, <em>Lifetime Data Analysis</em> 9(2)). Richer models can include cohort covariates: <code>~ risk_time + age + sex</code>.</p>
-<p><strong>Population-stratum matching caveat.</strong> If <code>ncc</code> was generated with <code>sample_ncc()</code> using a <code>match</code> argument (e.g.&nbsp;<code>match = ~ sex</code>), controls were drawn only from subjects in the case’s matching stratum. The default working model does not condition on the matching variable, which causes all at-risk subjects (including those from other strata) to be treated as "eligible but not selected". Add the matching variable to <code>selection_formula</code> (e.g.&nbsp;<code>selection_formula = ~ risk_time + sex</code>) to partially account for this.</p>
+<p>Nested case-control studies often record several endpoints in the same cohort. Classical (matched) analysis (Phase 5) ties each control to its case’s failure time, so a control set sampled for one endpoint cannot serve another. The IPW reformulation breaks the matching: the union of cases and controls is treated as a biased cohort subsample weighted by inverse inclusion probability, which makes control reuse across endpoints legitimate (Samuelsen 1997; Saarela, Kulathinal, Arjas &amp; Läärä 2008; Støer &amp; Samuelsen 2012).</p>
+<p>The reuse semantics are:</p>
+<ul>
+<li>
+<p><strong>Controls</strong> keep their primary inclusion weight 1/π_j. π_j is the probability the subject was drawn as a control during the <em>primary</em> risk-set sampling; it does not depend on which endpoint is later analysed, so reusing the primary weight is the theoretically correct inverse-sampling-probability weight.</p>
+</li>
+<li>
+<p><strong>Secondary-endpoint cases</strong> are ascertained with probability 1, hence weight 1. Those already present in the sample (drawn as a primary case or as a control) keep their row; those absent are augmented from the cohort, each as its own singleton risk set (a case with no sampled controls).</p>
+</li>
+<li>
+<p><strong>Primary-endpoint cases</strong> are competing events for the secondary analysis. They were ascertained by the primary sampling, so they also keep weight 1; the <code>ipw_cox</code> engine enforces this when it builds the deduplicated analysis sample.</p>
+</li>
+</ul>
+<p>When the primary sample already contains every secondary-endpoint case — for example when the NCC was drawn on the union "any-failure" event so all endpoints’ cases were ascertained at once — no augmentation is needed and the input is returned unchanged. In that shared-control case the secondary analysis can also be run directly with <code>matcha(ncc, outcome = “&lt;secondary&gt;”, estimator = “ipw_cox”)</code>.</p>
+<p>This function does not recompute inclusion probabilities; the secondary endpoint reuses the primary π_j attached by <code>sample_ncc(incl_prob = TRUE)</code>. The robust Lin-Wei sandwich variance the <code>ipw_cox</code> engine reports treats the weights as fixed (the standard, slightly conservative treatment).</p>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A copy of <code>ncc</code> (as a <code>data.table</code>) with the <code>ipw_weight</code> column set to the working-model inverse inclusion probabilities: 1 for cases, 1/π_j (&gt;= 1) for sampled controls. The <code>.cohort_row</code> column is preserved unchanged.</p>
+<p>A <code>data.table</code> with the same columns as <code>ncc</code>: the original NCC rows followed by one augmented row per previously unsampled secondary-endpoint case (weight 1, <code>case = 1</code>, its own <code>set</code> id beyond the sampled sets). The secondary cases’ <code>ipw_weight</code> is set to 1 throughout. Ready for <code>matcha(design = nested_cc(strata = “set”, time = time), estimator = “ipw_cox”)</code> with <code>outcome = event</code>.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>sample_ncc()</code>, <code>matcha()</code>, <code>nested_cc()</code></p>
-<p>Other sampling: <code>reuse_ncc_endpoint()</code>, <code>sample_ncc()</code>, <code>sample_ncc_counter_matched()</code></p>
+<p><code>sample_ncc()</code>, <code>compute_ncc_weights()</code>, <code>matcha()</code>, <code>nested_cc()</code></p>
+<p>Other sampling: <code>compute_ncc_weights()</code>, <code>sample_ncc()</code>, <code>sample_ncc_counter_matched()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
@@ -551,35 +529,38 @@ A single character string naming the <strong>event/follow-up time</strong> colum
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">rexp</span>(<span class="dv">500</span>, <span class="fl">0.1</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">t  =</span> <span class="fu">pmin</span>(tt, <span class="dv">15</span>),          <span class="co"># bound follow-up to avoid empty late risk sets</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">d  =</span> <span class="fu">as.integer</span>(tt <span class="sc">&lt;=</span> <span class="dv">15</span>),</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">x  =</span> <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">2</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace Samuelsen KM weights with GLM working-model weights</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ncc_glm <span class="ot">&lt;-</span> <span class="fu">compute_ncc_weights</span>(ncc, <span class="at">cohort =</span> cohort, <span class="at">method =</span> <span class="st">"glm"</span>, <span class="at">time =</span> <span class="st">"t"</span>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit IPW Cox using the GLM weights</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_glm, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>t1 <span class="ot">&lt;-</span> <span class="fu">rexp</span>(<span class="dv">600</span>, <span class="fl">0.05</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>t2 <span class="ot">&lt;-</span> <span class="fu">rexp</span>(<span class="dv">600</span>, <span class="fl">0.05</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">pmin</span>(t1, t2, tau)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>cause <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(tt <span class="sc">&gt;=</span> tau, <span class="dv">0</span>L, <span class="fu">ifelse</span>(t1 <span class="sc">&lt;</span> t2, <span class="dv">1</span>L, <span class="dv">2</span>L))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">600</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">t  =</span> tt,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">d1 =</span> <span class="fu">as.integer</span>(cause <span class="sc">==</span> <span class="dv">1</span>L),   <span class="co"># primary endpoint</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">d2 =</span> <span class="fu">as.integer</span>(cause <span class="sc">==</span> <span class="dv">2</span>L),   <span class="co"># secondary endpoint</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">x  =</span> <span class="fu">rbinom</span>(<span class="dv">600</span>, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d1"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Reuse the one control set for the secondary endpoint</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>ncc2 <span class="ot">&lt;-</span> <span class="fu">reuse_ncc_endpoint</span>(ncc, <span class="at">cohort =</span> cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d2"</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc2, <span class="at">outcome =</span> <span class="st">"d2"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>               <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>               <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;matchatr_result&gt;
  Estimator:  ipw_cox  (engine: ipw_cox)
  Estimand:   hazard ratio
  Contrast:   Hazard ratio
  CI method:  model
- N:          494
+ N:          451
 
 Contrasts:
-   comparison  estimate        se  ci_lower ci_upper
-       &lt;char&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;    &lt;num&gt;
-1:          x 0.9800633 0.1004238 0.8017416 1.198047</code></pre>
+   comparison  estimate       se  ci_lower ci_upper
+       &lt;char&gt;     &lt;num&gt;    &lt;num&gt;     &lt;num&gt;    &lt;num&gt;
+1:          x 0.8360695 0.166547 0.5658235 1.235389</code></pre>
 </div>
 </div>
 
