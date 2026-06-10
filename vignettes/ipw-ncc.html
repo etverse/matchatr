@@ -316,6 +316,12 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">excess_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/matcha.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">matcha</span></a>
   </div>
@@ -342,6 +348,12 @@ window.Quarto = {
   <div class="sidebar-item-container"> 
   <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/print.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -396,6 +408,12 @@ window.Quarto = {
   <div class="sidebar-item-container"> 
   <a href="../man/tidy.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tidy.matchatr_absolute_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -675,7 +693,7 @@ window.Quarto = {
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(ncc_no_wts, <span class="st">"case"</span>, <span class="st">"exposure"</span>,</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in `require_ipw_ncc_columns()` at matchatr/R/weighted_cox.R:39:3:</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in `require_ipw_ncc_columns()` at matchatr/R/ipw_cox.R:39:3:</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ! The `ipw_cox` estimator requires an `ipw_weight` column in `data`.</span></span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ℹ Use `sample_ncc(..., incl_prob = TRUE)` to generate the Samuelsen KM inclusion weights before calling `matcha()`.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -918,35 +936,133 @@ window.Quarto = {
 <span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   exposure 0.5335832 0.03098763 0.4761776 0.5979093</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<p>The fitted Weibull is a full <em>survival curve</em>, so <code>absolute_risk()</code> also serves the <code>ipw_aft</code> engine — reading the cumulative incidence straight off the parameters, with no Breslow step:</p>
+<p><span class="math display">\[F_x(t) = 1 - \exp\!\big(-\exp((\log t - \hat\eta)/\hat\sigma)\big),\]</span></p>
+<p>where <span class="math inline">\(\hat\eta = \hat\beta^{\top} x\)</span> is the AFT linear predictor and <span class="math inline">\(\hat\sigma\)</span> the scale. The interval again uses the delta method on the complementary log-log scale, here over <span class="math inline">\((\beta, \log\sigma)\)</span> with the robust <code>survreg</code> sandwich. Because the curve is parametric, <span class="math inline">\(\hat F_x(t)\)</span> is smooth in <span class="math inline">\(t\)</span> (the Cox engine’s <span class="math inline">\(\hat F_x(t)\)</span> is a step function on the event times).</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ar_aft <span class="ot">&lt;-</span> <span class="fu">absolute_risk</span>(fit_aft, <span class="at">newdata =</span> newdata, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>ar_aft</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_absolute_risk&gt;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Engine:     ipw_aft</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Method:     IPW AFT (weibull)</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  CI method:  delta (log-log)</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Times:      4 evaluation times (1, 2, 3, 4)</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Patterns:   2 covariate patterns</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Absolute risk estimates:</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      row  time   estimate   ci_lower   ci_upper</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt; &lt;num&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:     1     1 0.13304685 0.12027050 0.14706343</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2:     1     2 0.25649465 0.23727818 0.27696719</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3:     1     3 0.36514831 0.34124399 0.39018443</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4:     1     4 0.45949897 0.43196896 0.48793413</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5:     2     1 0.07100399 0.06359155 0.07924329</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6:     2     2 0.14177844 0.12993618 0.15460098</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7:     2     3 0.20894862 0.19337684 0.22559038</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8:     2     4 0.27195548 0.25295836 0.29208196</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>The baseline defaults to Weibull, but <code>dist</code> selects any of four AFT distributions — <code>"weibull"</code>, <code>"exponential"</code>, <code>"lognormal"</code>, <code>"loglogistic"</code>. All report the same time ratio <code>exp(β)</code>; they differ in the survival-curve shape (<code>"lognormal"</code> / <code>"loglogistic"</code> allow a non-monotone hazard). <code>absolute_risk()</code> follows the chosen baseline automatically:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fit_ln <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aft"</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dist =</span> <span class="st">"lognormal"</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ln)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_result&gt;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimator:  ipw_aft  (engine: ipw_aft)</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimand:   time ratio</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Contrast:   af</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  CI method:  model</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N:          2650</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Contrasts:</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    comparison  estimate         se ci_lower  ci_upper</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        &lt;char&gt;     &lt;num&gt;      &lt;num&gt;    &lt;num&gt;     &lt;num&gt;</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   exposure 0.4990467 0.03379107 0.437024 0.5698717</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
 <p>The <strong>additive-hazards</strong> model (<code>estimator = "ipw_aalen"</code>) acts on the <em>rate</em> scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so <code>contrast(type = "excess")</code> reports the <strong>excess hazard</strong> γ — an additive rate difference. Unlike a ratio it can be negative (a protective exposure lowers the rate), and its confidence interval is symmetric (it is not exponentiated).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>fit_add <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aalen"</span>)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_add)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_result&gt;</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimator:  ipw_aalen  (engine: ipw_aalen)</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimand:   excess hazard</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Contrast:   excess</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  CI method:  model</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N:          2650</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Contrasts:</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    comparison   estimate          se   ci_lower   ci_upper</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   exposure 0.07596765 0.007473284 0.06132028 0.09061501</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>fit_add <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aalen"</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_add)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_result&gt;</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimator:  ipw_aalen  (engine: ipw_aalen)</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimand:   excess hazard</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Contrast:   excess</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  CI method:  model</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N:          2650</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Contrasts:</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    comparison   estimate          se   ci_lower   ci_upper</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:   exposure 0.07596765 0.007473284 0.06132028 0.09061501</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+</div>
+<p><code>contrast()</code> reports a single time-<em>constant</em> excess hazard (the Lin-Ying model). To let the effect vary with time, <code>excess_risk()</code> returns the <strong>cumulative</strong> excess hazard <span class="math inline">\(B_j(t) = \int_0^t \beta_j(s)\,ds\)</span> — the additive analogue of <code>absolute_risk()</code>. A straight line means a constant rate difference; curvature means a time-varying one.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>er <span class="ot">&lt;-</span> <span class="fu">excess_risk</span>(fit_add, <span class="at">times =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>er</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_excess_risk&gt;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Engine:     ipw_aalen</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimand:   cumulative excess hazard B_j(t)</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  CI method:  Aalen martingale</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Times:      5 evaluation times</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Terms:      exposure, confounder</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Cumulative excess hazard:</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           term  time   estimate         se   ci_lower   ci_upper</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         &lt;char&gt; &lt;int&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1:   exposure     1 0.07098524 0.01384925 0.04384121 0.09812927</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2:   exposure     2 0.15270345 0.02027272 0.11296965 0.19243724</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3:   exposure     3 0.25131671 0.02676949 0.19884948 0.30378394</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4:   exposure     4 0.31075495 0.03159060 0.24883851 0.37267138</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5:   exposure     5 0.37509948 0.03609157 0.30436130 0.44583765</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6: confounder     1 0.06731348 0.00735046 0.05290685 0.08172012</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7: confounder     2 0.10801152 0.01003855 0.08833631 0.12768672</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8: confounder     3 0.16303760 0.01273620 0.13807510 0.18800010</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9: confounder     4 0.21183431 0.01543267 0.18158682 0.24208179</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10: confounder     5 0.24535686 0.01746539 0.21112533 0.27958839</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ex <span class="ot">&lt;-</span> er<span class="sc">$</span>estimates[er<span class="sc">$</span>estimates<span class="sc">$</span>term <span class="sc">==</span> <span class="st">"exposure"</span>, ]</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ex<span class="sc">$</span>time, ex<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#8e44ad"</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">range</span>(ex<span class="sc">$</span>ci_lower, ex<span class="sc">$</span>ci_upper),</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"time"</span>, <span class="at">ylab =</span> <span class="fu">expression</span>(<span class="fu">hat</span>(B)[x](t)),</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"IPW NCC cumulative excess hazard"</span>)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(ex<span class="sc">$</span>time, ex<span class="sc">$</span>ci_lower, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"#8e44ad"</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(ex<span class="sc">$</span>time, ex<span class="sc">$</span>ci_upper, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"#8e44ad"</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"grey60"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ipw-ncc_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" alt="Cumulative excess hazard of the exposure over follow-up estimated from the IPW nested case-control additive-hazards model, with a pointwise 95% confidence band. The curve rises roughly linearly, indicating an approximately constant excess rate." width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <p>Each estimator identifies exactly one scale, so asking for another is rejected:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_aft, <span class="at">type =</span> <span class="st">"hr"</span>)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in `contrast()`:</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ! The IPW NCC accelerated failure time model reports a time ratio, not `type = "hr"`.</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ℹ Use `type = "af"` (the default for `ipw_aft`).</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_aft, <span class="at">type =</span> <span class="st">"hr"</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in `contrast()`:</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ! The IPW NCC accelerated failure time model reports a time ratio, not `type = "hr"`.</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ℹ Use `type = "af"` (the default for `ipw_aft`).</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -1417,431 +1533,491 @@ window.Quarto = {
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "IPW analysis of nested case-control data"</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> show</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="an">vignette:</span><span class="co"> &gt;</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{IPW analysis of nested case-control data}</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>The **classical** nested case-control (NCC) analysis conditions on the sampled</span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>risk sets: each case and its matched controls form a stratum, and</span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="in">`estimator = "clogit"`</span> uses the conditional partial likelihood (see</span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a><span class="in">`vignette("nested-cc")`</span>). Controls appear only at their matched case's failure</span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>time — a design feature that removes residual confounding by the matching</span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>variables but also discards information each control carries across the full</span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>follow-up.</span>
-<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>The **inverse probability weighting (IPW)** approach *breaks the matching*. Each</span>
-<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>sampled control receives a weight equal to the inverse of its inclusion</span>
-<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>probability under the NCC sampling scheme, then a standard weighted Cox partial</span>
-<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>likelihood is fit over the unique subjects (cases + unique controls). Controls</span>
-<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>now contribute at every event time where they are still at risk — their exposure</span>
-<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>information is re-used across all failure times rather than only at their matched</span>
-<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>event. This gains efficiency, especially when many controls were matched to early</span>
-<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>cases and their follow-up extends across later events.</span>
-<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generating a cohort and an NCC sample</span></span>
-<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">77</span>)</span>
-<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
-<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a>beta_x <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">2</span>)                       <span class="co"># true Cox log hazard ratio</span></span>
-<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a>exposure   <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a>confounder <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a>rate       <span class="ot">&lt;-</span> <span class="fl">0.08</span> <span class="sc">*</span> <span class="fu">exp</span>(beta_x <span class="sc">*</span> exposure <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> confounder)</span>
-<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a>tt         <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, rate)            <span class="co"># single draw for consistent t and d</span></span>
-<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb24-55"><a href="#cb24-55" aria-hidden="true" tabindex="-1"></a>  <span class="at">id         =</span> <span class="fu">seq_len</span>(n),</span>
-<span id="cb24-56"><a href="#cb24-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">t          =</span> <span class="fu">pmin</span>(tt, <span class="dv">5</span>),</span>
-<span id="cb24-57"><a href="#cb24-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">d          =</span> <span class="fu">as.integer</span>(tt <span class="sc">&lt;=</span> <span class="dv">5</span>),</span>
-<span id="cb24-58"><a href="#cb24-58" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure   =</span> exposure,</span>
-<span id="cb24-59"><a href="#cb24-59" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounder =</span> confounder</span>
-<span id="cb24-60"><a href="#cb24-60" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-61"><a href="#cb24-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-62"><a href="#cb24-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-63"><a href="#cb24-63" aria-hidden="true" tabindex="-1"></a><span class="in">`sample_ncc()`</span> with <span class="in">`incl_prob = TRUE`</span> draws the NCC sample and appends two</span>
-<span id="cb24-64"><a href="#cb24-64" aria-hidden="true" tabindex="-1"></a>columns needed for the IPW analysis:</span>
-<span id="cb24-65"><a href="#cb24-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-66"><a href="#cb24-66" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`ipw_weight`** — the Samuelsen (1997) inverse inclusion probability</span>
-<span id="cb24-67"><a href="#cb24-67" aria-hidden="true" tabindex="-1"></a>    1/π_j for each sampled control; cases get weight 1. The inclusion</span>
-<span id="cb24-68"><a href="#cb24-68" aria-hidden="true" tabindex="-1"></a>    probability is the Kaplan-Meier-type formula</span>
-<span id="cb24-69"><a href="#cb24-69" aria-hidden="true" tabindex="-1"></a>    π_j = 1 − prod of (1 − m_i / n_elig_i) over all event times where j</span>
-<span id="cb24-70"><a href="#cb24-70" aria-hidden="true" tabindex="-1"></a>    was eligible, where m_i is the controls sampled and n_elig_i the eligible</span>
-<span id="cb24-71"><a href="#cb24-71" aria-hidden="true" tabindex="-1"></a>    pool size.</span>
-<span id="cb24-72"><a href="#cb24-72" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`.cohort_row`** — original cohort row index, used to deduplicate controls</span>
-<span id="cb24-73"><a href="#cb24-73" aria-hidden="true" tabindex="-1"></a>    that were sampled into multiple risk sets before fitting the Cox model.</span>
-<span id="cb24-74"><a href="#cb24-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-77"><a href="#cb24-77" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-78"><a href="#cb24-78" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb24-79"><a href="#cb24-79" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb24-80"><a href="#cb24-80" aria-hidden="true" tabindex="-1"></a>ncc[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"t"</span>, <span class="st">"d"</span>, <span class="st">"exposure"</span>, <span class="st">"case"</span>, <span class="st">"set"</span>, <span class="st">"risk_time"</span>,</span>
-<span id="cb24-81"><a href="#cb24-81" aria-hidden="true" tabindex="-1"></a>           <span class="st">"ipw_weight"</span>, <span class="st">".cohort_row"</span>)]</span>
-<span id="cb24-82"><a href="#cb24-82" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-83"><a href="#cb24-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-84"><a href="#cb24-84" aria-hidden="true" tabindex="-1"></a><span class="fu">## Fitting the IPW weighted Cox model</span></span>
-<span id="cb24-85"><a href="#cb24-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-86"><a href="#cb24-86" aria-hidden="true" tabindex="-1"></a>With <span class="in">`estimator = "ipw_cox"`</span>, matchatr:</span>
-<span id="cb24-87"><a href="#cb24-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-88"><a href="#cb24-88" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Deduplicates the NCC data by <span class="in">`.cohort_row`</span> (each cohort subject appears</span>
-<span id="cb24-89"><a href="#cb24-89" aria-hidden="true" tabindex="-1"></a>    once in the analysis).</span>
-<span id="cb24-90"><a href="#cb24-90" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Fits `coxph(Surv(t, d) ~ exposure + confounder, weights = ipw_weight,</span>
-<span id="cb24-91"><a href="#cb24-91" aria-hidden="true" tabindex="-1"></a>    robust = TRUE)`.</span>
-<span id="cb24-92"><a href="#cb24-92" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Returns the Lin-Wei robust sandwich variance via <span class="in">`coxph(robust = TRUE)`</span>.</span>
-<span id="cb24-93"><a href="#cb24-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-96"><a href="#cb24-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-97"><a href="#cb24-97" aria-hidden="true" tabindex="-1"></a>fit_ipw <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb24-98"><a href="#cb24-98" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
-<span id="cb24-99"><a href="#cb24-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"d"</span>,          <span class="co"># cohort event indicator, not the per-set "case"</span></span>
-<span id="cb24-100"><a href="#cb24-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"exposure"</span>,</span>
-<span id="cb24-101"><a href="#cb24-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-102"><a href="#cb24-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span>confounder,</span>
-<span id="cb24-103"><a href="#cb24-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"ipw_cox"</span></span>
-<span id="cb24-104"><a href="#cb24-104" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-105"><a href="#cb24-105" aria-hidden="true" tabindex="-1"></a>fit_ipw</span>
-<span id="cb24-106"><a href="#cb24-106" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-107"><a href="#cb24-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-110"><a href="#cb24-110" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-111"><a href="#cb24-111" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ipw)             <span class="co"># reports type = "hr" by default</span></span>
-<span id="cb24-112"><a href="#cb24-112" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-113"><a href="#cb24-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-114"><a href="#cb24-114" aria-hidden="true" tabindex="-1"></a><span class="fu">## Comparison: classical NCC vs IPW NCC vs full cohort</span></span>
-<span id="cb24-115"><a href="#cb24-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-116"><a href="#cb24-116" aria-hidden="true" tabindex="-1"></a>The conditional partial likelihood (<span class="in">`clogit`</span>) and the IPW weighted Cox target</span>
-<span id="cb24-117"><a href="#cb24-117" aria-hidden="true" tabindex="-1"></a>the same hazard ratio; the IPW estimator is at least as efficient because it</span>
-<span id="cb24-118"><a href="#cb24-118" aria-hidden="true" tabindex="-1"></a>reuses controls across failure times.</span>
-<span id="cb24-119"><a href="#cb24-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-122"><a href="#cb24-122" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-123"><a href="#cb24-123" aria-hidden="true" tabindex="-1"></a><span class="co"># Classical NCC (clogit, matched analysis) — same seed as the IPW sample above</span></span>
-<span id="cb24-124"><a href="#cb24-124" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb24-125"><a href="#cb24-125" aria-hidden="true" tabindex="-1"></a>ncc_classical <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>)</span>
-<span id="cb24-126"><a href="#cb24-126" aria-hidden="true" tabindex="-1"></a>fit_clogit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_classical, <span class="st">"case"</span>, <span class="st">"exposure"</span>,</span>
-<span id="cb24-127"><a href="#cb24-127" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-128"><a href="#cb24-128" aria-hidden="true" tabindex="-1"></a>                     <span class="at">confounders =</span> <span class="sc">~</span>confounder, <span class="at">estimator =</span> <span class="st">"clogit"</span>)</span>
-<span id="cb24-129"><a href="#cb24-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-130"><a href="#cb24-130" aria-hidden="true" tabindex="-1"></a><span class="co"># Full-cohort Cox (the gold standard)</span></span>
-<span id="cb24-131"><a href="#cb24-131" aria-hidden="true" tabindex="-1"></a>fit_full <span class="ot">&lt;-</span> survival<span class="sc">::</span><span class="fu">coxph</span>(</span>
-<span id="cb24-132"><a href="#cb24-132" aria-hidden="true" tabindex="-1"></a>  survival<span class="sc">::</span><span class="fu">Surv</span>(t, d) <span class="sc">~</span> exposure <span class="sc">+</span> confounder, <span class="at">data =</span> cohort</span>
-<span id="cb24-133"><a href="#cb24-133" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-134"><a href="#cb24-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-135"><a href="#cb24-135" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Full-cohort Cox HR: "</span>, <span class="fu">round</span>(<span class="fu">exp</span>(<span class="fu">coef</span>(fit_full)[<span class="st">"exposure"</span>]), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb24-136"><a href="#cb24-136" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Classical NCC HR:   "</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_clogit)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb24-137"><a href="#cb24-137" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"IPW NCC HR:         "</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_ipw)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb24-138"><a href="#cb24-138" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-139"><a href="#cb24-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-140"><a href="#cb24-140" aria-hidden="true" tabindex="-1"></a>All three estimates target the same hazard ratio; the classical and IPW NCC</span>
-<span id="cb24-141"><a href="#cb24-141" aria-hidden="true" tabindex="-1"></a>estimates will differ by a small simulation noise term.</span>
-<span id="cb24-142"><a href="#cb24-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-143"><a href="#cb24-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## tidy() output</span></span>
-<span id="cb24-144"><a href="#cb24-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-147"><a href="#cb24-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-148"><a href="#cb24-148" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_ipw))</span>
-<span id="cb24-149"><a href="#cb24-149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-150"><a href="#cb24-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-151"><a href="#cb24-151" aria-hidden="true" tabindex="-1"></a><span class="fu">## Rejection paths</span></span>
-<span id="cb24-152"><a href="#cb24-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-155"><a href="#cb24-155" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-156"><a href="#cb24-156" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb24-157"><a href="#cb24-157" aria-hidden="true" tabindex="-1"></a><span class="co"># Requesting an odds ratio from an IPW NCC fit is rejected (wrong scale).</span></span>
-<span id="cb24-158"><a href="#cb24-158" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ipw, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb24-159"><a href="#cb24-159" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-160"><a href="#cb24-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-163"><a href="#cb24-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-164"><a href="#cb24-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb24-165"><a href="#cb24-165" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap is not available for the IPW Cox estimator.</span></span>
-<span id="cb24-166"><a href="#cb24-166" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ipw, <span class="at">type =</span> <span class="st">"hr"</span>, <span class="at">ci_method =</span> <span class="st">"bootstrap"</span>)</span>
-<span id="cb24-167"><a href="#cb24-167" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-168"><a href="#cb24-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-171"><a href="#cb24-171" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-172"><a href="#cb24-172" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb24-173"><a href="#cb24-173" aria-hidden="true" tabindex="-1"></a><span class="co"># The ipw_weight column is required; sample_ncc() without incl_prob = TRUE</span></span>
-<span id="cb24-174"><a href="#cb24-174" aria-hidden="true" tabindex="-1"></a><span class="co"># produces data that lacks it.</span></span>
-<span id="cb24-175"><a href="#cb24-175" aria-hidden="true" tabindex="-1"></a>ncc_no_wts <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="st">"t"</span>, <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>)</span>
-<span id="cb24-176"><a href="#cb24-176" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(ncc_no_wts, <span class="st">"case"</span>, <span class="st">"exposure"</span>,</span>
-<span id="cb24-177"><a href="#cb24-177" aria-hidden="true" tabindex="-1"></a>       <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-178"><a href="#cb24-178" aria-hidden="true" tabindex="-1"></a>       <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
-<span id="cb24-179"><a href="#cb24-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-180"><a href="#cb24-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-181"><a href="#cb24-181" aria-hidden="true" tabindex="-1"></a><span class="fu">## Working-model weights</span></span>
-<span id="cb24-182"><a href="#cb24-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-183"><a href="#cb24-183" aria-hidden="true" tabindex="-1"></a>Samuelsen KM weights are **design-based**: they depend only on the risk-set</span>
-<span id="cb24-184"><a href="#cb24-184" aria-hidden="true" tabindex="-1"></a>structure and are computed during <span class="in">`sample_ncc()`</span>. An alternative is to fit a</span>
-<span id="cb24-185"><a href="#cb24-185" aria-hidden="true" tabindex="-1"></a>**working model** for the selection probability — a logistic regression (or GAM)</span>
-<span id="cb24-186"><a href="#cb24-186" aria-hidden="true" tabindex="-1"></a>of whether a subject was selected as a control, given its covariates and the</span>
-<span id="cb24-187"><a href="#cb24-187" aria-hidden="true" tabindex="-1"></a>event time. Working-model weights can be more efficient when the logistic model</span>
-<span id="cb24-188"><a href="#cb24-188" aria-hidden="true" tabindex="-1"></a>is close to the truth.</span>
-<span id="cb24-189"><a href="#cb24-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-190"><a href="#cb24-190" aria-hidden="true" tabindex="-1"></a><span class="in">`compute_ncc_weights()`</span> replaces the <span class="in">`ipw_weight`</span> column with working-model</span>
-<span id="cb24-191"><a href="#cb24-191" aria-hidden="true" tabindex="-1"></a>estimates. It requires the **full Phase-1 cohort** to reconstruct who was</span>
-<span id="cb24-192"><a href="#cb24-192" aria-hidden="true" tabindex="-1"></a>eligible (but not selected) at each event time.</span>
-<span id="cb24-193"><a href="#cb24-193" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-196"><a href="#cb24-196" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-197"><a href="#cb24-197" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace KM weights with GLM working-model weights</span></span>
-<span id="cb24-198"><a href="#cb24-198" aria-hidden="true" tabindex="-1"></a>ncc_glm <span class="ot">&lt;-</span> <span class="fu">compute_ncc_weights</span>(</span>
-<span id="cb24-199"><a href="#cb24-199" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
-<span id="cb24-200"><a href="#cb24-200" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort           =</span> cohort,</span>
-<span id="cb24-201"><a href="#cb24-201" aria-hidden="true" tabindex="-1"></a>  <span class="at">method           =</span> <span class="st">"glm"</span>,</span>
-<span id="cb24-202"><a href="#cb24-202" aria-hidden="true" tabindex="-1"></a>  <span class="at">selection_formula =</span> <span class="sc">~</span> risk_time,   <span class="co"># default: time-only logistic model</span></span>
-<span id="cb24-203"><a href="#cb24-203" aria-hidden="true" tabindex="-1"></a>  <span class="at">time             =</span> <span class="st">"t"</span></span>
-<span id="cb24-204"><a href="#cb24-204" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-205"><a href="#cb24-205" aria-hidden="true" tabindex="-1"></a>ncc_glm[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"case"</span>, <span class="st">"set"</span>, <span class="st">"ipw_weight"</span>)]</span>
-<span id="cb24-206"><a href="#cb24-206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-207"><a href="#cb24-207" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-208"><a href="#cb24-208" aria-hidden="true" tabindex="-1"></a>Fit and compare:</span>
-<span id="cb24-209"><a href="#cb24-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-212"><a href="#cb24-212" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-213"><a href="#cb24-213" aria-hidden="true" tabindex="-1"></a>fit_glm <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb24-214"><a href="#cb24-214" aria-hidden="true" tabindex="-1"></a>  ncc_glm,</span>
-<span id="cb24-215"><a href="#cb24-215" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"d"</span>,</span>
-<span id="cb24-216"><a href="#cb24-216" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"exposure"</span>,</span>
-<span id="cb24-217"><a href="#cb24-217" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-218"><a href="#cb24-218" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span>confounder,</span>
-<span id="cb24-219"><a href="#cb24-219" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"ipw_cox"</span></span>
-<span id="cb24-220"><a href="#cb24-220" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-221"><a href="#cb24-221" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"KM weights HR: "</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_ipw)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb24-222"><a href="#cb24-222" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GLM weights HR:"</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_glm)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb24-223"><a href="#cb24-223" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-224"><a href="#cb24-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-225"><a href="#cb24-225" aria-hidden="true" tabindex="-1"></a>Both KM and GLM weights target the same Cox hazard ratio; differences reflect</span>
-<span id="cb24-226"><a href="#cb24-226" aria-hidden="true" tabindex="-1"></a>the working-model vs design-based weight formulas.</span>
-<span id="cb24-227"><a href="#cb24-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-228"><a href="#cb24-228" aria-hidden="true" tabindex="-1"></a>A GAM can be used when the selection probability is non-linearly related to time:</span>
-<span id="cb24-229"><a href="#cb24-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-232"><a href="#cb24-232" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-233"><a href="#cb24-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb24-234"><a href="#cb24-234" aria-hidden="true" tabindex="-1"></a>ncc_gam <span class="ot">&lt;-</span> <span class="fu">compute_ncc_weights</span>(</span>
-<span id="cb24-235"><a href="#cb24-235" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
-<span id="cb24-236"><a href="#cb24-236" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort           =</span> cohort,</span>
-<span id="cb24-237"><a href="#cb24-237" aria-hidden="true" tabindex="-1"></a>  <span class="at">method           =</span> <span class="st">"gam"</span>,</span>
-<span id="cb24-238"><a href="#cb24-238" aria-hidden="true" tabindex="-1"></a>  <span class="at">selection_formula =</span> <span class="sc">~</span> <span class="fu">s</span>(risk_time),</span>
-<span id="cb24-239"><a href="#cb24-239" aria-hidden="true" tabindex="-1"></a>  <span class="at">time             =</span> <span class="st">"t"</span></span>
-<span id="cb24-240"><a href="#cb24-240" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-241"><a href="#cb24-241" aria-hidden="true" tabindex="-1"></a>fit_gam <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb24-242"><a href="#cb24-242" aria-hidden="true" tabindex="-1"></a>  ncc_gam,</span>
-<span id="cb24-243"><a href="#cb24-243" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"d"</span>,</span>
-<span id="cb24-244"><a href="#cb24-244" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"exposure"</span>,</span>
-<span id="cb24-245"><a href="#cb24-245" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-246"><a href="#cb24-246" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span>confounder,</span>
-<span id="cb24-247"><a href="#cb24-247" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"ipw_cox"</span></span>
-<span id="cb24-248"><a href="#cb24-248" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-249"><a href="#cb24-249" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GAM weights HR:"</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_gam)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb24-250"><a href="#cb24-250" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-251"><a href="#cb24-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-252"><a href="#cb24-252" aria-hidden="true" tabindex="-1"></a>The Phase-1 cohort is required: omitting it aborts with <span class="in">`matchatr_missing_phase1`</span>.</span>
-<span id="cb24-253"><a href="#cb24-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-256"><a href="#cb24-256" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-257"><a href="#cb24-257" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb24-258"><a href="#cb24-258" aria-hidden="true" tabindex="-1"></a><span class="fu">compute_ncc_weights</span>(ncc, <span class="at">cohort =</span> <span class="cn">NULL</span>, <span class="at">method =</span> <span class="st">"glm"</span>, <span class="at">time =</span> <span class="st">"t"</span>)</span>
-<span id="cb24-259"><a href="#cb24-259" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-260"><a href="#cb24-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-261"><a href="#cb24-261" aria-hidden="true" tabindex="-1"></a><span class="fu">## Absolute risk</span></span>
-<span id="cb24-262"><a href="#cb24-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-263"><a href="#cb24-263" aria-hidden="true" tabindex="-1"></a>Because the IPW reformulation builds a *weighted pseudo-cohort*, it recovers the</span>
-<span id="cb24-264"><a href="#cb24-264" aria-hidden="true" tabindex="-1"></a>cumulative baseline hazard — which the classical conditional partial likelihood</span>
-<span id="cb24-265"><a href="#cb24-265" aria-hidden="true" tabindex="-1"></a>conditions away. <span class="in">`absolute_risk()`</span> turns the fitted weighted Cox into a</span>
-<span id="cb24-266"><a href="#cb24-266" aria-hidden="true" tabindex="-1"></a>cumulative incidence</span>
-<span id="cb24-267"><a href="#cb24-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-268"><a href="#cb24-268" aria-hidden="true" tabindex="-1"></a>$$F_x(t) = 1 - \exp<span class="sc">\!</span>\big(-\exp(\hat\beta^{\top} x)\,\hat\Lambda_0(t)\big),$$</span>
-<span id="cb24-269"><a href="#cb24-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-270"><a href="#cb24-270" aria-hidden="true" tabindex="-1"></a>where $\hat\Lambda_0(t)$ is an inverse-probability-weighted Breslow cumulative</span>
-<span id="cb24-271"><a href="#cb24-271" aria-hidden="true" tabindex="-1"></a>baseline hazard over the deduplicated analysis sample: at each event time the</span>
-<span id="cb24-272"><a href="#cb24-272" aria-hidden="true" tabindex="-1"></a>at-risk denominator $\sum_j w_j \exp(\hat\beta^{\top} x_j)$ upweights each control</span>
-<span id="cb24-273"><a href="#cb24-273" aria-hidden="true" tabindex="-1"></a>by $1/\pi_j$ so it stands in for the unsampled cohort. Confidence intervals use</span>
-<span id="cb24-274"><a href="#cb24-274" aria-hidden="true" tabindex="-1"></a>the delta method on the complementary log-log scale.</span>
-<span id="cb24-275"><a href="#cb24-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-278"><a href="#cb24-278" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-279"><a href="#cb24-279" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">exposure =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>), <span class="at">confounder =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span>
-<span id="cb24-280"><a href="#cb24-280" aria-hidden="true" tabindex="-1"></a>ar <span class="ot">&lt;-</span> <span class="fu">absolute_risk</span>(fit_ipw, <span class="at">newdata =</span> newdata, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span>
-<span id="cb24-281"><a href="#cb24-281" aria-hidden="true" tabindex="-1"></a>ar</span>
-<span id="cb24-282"><a href="#cb24-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-283"><a href="#cb24-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-284"><a href="#cb24-284" aria-hidden="true" tabindex="-1"></a>The hand-rolled weighted Breslow agrees with <span class="in">`survival::survfit`</span> on the same</span>
-<span id="cb24-285"><a href="#cb24-285" aria-hidden="true" tabindex="-1"></a>weighted Cox model to machine precision, so the point estimate is exact; the</span>
-<span id="cb24-286"><a href="#cb24-286" aria-hidden="true" tabindex="-1"></a>interval is conservative (the within-sample Nelson-Aalen baseline variance).</span>
-<span id="cb24-287"><a href="#cb24-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-290"><a href="#cb24-290" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-291"><a href="#cb24-291" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb24-292"><a href="#cb24-292" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb24-293"><a href="#cb24-293" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-alt: &gt;</span></span>
-<span id="cb24-294"><a href="#cb24-294" aria-hidden="true" tabindex="-1"></a><span class="co">#|   Cumulative incidence over follow-up for an exposed versus an unexposed</span></span>
-<span id="cb24-295"><a href="#cb24-295" aria-hidden="true" tabindex="-1"></a><span class="co">#|   subject estimated from the IPW nested case-control weighted Cox model. The</span></span>
-<span id="cb24-296"><a href="#cb24-296" aria-hidden="true" tabindex="-1"></a><span class="co">#|   exposed curve rises faster, reflecting the hazard ratio above one.</span></span>
-<span id="cb24-297"><a href="#cb24-297" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> ar<span class="sc">$</span>estimates</span>
-<span id="cb24-298"><a href="#cb24-298" aria-hidden="true" tabindex="-1"></a>exposed   <span class="ot">&lt;-</span> est[est<span class="sc">$</span>row <span class="sc">==</span> <span class="dv">1</span>, ]</span>
-<span id="cb24-299"><a href="#cb24-299" aria-hidden="true" tabindex="-1"></a>unexposed <span class="ot">&lt;-</span> est[est<span class="sc">$</span>row <span class="sc">==</span> <span class="dv">2</span>, ]</span>
-<span id="cb24-300"><a href="#cb24-300" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(exposed<span class="sc">$</span>time, exposed<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#c0392b"</span>,</span>
-<span id="cb24-301"><a href="#cb24-301" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(est<span class="sc">$</span>ci_upper)), <span class="at">xlab =</span> <span class="st">"time"</span>, <span class="at">ylab =</span> <span class="fu">expression</span>(<span class="fu">hat</span>(F)[x](t)),</span>
-<span id="cb24-302"><a href="#cb24-302" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"IPW NCC cumulative incidence"</span>)</span>
-<span id="cb24-303"><a href="#cb24-303" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(unexposed<span class="sc">$</span>time, unexposed<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#2980b9"</span>)</span>
-<span id="cb24-304"><a href="#cb24-304" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"exposed"</span>, <span class="st">"unexposed"</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"#c0392b"</span>, <span class="st">"#2980b9"</span>),</span>
-<span id="cb24-305"><a href="#cb24-305" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">bty =</span> <span class="st">"n"</span>)</span>
-<span id="cb24-306"><a href="#cb24-306" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-307"><a href="#cb24-307" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-308"><a href="#cb24-308" aria-hidden="true" tabindex="-1"></a>The same verb serves the case-cohort <span class="in">`cch`</span> engine (see <span class="in">`vignette("case-cohort")`</span>);</span>
-<span id="cb24-309"><a href="#cb24-309" aria-hidden="true" tabindex="-1"></a>only the baseline-hazard weighting differs.</span>
-<span id="cb24-310"><a href="#cb24-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-311"><a href="#cb24-311" aria-hidden="true" tabindex="-1"></a><span class="fu">## Multiple endpoints from one control set</span></span>
-<span id="cb24-312"><a href="#cb24-312" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-313"><a href="#cb24-313" aria-hidden="true" tabindex="-1"></a>The real payoff of breaking the matching is **control reuse across endpoints**.</span>
-<span id="cb24-314"><a href="#cb24-314" aria-hidden="true" tabindex="-1"></a>The classical conditional analysis ties each control to its case's failure time,</span>
-<span id="cb24-315"><a href="#cb24-315" aria-hidden="true" tabindex="-1"></a>so a control set sampled for one endpoint cannot serve another. Under IPW the</span>
-<span id="cb24-316"><a href="#cb24-316" aria-hidden="true" tabindex="-1"></a>sample is a weighted pseudo-cohort, so the *same* controls can fit a weighted Cox</span>
-<span id="cb24-317"><a href="#cb24-317" aria-hidden="true" tabindex="-1"></a>for any endpoint recorded in the cohort. matchatr supports two modes.</span>
-<span id="cb24-318"><a href="#cb24-318" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-319"><a href="#cb24-319" aria-hidden="true" tabindex="-1"></a>We build a cohort with two competing endpoints — a harmful exposure for endpoint</span>
-<span id="cb24-320"><a href="#cb24-320" aria-hidden="true" tabindex="-1"></a>1, a protective one for endpoint 2:</span>
-<span id="cb24-321"><a href="#cb24-321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-324"><a href="#cb24-324" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-325"><a href="#cb24-325" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20</span>)</span>
-<span id="cb24-326"><a href="#cb24-326" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">4000</span></span>
-<span id="cb24-327"><a href="#cb24-327" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb24-328"><a href="#cb24-328" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb24-329"><a href="#cb24-329" aria-hidden="true" tabindex="-1"></a>t1 <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, <span class="fl">0.05</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="fu">log</span>(<span class="fl">2.0</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> z))   <span class="co"># endpoint 1: HR 2.0</span></span>
-<span id="cb24-330"><a href="#cb24-330" aria-hidden="true" tabindex="-1"></a>t2 <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, <span class="fl">0.05</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="fu">log</span>(<span class="fl">0.5</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> z))   <span class="co"># endpoint 2: HR 0.5</span></span>
-<span id="cb24-331"><a href="#cb24-331" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="dv">6</span></span>
-<span id="cb24-332"><a href="#cb24-332" aria-hidden="true" tabindex="-1"></a>tt    <span class="ot">&lt;-</span> <span class="fu">pmin</span>(t1, t2, tau)</span>
-<span id="cb24-333"><a href="#cb24-333" aria-hidden="true" tabindex="-1"></a>cause <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(tt <span class="sc">&gt;=</span> tau, <span class="dv">0</span>L, <span class="fu">ifelse</span>(t1 <span class="sc">&lt;</span> t2, <span class="dv">1</span>L, <span class="dv">2</span>L))</span>
-<span id="cb24-334"><a href="#cb24-334" aria-hidden="true" tabindex="-1"></a>co <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb24-335"><a href="#cb24-335" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(n), <span class="at">t =</span> tt,</span>
-<span id="cb24-336"><a href="#cb24-336" aria-hidden="true" tabindex="-1"></a>  <span class="at">d_any =</span> <span class="fu">as.integer</span>(cause <span class="sc">!=</span> <span class="dv">0</span>L),   <span class="co"># any failure</span></span>
-<span id="cb24-337"><a href="#cb24-337" aria-hidden="true" tabindex="-1"></a>  <span class="at">d1    =</span> <span class="fu">as.integer</span>(cause <span class="sc">==</span> <span class="dv">1</span>L),   <span class="co"># endpoint 1</span></span>
-<span id="cb24-338"><a href="#cb24-338" aria-hidden="true" tabindex="-1"></a>  <span class="at">d2    =</span> <span class="fu">as.integer</span>(cause <span class="sc">==</span> <span class="dv">2</span>L),   <span class="co"># endpoint 2</span></span>
-<span id="cb24-339"><a href="#cb24-339" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> x, <span class="at">z =</span> z</span>
-<span id="cb24-340"><a href="#cb24-340" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb24-341"><a href="#cb24-341" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-342"><a href="#cb24-342" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-343"><a href="#cb24-343" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mode A — sample on the union event, analyse each endpoint</span></span>
-<span id="cb24-344"><a href="#cb24-344" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-345"><a href="#cb24-345" aria-hidden="true" tabindex="-1"></a>Sampling on the "any-failure" event ascertains *every* endpoint's cases at once,</span>
-<span id="cb24-346"><a href="#cb24-346" aria-hidden="true" tabindex="-1"></a>so each cause-specific endpoint is analysed directly by passing it as <span class="in">`outcome`</span>.</span>
-<span id="cb24-347"><a href="#cb24-347" aria-hidden="true" tabindex="-1"></a>The single sampled control set, with its shared inclusion weights, backs both</span>
-<span id="cb24-348"><a href="#cb24-348" aria-hidden="true" tabindex="-1"></a>fits:</span>
-<span id="cb24-349"><a href="#cb24-349" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-352"><a href="#cb24-352" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-353"><a href="#cb24-353" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb24-354"><a href="#cb24-354" aria-hidden="true" tabindex="-1"></a>ncc_multi <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(co, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d_any"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb24-355"><a href="#cb24-355" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-356"><a href="#cb24-356" aria-hidden="true" tabindex="-1"></a>fit_e1 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_multi, <span class="at">outcome =</span> <span class="st">"d1"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb24-357"><a href="#cb24-357" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-358"><a href="#cb24-358" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> z, <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
-<span id="cb24-359"><a href="#cb24-359" aria-hidden="true" tabindex="-1"></a>fit_e2 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_multi, <span class="at">outcome =</span> <span class="st">"d2"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb24-360"><a href="#cb24-360" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-361"><a href="#cb24-361" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> z, <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
-<span id="cb24-362"><a href="#cb24-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-363"><a href="#cb24-363" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="fu">cbind</span>(<span class="at">endpoint =</span> <span class="st">"d1"</span>, <span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_e1))),</span>
-<span id="cb24-364"><a href="#cb24-364" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cbind</span>(<span class="at">endpoint =</span> <span class="st">"d2"</span>, <span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_e2))))</span>
-<span id="cb24-365"><a href="#cb24-365" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-366"><a href="#cb24-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-367"><a href="#cb24-367" aria-hidden="true" tabindex="-1"></a>Both hazard ratios sit near their cohort truths (2.0 and 0.5). A competing-endpoint</span>
-<span id="cb24-368"><a href="#cb24-368" aria-hidden="true" tabindex="-1"></a>case is *ascertained* by the sampling, so it keeps weight 1 (not the control</span>
-<span id="cb24-369"><a href="#cb24-369" aria-hidden="true" tabindex="-1"></a>weight 1/π_j) when a different endpoint is analysed — matchatr handles this when</span>
-<span id="cb24-370"><a href="#cb24-370" aria-hidden="true" tabindex="-1"></a>it builds the deduplicated analysis sample.</span>
-<span id="cb24-371"><a href="#cb24-371" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-372"><a href="#cb24-372" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mode B — reuse a primary-endpoint control set for a secondary endpoint</span></span>
-<span id="cb24-373"><a href="#cb24-373" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-374"><a href="#cb24-374" aria-hidden="true" tabindex="-1"></a>If the NCC was drawn for a single *primary* endpoint, its controls can still be</span>
-<span id="cb24-375"><a href="#cb24-375" aria-hidden="true" tabindex="-1"></a>reused for a *secondary* one. <span class="in">`reuse_ncc_endpoint()`</span> keeps the controls' primary</span>
-<span id="cb24-376"><a href="#cb24-376" aria-hidden="true" tabindex="-1"></a>inclusion weights 1/π_j (the inclusion probability is a property of the sampling,</span>
-<span id="cb24-377"><a href="#cb24-377" aria-hidden="true" tabindex="-1"></a>not the endpoint) and augments the secondary endpoint's cases that were not</span>
-<span id="cb24-378"><a href="#cb24-378" aria-hidden="true" tabindex="-1"></a>sampled — pulled from the Phase-1 cohort with weight 1, since every case of an</span>
-<span id="cb24-379"><a href="#cb24-379" aria-hidden="true" tabindex="-1"></a>analysed endpoint is ascertained with probability 1:</span>
-<span id="cb24-380"><a href="#cb24-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-383"><a href="#cb24-383" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-384"><a href="#cb24-384" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb24-385"><a href="#cb24-385" aria-hidden="true" tabindex="-1"></a>ncc_primary <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(co, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d1"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb24-386"><a href="#cb24-386" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-387"><a href="#cb24-387" aria-hidden="true" tabindex="-1"></a>ncc_reuse <span class="ot">&lt;-</span> <span class="fu">reuse_ncc_endpoint</span>(ncc_primary, <span class="at">cohort =</span> co, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d2"</span>)</span>
-<span id="cb24-388"><a href="#cb24-388" aria-hidden="true" tabindex="-1"></a>fit_reuse <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_reuse, <span class="at">outcome =</span> <span class="st">"d2"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb24-389"><a href="#cb24-389" aria-hidden="true" tabindex="-1"></a>                    <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-390"><a href="#cb24-390" aria-hidden="true" tabindex="-1"></a>                    <span class="at">confounders =</span> <span class="sc">~</span> z, <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
-<span id="cb24-391"><a href="#cb24-391" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_reuse))</span>
-<span id="cb24-392"><a href="#cb24-392" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-393"><a href="#cb24-393" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-394"><a href="#cb24-394" aria-hidden="true" tabindex="-1"></a>Reusing the secondary endpoint needs the cohort to recover its unsampled cases;</span>
-<span id="cb24-395"><a href="#cb24-395" aria-hidden="true" tabindex="-1"></a>omitting it is rejected:</span>
-<span id="cb24-396"><a href="#cb24-396" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-399"><a href="#cb24-399" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-400"><a href="#cb24-400" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb24-401"><a href="#cb24-401" aria-hidden="true" tabindex="-1"></a><span class="fu">reuse_ncc_endpoint</span>(ncc_primary, <span class="at">cohort =</span> <span class="cn">NULL</span>, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d2"</span>)</span>
-<span id="cb24-402"><a href="#cb24-402" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-403"><a href="#cb24-403" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-404"><a href="#cb24-404" aria-hidden="true" tabindex="-1"></a><span class="fu">## Alternative models: time ratios and excess hazards</span></span>
-<span id="cb24-405"><a href="#cb24-405" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-406"><a href="#cb24-406" aria-hidden="true" tabindex="-1"></a>Breaking the matching also frees the analysis from the proportional-hazards</span>
-<span id="cb24-407"><a href="#cb24-407" aria-hidden="true" tabindex="-1"></a>scale. The same Samuelsen-weighted sample supports two non-Cox models, each</span>
-<span id="cb24-408"><a href="#cb24-408" aria-hidden="true" tabindex="-1"></a>reporting a different effect measure.</span>
-<span id="cb24-409"><a href="#cb24-409" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-410"><a href="#cb24-410" aria-hidden="true" tabindex="-1"></a>The **accelerated failure time** model (<span class="in">`estimator = "ipw_aft"`</span>) acts on the</span>
-<span id="cb24-411"><a href="#cb24-411" aria-hidden="true" tabindex="-1"></a>survival-*time* scale: `contrast(type = "af")` reports the **time ratio**</span>
-<span id="cb24-412"><a href="#cb24-412" aria-hidden="true" tabindex="-1"></a>exp(β) — the factor by which a unit of exposure multiplies the survival time</span>
-<span id="cb24-413"><a href="#cb24-413" aria-hidden="true" tabindex="-1"></a>(above one prolongs, below one shortens). It is a weighted Weibull <span class="in">`survreg`</span></span>
-<span id="cb24-414"><a href="#cb24-414" aria-hidden="true" tabindex="-1"></a>with a robust sandwich.</span>
-<span id="cb24-415"><a href="#cb24-415" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-418"><a href="#cb24-418" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-419"><a href="#cb24-419" aria-hidden="true" tabindex="-1"></a>fit_aft <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
-<span id="cb24-420"><a href="#cb24-420" aria-hidden="true" tabindex="-1"></a>                  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-421"><a href="#cb24-421" aria-hidden="true" tabindex="-1"></a>                  <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aft"</span>)</span>
-<span id="cb24-422"><a href="#cb24-422" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_aft)</span>
-<span id="cb24-423"><a href="#cb24-423" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-424"><a href="#cb24-424" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-425"><a href="#cb24-425" aria-hidden="true" tabindex="-1"></a>The **additive-hazards** model (<span class="in">`estimator = "ipw_aalen"`</span>) acts on the *rate*</span>
-<span id="cb24-426"><a href="#cb24-426" aria-hidden="true" tabindex="-1"></a>scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so</span>
-<span id="cb24-427"><a href="#cb24-427" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast(type = "excess")`</span> reports the **excess hazard** γ — an additive rate</span>
-<span id="cb24-428"><a href="#cb24-428" aria-hidden="true" tabindex="-1"></a>difference. Unlike a ratio it can be negative (a protective exposure lowers the</span>
-<span id="cb24-429"><a href="#cb24-429" aria-hidden="true" tabindex="-1"></a>rate), and its confidence interval is symmetric (it is not exponentiated).</span>
-<span id="cb24-430"><a href="#cb24-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-433"><a href="#cb24-433" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-434"><a href="#cb24-434" aria-hidden="true" tabindex="-1"></a>fit_add <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
-<span id="cb24-435"><a href="#cb24-435" aria-hidden="true" tabindex="-1"></a>                  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
-<span id="cb24-436"><a href="#cb24-436" aria-hidden="true" tabindex="-1"></a>                  <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aalen"</span>)</span>
-<span id="cb24-437"><a href="#cb24-437" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_add)</span>
-<span id="cb24-438"><a href="#cb24-438" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-439"><a href="#cb24-439" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-440"><a href="#cb24-440" aria-hidden="true" tabindex="-1"></a>Each estimator identifies exactly one scale, so asking for another is rejected:</span>
-<span id="cb24-441"><a href="#cb24-441" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-444"><a href="#cb24-444" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb24-445"><a href="#cb24-445" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb24-446"><a href="#cb24-446" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_aft, <span class="at">type =</span> <span class="st">"hr"</span>)</span>
-<span id="cb24-447"><a href="#cb24-447" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb24-448"><a href="#cb24-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-449"><a href="#cb24-449" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb24-450"><a href="#cb24-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-451"><a href="#cb24-451" aria-hidden="true" tabindex="-1"></a>Lin DY &amp; Ying Z (1994). Semiparametric analysis of the additive risk model.</span>
-<span id="cb24-452"><a href="#cb24-452" aria-hidden="true" tabindex="-1"></a>*Biometrika*, 81(1), 61–71.</span>
-<span id="cb24-453"><a href="#cb24-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-454"><a href="#cb24-454" aria-hidden="true" tabindex="-1"></a>Borgan Ø &amp; Langholz B (1997). Estimation of excess risk from case-control data</span>
-<span id="cb24-455"><a href="#cb24-455" aria-hidden="true" tabindex="-1"></a>using Aalen's linear regression model. *Biometrics*, 53(2), 690–697.</span>
-<span id="cb24-456"><a href="#cb24-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-457"><a href="#cb24-457" aria-hidden="true" tabindex="-1"></a>Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested</span>
-<span id="cb24-458"><a href="#cb24-458" aria-hidden="true" tabindex="-1"></a>case-control studies. *Biometrika*, 84(2), 379–394.</span>
-<span id="cb24-459"><a href="#cb24-459" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-460"><a href="#cb24-460" aria-hidden="true" tabindex="-1"></a>Saarela O, Kulathinal S, Arjas E &amp; Läärä E (2008). Nested case–control data</span>
-<span id="cb24-461"><a href="#cb24-461" aria-hidden="true" tabindex="-1"></a>utilized for multiple outcomes: a likelihood approach and alternatives.</span>
-<span id="cb24-462"><a href="#cb24-462" aria-hidden="true" tabindex="-1"></a>*Statistics in Medicine*, 27(28), 5991–6008.</span>
-<span id="cb24-463"><a href="#cb24-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-464"><a href="#cb24-464" aria-hidden="true" tabindex="-1"></a>Støer NC &amp; Samuelsen SO (2012). Comparison of estimators in nested case–control</span>
-<span id="cb24-465"><a href="#cb24-465" aria-hidden="true" tabindex="-1"></a>studies with multiple outcomes. *Lifetime Data Analysis*, 18(3), 261–283.</span>
-<span id="cb24-466"><a href="#cb24-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-467"><a href="#cb24-467" aria-hidden="true" tabindex="-1"></a>Støer NC &amp; Samuelsen SO (2013). Inverse probability weighting in nested</span>
-<span id="cb24-468"><a href="#cb24-468" aria-hidden="true" tabindex="-1"></a>case-control studies with additional matching — a simulation study.</span>
-<span id="cb24-469"><a href="#cb24-469" aria-hidden="true" tabindex="-1"></a>*Statistics in Medicine*, 32(30), 5328–5339.</span>
-<span id="cb24-470"><a href="#cb24-470" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-471"><a href="#cb24-471" aria-hidden="true" tabindex="-1"></a>Kang S, Lu W &amp; Liu M (2017). Efficient estimation for accelerated failure time</span>
-<span id="cb24-472"><a href="#cb24-472" aria-hidden="true" tabindex="-1"></a>model under case-cohort and nested case-control sampling. *Biometrics*, 73(1),</span>
-<span id="cb24-473"><a href="#cb24-473" aria-hidden="true" tabindex="-1"></a>114–123.</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "IPW analysis of nested case-control data"</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> show</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="an">vignette:</span><span class="co"> &gt;</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{IPW analysis of nested case-control data}</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>The **classical** nested case-control (NCC) analysis conditions on the sampled</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>risk sets: each case and its matched controls form a stratum, and</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="in">`estimator = "clogit"`</span> uses the conditional partial likelihood (see</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="in">`vignette("nested-cc")`</span>). Controls appear only at their matched case's failure</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>time — a design feature that removes residual confounding by the matching</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>variables but also discards information each control carries across the full</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>follow-up.</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>The **inverse probability weighting (IPW)** approach *breaks the matching*. Each</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>sampled control receives a weight equal to the inverse of its inclusion</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>probability under the NCC sampling scheme, then a standard weighted Cox partial</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>likelihood is fit over the unique subjects (cases + unique controls). Controls</span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>now contribute at every event time where they are still at risk — their exposure</span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>information is re-used across all failure times rather than only at their matched</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>event. This gains efficiency, especially when many controls were matched to early</span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>cases and their follow-up extends across later events.</span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generating a cohort and an NCC sample</span></span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">77</span>)</span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a>beta_x <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">2</span>)                       <span class="co"># true Cox log hazard ratio</span></span>
+<span id="cb28-50"><a href="#cb28-50" aria-hidden="true" tabindex="-1"></a>exposure   <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb28-51"><a href="#cb28-51" aria-hidden="true" tabindex="-1"></a>confounder <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb28-52"><a href="#cb28-52" aria-hidden="true" tabindex="-1"></a>rate       <span class="ot">&lt;-</span> <span class="fl">0.08</span> <span class="sc">*</span> <span class="fu">exp</span>(beta_x <span class="sc">*</span> exposure <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> confounder)</span>
+<span id="cb28-53"><a href="#cb28-53" aria-hidden="true" tabindex="-1"></a>tt         <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, rate)            <span class="co"># single draw for consistent t and d</span></span>
+<span id="cb28-54"><a href="#cb28-54" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb28-55"><a href="#cb28-55" aria-hidden="true" tabindex="-1"></a>  <span class="at">id         =</span> <span class="fu">seq_len</span>(n),</span>
+<span id="cb28-56"><a href="#cb28-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">t          =</span> <span class="fu">pmin</span>(tt, <span class="dv">5</span>),</span>
+<span id="cb28-57"><a href="#cb28-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">d          =</span> <span class="fu">as.integer</span>(tt <span class="sc">&lt;=</span> <span class="dv">5</span>),</span>
+<span id="cb28-58"><a href="#cb28-58" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure   =</span> exposure,</span>
+<span id="cb28-59"><a href="#cb28-59" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounder =</span> confounder</span>
+<span id="cb28-60"><a href="#cb28-60" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-61"><a href="#cb28-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-62"><a href="#cb28-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-63"><a href="#cb28-63" aria-hidden="true" tabindex="-1"></a><span class="in">`sample_ncc()`</span> with <span class="in">`incl_prob = TRUE`</span> draws the NCC sample and appends two</span>
+<span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a>columns needed for the IPW analysis:</span>
+<span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`ipw_weight`** — the Samuelsen (1997) inverse inclusion probability</span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a>    1/π_j for each sampled control; cases get weight 1. The inclusion</span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a>    probability is the Kaplan-Meier-type formula</span>
+<span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a>    π_j = 1 − prod of (1 − m_i / n_elig_i) over all event times where j</span>
+<span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a>    was eligible, where m_i is the controls sampled and n_elig_i the eligible</span>
+<span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a>    pool size.</span>
+<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`.cohort_row`** — original cohort row index, used to deduplicate controls</span>
+<span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a>    that were sampled into multiple risk sets before fitting the Cox model.</span>
+<span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-77"><a href="#cb28-77" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-78"><a href="#cb28-78" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb28-79"><a href="#cb28-79" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-80"><a href="#cb28-80" aria-hidden="true" tabindex="-1"></a>ncc[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"t"</span>, <span class="st">"d"</span>, <span class="st">"exposure"</span>, <span class="st">"case"</span>, <span class="st">"set"</span>, <span class="st">"risk_time"</span>,</span>
+<span id="cb28-81"><a href="#cb28-81" aria-hidden="true" tabindex="-1"></a>           <span class="st">"ipw_weight"</span>, <span class="st">".cohort_row"</span>)]</span>
+<span id="cb28-82"><a href="#cb28-82" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-83"><a href="#cb28-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-84"><a href="#cb28-84" aria-hidden="true" tabindex="-1"></a><span class="fu">## Fitting the IPW weighted Cox model</span></span>
+<span id="cb28-85"><a href="#cb28-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-86"><a href="#cb28-86" aria-hidden="true" tabindex="-1"></a>With <span class="in">`estimator = "ipw_cox"`</span>, matchatr:</span>
+<span id="cb28-87"><a href="#cb28-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-88"><a href="#cb28-88" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Deduplicates the NCC data by <span class="in">`.cohort_row`</span> (each cohort subject appears</span>
+<span id="cb28-89"><a href="#cb28-89" aria-hidden="true" tabindex="-1"></a>    once in the analysis).</span>
+<span id="cb28-90"><a href="#cb28-90" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Fits `coxph(Surv(t, d) ~ exposure + confounder, weights = ipw_weight,</span>
+<span id="cb28-91"><a href="#cb28-91" aria-hidden="true" tabindex="-1"></a>    robust = TRUE)`.</span>
+<span id="cb28-92"><a href="#cb28-92" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Returns the Lin-Wei robust sandwich variance via <span class="in">`coxph(robust = TRUE)`</span>.</span>
+<span id="cb28-93"><a href="#cb28-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-96"><a href="#cb28-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-97"><a href="#cb28-97" aria-hidden="true" tabindex="-1"></a>fit_ipw <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb28-98"><a href="#cb28-98" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
+<span id="cb28-99"><a href="#cb28-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"d"</span>,          <span class="co"># cohort event indicator, not the per-set "case"</span></span>
+<span id="cb28-100"><a href="#cb28-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb28-101"><a href="#cb28-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-102"><a href="#cb28-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span>confounder,</span>
+<span id="cb28-103"><a href="#cb28-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"ipw_cox"</span></span>
+<span id="cb28-104"><a href="#cb28-104" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-105"><a href="#cb28-105" aria-hidden="true" tabindex="-1"></a>fit_ipw</span>
+<span id="cb28-106"><a href="#cb28-106" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-107"><a href="#cb28-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-110"><a href="#cb28-110" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-111"><a href="#cb28-111" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ipw)             <span class="co"># reports type = "hr" by default</span></span>
+<span id="cb28-112"><a href="#cb28-112" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-113"><a href="#cb28-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-114"><a href="#cb28-114" aria-hidden="true" tabindex="-1"></a><span class="fu">## Comparison: classical NCC vs IPW NCC vs full cohort</span></span>
+<span id="cb28-115"><a href="#cb28-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-116"><a href="#cb28-116" aria-hidden="true" tabindex="-1"></a>The conditional partial likelihood (<span class="in">`clogit`</span>) and the IPW weighted Cox target</span>
+<span id="cb28-117"><a href="#cb28-117" aria-hidden="true" tabindex="-1"></a>the same hazard ratio; the IPW estimator is at least as efficient because it</span>
+<span id="cb28-118"><a href="#cb28-118" aria-hidden="true" tabindex="-1"></a>reuses controls across failure times.</span>
+<span id="cb28-119"><a href="#cb28-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-122"><a href="#cb28-122" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-123"><a href="#cb28-123" aria-hidden="true" tabindex="-1"></a><span class="co"># Classical NCC (clogit, matched analysis) — same seed as the IPW sample above</span></span>
+<span id="cb28-124"><a href="#cb28-124" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb28-125"><a href="#cb28-125" aria-hidden="true" tabindex="-1"></a>ncc_classical <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>)</span>
+<span id="cb28-126"><a href="#cb28-126" aria-hidden="true" tabindex="-1"></a>fit_clogit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_classical, <span class="st">"case"</span>, <span class="st">"exposure"</span>,</span>
+<span id="cb28-127"><a href="#cb28-127" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-128"><a href="#cb28-128" aria-hidden="true" tabindex="-1"></a>                     <span class="at">confounders =</span> <span class="sc">~</span>confounder, <span class="at">estimator =</span> <span class="st">"clogit"</span>)</span>
+<span id="cb28-129"><a href="#cb28-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-130"><a href="#cb28-130" aria-hidden="true" tabindex="-1"></a><span class="co"># Full-cohort Cox (the gold standard)</span></span>
+<span id="cb28-131"><a href="#cb28-131" aria-hidden="true" tabindex="-1"></a>fit_full <span class="ot">&lt;-</span> survival<span class="sc">::</span><span class="fu">coxph</span>(</span>
+<span id="cb28-132"><a href="#cb28-132" aria-hidden="true" tabindex="-1"></a>  survival<span class="sc">::</span><span class="fu">Surv</span>(t, d) <span class="sc">~</span> exposure <span class="sc">+</span> confounder, <span class="at">data =</span> cohort</span>
+<span id="cb28-133"><a href="#cb28-133" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-134"><a href="#cb28-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-135"><a href="#cb28-135" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Full-cohort Cox HR: "</span>, <span class="fu">round</span>(<span class="fu">exp</span>(<span class="fu">coef</span>(fit_full)[<span class="st">"exposure"</span>]), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-136"><a href="#cb28-136" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Classical NCC HR:   "</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_clogit)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-137"><a href="#cb28-137" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"IPW NCC HR:         "</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_ipw)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-138"><a href="#cb28-138" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-139"><a href="#cb28-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-140"><a href="#cb28-140" aria-hidden="true" tabindex="-1"></a>All three estimates target the same hazard ratio; the classical and IPW NCC</span>
+<span id="cb28-141"><a href="#cb28-141" aria-hidden="true" tabindex="-1"></a>estimates will differ by a small simulation noise term.</span>
+<span id="cb28-142"><a href="#cb28-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-143"><a href="#cb28-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## tidy() output</span></span>
+<span id="cb28-144"><a href="#cb28-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-147"><a href="#cb28-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-148"><a href="#cb28-148" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_ipw))</span>
+<span id="cb28-149"><a href="#cb28-149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-150"><a href="#cb28-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-151"><a href="#cb28-151" aria-hidden="true" tabindex="-1"></a><span class="fu">## Rejection paths</span></span>
+<span id="cb28-152"><a href="#cb28-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-155"><a href="#cb28-155" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-156"><a href="#cb28-156" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb28-157"><a href="#cb28-157" aria-hidden="true" tabindex="-1"></a><span class="co"># Requesting an odds ratio from an IPW NCC fit is rejected (wrong scale).</span></span>
+<span id="cb28-158"><a href="#cb28-158" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ipw, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb28-159"><a href="#cb28-159" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-160"><a href="#cb28-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-163"><a href="#cb28-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-164"><a href="#cb28-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb28-165"><a href="#cb28-165" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap is not available for the IPW Cox estimator.</span></span>
+<span id="cb28-166"><a href="#cb28-166" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ipw, <span class="at">type =</span> <span class="st">"hr"</span>, <span class="at">ci_method =</span> <span class="st">"bootstrap"</span>)</span>
+<span id="cb28-167"><a href="#cb28-167" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-168"><a href="#cb28-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-171"><a href="#cb28-171" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-172"><a href="#cb28-172" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb28-173"><a href="#cb28-173" aria-hidden="true" tabindex="-1"></a><span class="co"># The ipw_weight column is required; sample_ncc() without incl_prob = TRUE</span></span>
+<span id="cb28-174"><a href="#cb28-174" aria-hidden="true" tabindex="-1"></a><span class="co"># produces data that lacks it.</span></span>
+<span id="cb28-175"><a href="#cb28-175" aria-hidden="true" tabindex="-1"></a>ncc_no_wts <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="st">"t"</span>, <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>)</span>
+<span id="cb28-176"><a href="#cb28-176" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(ncc_no_wts, <span class="st">"case"</span>, <span class="st">"exposure"</span>,</span>
+<span id="cb28-177"><a href="#cb28-177" aria-hidden="true" tabindex="-1"></a>       <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-178"><a href="#cb28-178" aria-hidden="true" tabindex="-1"></a>       <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
+<span id="cb28-179"><a href="#cb28-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-180"><a href="#cb28-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-181"><a href="#cb28-181" aria-hidden="true" tabindex="-1"></a><span class="fu">## Working-model weights</span></span>
+<span id="cb28-182"><a href="#cb28-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-183"><a href="#cb28-183" aria-hidden="true" tabindex="-1"></a>Samuelsen KM weights are **design-based**: they depend only on the risk-set</span>
+<span id="cb28-184"><a href="#cb28-184" aria-hidden="true" tabindex="-1"></a>structure and are computed during <span class="in">`sample_ncc()`</span>. An alternative is to fit a</span>
+<span id="cb28-185"><a href="#cb28-185" aria-hidden="true" tabindex="-1"></a>**working model** for the selection probability — a logistic regression (or GAM)</span>
+<span id="cb28-186"><a href="#cb28-186" aria-hidden="true" tabindex="-1"></a>of whether a subject was selected as a control, given its covariates and the</span>
+<span id="cb28-187"><a href="#cb28-187" aria-hidden="true" tabindex="-1"></a>event time. Working-model weights can be more efficient when the logistic model</span>
+<span id="cb28-188"><a href="#cb28-188" aria-hidden="true" tabindex="-1"></a>is close to the truth.</span>
+<span id="cb28-189"><a href="#cb28-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-190"><a href="#cb28-190" aria-hidden="true" tabindex="-1"></a><span class="in">`compute_ncc_weights()`</span> replaces the <span class="in">`ipw_weight`</span> column with working-model</span>
+<span id="cb28-191"><a href="#cb28-191" aria-hidden="true" tabindex="-1"></a>estimates. It requires the **full Phase-1 cohort** to reconstruct who was</span>
+<span id="cb28-192"><a href="#cb28-192" aria-hidden="true" tabindex="-1"></a>eligible (but not selected) at each event time.</span>
+<span id="cb28-193"><a href="#cb28-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-196"><a href="#cb28-196" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-197"><a href="#cb28-197" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace KM weights with GLM working-model weights</span></span>
+<span id="cb28-198"><a href="#cb28-198" aria-hidden="true" tabindex="-1"></a>ncc_glm <span class="ot">&lt;-</span> <span class="fu">compute_ncc_weights</span>(</span>
+<span id="cb28-199"><a href="#cb28-199" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
+<span id="cb28-200"><a href="#cb28-200" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort           =</span> cohort,</span>
+<span id="cb28-201"><a href="#cb28-201" aria-hidden="true" tabindex="-1"></a>  <span class="at">method           =</span> <span class="st">"glm"</span>,</span>
+<span id="cb28-202"><a href="#cb28-202" aria-hidden="true" tabindex="-1"></a>  <span class="at">selection_formula =</span> <span class="sc">~</span> risk_time,   <span class="co"># default: time-only logistic model</span></span>
+<span id="cb28-203"><a href="#cb28-203" aria-hidden="true" tabindex="-1"></a>  <span class="at">time             =</span> <span class="st">"t"</span></span>
+<span id="cb28-204"><a href="#cb28-204" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-205"><a href="#cb28-205" aria-hidden="true" tabindex="-1"></a>ncc_glm[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"case"</span>, <span class="st">"set"</span>, <span class="st">"ipw_weight"</span>)]</span>
+<span id="cb28-206"><a href="#cb28-206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-207"><a href="#cb28-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-208"><a href="#cb28-208" aria-hidden="true" tabindex="-1"></a>Fit and compare:</span>
+<span id="cb28-209"><a href="#cb28-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-212"><a href="#cb28-212" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-213"><a href="#cb28-213" aria-hidden="true" tabindex="-1"></a>fit_glm <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb28-214"><a href="#cb28-214" aria-hidden="true" tabindex="-1"></a>  ncc_glm,</span>
+<span id="cb28-215"><a href="#cb28-215" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"d"</span>,</span>
+<span id="cb28-216"><a href="#cb28-216" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb28-217"><a href="#cb28-217" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-218"><a href="#cb28-218" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span>confounder,</span>
+<span id="cb28-219"><a href="#cb28-219" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"ipw_cox"</span></span>
+<span id="cb28-220"><a href="#cb28-220" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-221"><a href="#cb28-221" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"KM weights HR: "</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_ipw)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-222"><a href="#cb28-222" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GLM weights HR:"</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_glm)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-223"><a href="#cb28-223" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-224"><a href="#cb28-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-225"><a href="#cb28-225" aria-hidden="true" tabindex="-1"></a>Both KM and GLM weights target the same Cox hazard ratio; differences reflect</span>
+<span id="cb28-226"><a href="#cb28-226" aria-hidden="true" tabindex="-1"></a>the working-model vs design-based weight formulas.</span>
+<span id="cb28-227"><a href="#cb28-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-228"><a href="#cb28-228" aria-hidden="true" tabindex="-1"></a>A GAM can be used when the selection probability is non-linearly related to time:</span>
+<span id="cb28-229"><a href="#cb28-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-232"><a href="#cb28-232" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-233"><a href="#cb28-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb28-234"><a href="#cb28-234" aria-hidden="true" tabindex="-1"></a>ncc_gam <span class="ot">&lt;-</span> <span class="fu">compute_ncc_weights</span>(</span>
+<span id="cb28-235"><a href="#cb28-235" aria-hidden="true" tabindex="-1"></a>  ncc,</span>
+<span id="cb28-236"><a href="#cb28-236" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort           =</span> cohort,</span>
+<span id="cb28-237"><a href="#cb28-237" aria-hidden="true" tabindex="-1"></a>  <span class="at">method           =</span> <span class="st">"gam"</span>,</span>
+<span id="cb28-238"><a href="#cb28-238" aria-hidden="true" tabindex="-1"></a>  <span class="at">selection_formula =</span> <span class="sc">~</span> <span class="fu">s</span>(risk_time),</span>
+<span id="cb28-239"><a href="#cb28-239" aria-hidden="true" tabindex="-1"></a>  <span class="at">time             =</span> <span class="st">"t"</span></span>
+<span id="cb28-240"><a href="#cb28-240" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-241"><a href="#cb28-241" aria-hidden="true" tabindex="-1"></a>fit_gam <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb28-242"><a href="#cb28-242" aria-hidden="true" tabindex="-1"></a>  ncc_gam,</span>
+<span id="cb28-243"><a href="#cb28-243" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"d"</span>,</span>
+<span id="cb28-244"><a href="#cb28-244" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb28-245"><a href="#cb28-245" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-246"><a href="#cb28-246" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span>confounder,</span>
+<span id="cb28-247"><a href="#cb28-247" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"ipw_cox"</span></span>
+<span id="cb28-248"><a href="#cb28-248" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-249"><a href="#cb28-249" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GAM weights HR:"</span>, <span class="fu">round</span>(<span class="fu">contrast</span>(fit_gam)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-250"><a href="#cb28-250" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-251"><a href="#cb28-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-252"><a href="#cb28-252" aria-hidden="true" tabindex="-1"></a>The Phase-1 cohort is required: omitting it aborts with <span class="in">`matchatr_missing_phase1`</span>.</span>
+<span id="cb28-253"><a href="#cb28-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-256"><a href="#cb28-256" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-257"><a href="#cb28-257" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb28-258"><a href="#cb28-258" aria-hidden="true" tabindex="-1"></a><span class="fu">compute_ncc_weights</span>(ncc, <span class="at">cohort =</span> <span class="cn">NULL</span>, <span class="at">method =</span> <span class="st">"glm"</span>, <span class="at">time =</span> <span class="st">"t"</span>)</span>
+<span id="cb28-259"><a href="#cb28-259" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-260"><a href="#cb28-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-261"><a href="#cb28-261" aria-hidden="true" tabindex="-1"></a><span class="fu">## Absolute risk</span></span>
+<span id="cb28-262"><a href="#cb28-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-263"><a href="#cb28-263" aria-hidden="true" tabindex="-1"></a>Because the IPW reformulation builds a *weighted pseudo-cohort*, it recovers the</span>
+<span id="cb28-264"><a href="#cb28-264" aria-hidden="true" tabindex="-1"></a>cumulative baseline hazard — which the classical conditional partial likelihood</span>
+<span id="cb28-265"><a href="#cb28-265" aria-hidden="true" tabindex="-1"></a>conditions away. <span class="in">`absolute_risk()`</span> turns the fitted weighted Cox into a</span>
+<span id="cb28-266"><a href="#cb28-266" aria-hidden="true" tabindex="-1"></a>cumulative incidence</span>
+<span id="cb28-267"><a href="#cb28-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-268"><a href="#cb28-268" aria-hidden="true" tabindex="-1"></a>$$F_x(t) = 1 - \exp<span class="sc">\!</span>\big(-\exp(\hat\beta^{\top} x)\,\hat\Lambda_0(t)\big),$$</span>
+<span id="cb28-269"><a href="#cb28-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-270"><a href="#cb28-270" aria-hidden="true" tabindex="-1"></a>where $\hat\Lambda_0(t)$ is an inverse-probability-weighted Breslow cumulative</span>
+<span id="cb28-271"><a href="#cb28-271" aria-hidden="true" tabindex="-1"></a>baseline hazard over the deduplicated analysis sample: at each event time the</span>
+<span id="cb28-272"><a href="#cb28-272" aria-hidden="true" tabindex="-1"></a>at-risk denominator $\sum_j w_j \exp(\hat\beta^{\top} x_j)$ upweights each control</span>
+<span id="cb28-273"><a href="#cb28-273" aria-hidden="true" tabindex="-1"></a>by $1/\pi_j$ so it stands in for the unsampled cohort. Confidence intervals use</span>
+<span id="cb28-274"><a href="#cb28-274" aria-hidden="true" tabindex="-1"></a>the delta method on the complementary log-log scale.</span>
+<span id="cb28-275"><a href="#cb28-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-278"><a href="#cb28-278" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-279"><a href="#cb28-279" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">exposure =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>), <span class="at">confounder =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb28-280"><a href="#cb28-280" aria-hidden="true" tabindex="-1"></a>ar <span class="ot">&lt;-</span> <span class="fu">absolute_risk</span>(fit_ipw, <span class="at">newdata =</span> newdata, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span>
+<span id="cb28-281"><a href="#cb28-281" aria-hidden="true" tabindex="-1"></a>ar</span>
+<span id="cb28-282"><a href="#cb28-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-283"><a href="#cb28-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-284"><a href="#cb28-284" aria-hidden="true" tabindex="-1"></a>The hand-rolled weighted Breslow agrees with <span class="in">`survival::survfit`</span> on the same</span>
+<span id="cb28-285"><a href="#cb28-285" aria-hidden="true" tabindex="-1"></a>weighted Cox model to machine precision, so the point estimate is exact; the</span>
+<span id="cb28-286"><a href="#cb28-286" aria-hidden="true" tabindex="-1"></a>interval is conservative (the within-sample Nelson-Aalen baseline variance).</span>
+<span id="cb28-287"><a href="#cb28-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-290"><a href="#cb28-290" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-291"><a href="#cb28-291" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb28-292"><a href="#cb28-292" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb28-293"><a href="#cb28-293" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-alt: &gt;</span></span>
+<span id="cb28-294"><a href="#cb28-294" aria-hidden="true" tabindex="-1"></a><span class="co">#|   Cumulative incidence over follow-up for an exposed versus an unexposed</span></span>
+<span id="cb28-295"><a href="#cb28-295" aria-hidden="true" tabindex="-1"></a><span class="co">#|   subject estimated from the IPW nested case-control weighted Cox model. The</span></span>
+<span id="cb28-296"><a href="#cb28-296" aria-hidden="true" tabindex="-1"></a><span class="co">#|   exposed curve rises faster, reflecting the hazard ratio above one.</span></span>
+<span id="cb28-297"><a href="#cb28-297" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> ar<span class="sc">$</span>estimates</span>
+<span id="cb28-298"><a href="#cb28-298" aria-hidden="true" tabindex="-1"></a>exposed   <span class="ot">&lt;-</span> est[est<span class="sc">$</span>row <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb28-299"><a href="#cb28-299" aria-hidden="true" tabindex="-1"></a>unexposed <span class="ot">&lt;-</span> est[est<span class="sc">$</span>row <span class="sc">==</span> <span class="dv">2</span>, ]</span>
+<span id="cb28-300"><a href="#cb28-300" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(exposed<span class="sc">$</span>time, exposed<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#c0392b"</span>,</span>
+<span id="cb28-301"><a href="#cb28-301" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(est<span class="sc">$</span>ci_upper)), <span class="at">xlab =</span> <span class="st">"time"</span>, <span class="at">ylab =</span> <span class="fu">expression</span>(<span class="fu">hat</span>(F)[x](t)),</span>
+<span id="cb28-302"><a href="#cb28-302" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"IPW NCC cumulative incidence"</span>)</span>
+<span id="cb28-303"><a href="#cb28-303" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(unexposed<span class="sc">$</span>time, unexposed<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#2980b9"</span>)</span>
+<span id="cb28-304"><a href="#cb28-304" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"exposed"</span>, <span class="st">"unexposed"</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"#c0392b"</span>, <span class="st">"#2980b9"</span>),</span>
+<span id="cb28-305"><a href="#cb28-305" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">bty =</span> <span class="st">"n"</span>)</span>
+<span id="cb28-306"><a href="#cb28-306" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-307"><a href="#cb28-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-308"><a href="#cb28-308" aria-hidden="true" tabindex="-1"></a>The same verb serves the case-cohort <span class="in">`cch`</span> engine (see <span class="in">`vignette("case-cohort")`</span>);</span>
+<span id="cb28-309"><a href="#cb28-309" aria-hidden="true" tabindex="-1"></a>only the baseline-hazard weighting differs.</span>
+<span id="cb28-310"><a href="#cb28-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-311"><a href="#cb28-311" aria-hidden="true" tabindex="-1"></a><span class="fu">## Multiple endpoints from one control set</span></span>
+<span id="cb28-312"><a href="#cb28-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-313"><a href="#cb28-313" aria-hidden="true" tabindex="-1"></a>The real payoff of breaking the matching is **control reuse across endpoints**.</span>
+<span id="cb28-314"><a href="#cb28-314" aria-hidden="true" tabindex="-1"></a>The classical conditional analysis ties each control to its case's failure time,</span>
+<span id="cb28-315"><a href="#cb28-315" aria-hidden="true" tabindex="-1"></a>so a control set sampled for one endpoint cannot serve another. Under IPW the</span>
+<span id="cb28-316"><a href="#cb28-316" aria-hidden="true" tabindex="-1"></a>sample is a weighted pseudo-cohort, so the *same* controls can fit a weighted Cox</span>
+<span id="cb28-317"><a href="#cb28-317" aria-hidden="true" tabindex="-1"></a>for any endpoint recorded in the cohort. matchatr supports two modes.</span>
+<span id="cb28-318"><a href="#cb28-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-319"><a href="#cb28-319" aria-hidden="true" tabindex="-1"></a>We build a cohort with two competing endpoints — a harmful exposure for endpoint</span>
+<span id="cb28-320"><a href="#cb28-320" aria-hidden="true" tabindex="-1"></a>1, a protective one for endpoint 2:</span>
+<span id="cb28-321"><a href="#cb28-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-324"><a href="#cb28-324" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-325"><a href="#cb28-325" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20</span>)</span>
+<span id="cb28-326"><a href="#cb28-326" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">4000</span></span>
+<span id="cb28-327"><a href="#cb28-327" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb28-328"><a href="#cb28-328" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb28-329"><a href="#cb28-329" aria-hidden="true" tabindex="-1"></a>t1 <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, <span class="fl">0.05</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="fu">log</span>(<span class="fl">2.0</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> z))   <span class="co"># endpoint 1: HR 2.0</span></span>
+<span id="cb28-330"><a href="#cb28-330" aria-hidden="true" tabindex="-1"></a>t2 <span class="ot">&lt;-</span> <span class="fu">rexp</span>(n, <span class="fl">0.05</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="fu">log</span>(<span class="fl">0.5</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> z))   <span class="co"># endpoint 2: HR 0.5</span></span>
+<span id="cb28-331"><a href="#cb28-331" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb28-332"><a href="#cb28-332" aria-hidden="true" tabindex="-1"></a>tt    <span class="ot">&lt;-</span> <span class="fu">pmin</span>(t1, t2, tau)</span>
+<span id="cb28-333"><a href="#cb28-333" aria-hidden="true" tabindex="-1"></a>cause <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(tt <span class="sc">&gt;=</span> tau, <span class="dv">0</span>L, <span class="fu">ifelse</span>(t1 <span class="sc">&lt;</span> t2, <span class="dv">1</span>L, <span class="dv">2</span>L))</span>
+<span id="cb28-334"><a href="#cb28-334" aria-hidden="true" tabindex="-1"></a>co <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb28-335"><a href="#cb28-335" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">seq_len</span>(n), <span class="at">t =</span> tt,</span>
+<span id="cb28-336"><a href="#cb28-336" aria-hidden="true" tabindex="-1"></a>  <span class="at">d_any =</span> <span class="fu">as.integer</span>(cause <span class="sc">!=</span> <span class="dv">0</span>L),   <span class="co"># any failure</span></span>
+<span id="cb28-337"><a href="#cb28-337" aria-hidden="true" tabindex="-1"></a>  <span class="at">d1    =</span> <span class="fu">as.integer</span>(cause <span class="sc">==</span> <span class="dv">1</span>L),   <span class="co"># endpoint 1</span></span>
+<span id="cb28-338"><a href="#cb28-338" aria-hidden="true" tabindex="-1"></a>  <span class="at">d2    =</span> <span class="fu">as.integer</span>(cause <span class="sc">==</span> <span class="dv">2</span>L),   <span class="co"># endpoint 2</span></span>
+<span id="cb28-339"><a href="#cb28-339" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> x, <span class="at">z =</span> z</span>
+<span id="cb28-340"><a href="#cb28-340" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-341"><a href="#cb28-341" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-342"><a href="#cb28-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-343"><a href="#cb28-343" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mode A — sample on the union event, analyse each endpoint</span></span>
+<span id="cb28-344"><a href="#cb28-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-345"><a href="#cb28-345" aria-hidden="true" tabindex="-1"></a>Sampling on the "any-failure" event ascertains *every* endpoint's cases at once,</span>
+<span id="cb28-346"><a href="#cb28-346" aria-hidden="true" tabindex="-1"></a>so each cause-specific endpoint is analysed directly by passing it as <span class="in">`outcome`</span>.</span>
+<span id="cb28-347"><a href="#cb28-347" aria-hidden="true" tabindex="-1"></a>The single sampled control set, with its shared inclusion weights, backs both</span>
+<span id="cb28-348"><a href="#cb28-348" aria-hidden="true" tabindex="-1"></a>fits:</span>
+<span id="cb28-349"><a href="#cb28-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-352"><a href="#cb28-352" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-353"><a href="#cb28-353" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb28-354"><a href="#cb28-354" aria-hidden="true" tabindex="-1"></a>ncc_multi <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(co, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d_any"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-355"><a href="#cb28-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-356"><a href="#cb28-356" aria-hidden="true" tabindex="-1"></a>fit_e1 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_multi, <span class="at">outcome =</span> <span class="st">"d1"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb28-357"><a href="#cb28-357" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-358"><a href="#cb28-358" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> z, <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
+<span id="cb28-359"><a href="#cb28-359" aria-hidden="true" tabindex="-1"></a>fit_e2 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_multi, <span class="at">outcome =</span> <span class="st">"d2"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb28-360"><a href="#cb28-360" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-361"><a href="#cb28-361" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> z, <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
+<span id="cb28-362"><a href="#cb28-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-363"><a href="#cb28-363" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="fu">cbind</span>(<span class="at">endpoint =</span> <span class="st">"d1"</span>, <span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_e1))),</span>
+<span id="cb28-364"><a href="#cb28-364" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cbind</span>(<span class="at">endpoint =</span> <span class="st">"d2"</span>, <span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_e2))))</span>
+<span id="cb28-365"><a href="#cb28-365" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-366"><a href="#cb28-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-367"><a href="#cb28-367" aria-hidden="true" tabindex="-1"></a>Both hazard ratios sit near their cohort truths (2.0 and 0.5). A competing-endpoint</span>
+<span id="cb28-368"><a href="#cb28-368" aria-hidden="true" tabindex="-1"></a>case is *ascertained* by the sampling, so it keeps weight 1 (not the control</span>
+<span id="cb28-369"><a href="#cb28-369" aria-hidden="true" tabindex="-1"></a>weight 1/π_j) when a different endpoint is analysed — matchatr handles this when</span>
+<span id="cb28-370"><a href="#cb28-370" aria-hidden="true" tabindex="-1"></a>it builds the deduplicated analysis sample.</span>
+<span id="cb28-371"><a href="#cb28-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-372"><a href="#cb28-372" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mode B — reuse a primary-endpoint control set for a secondary endpoint</span></span>
+<span id="cb28-373"><a href="#cb28-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-374"><a href="#cb28-374" aria-hidden="true" tabindex="-1"></a>If the NCC was drawn for a single *primary* endpoint, its controls can still be</span>
+<span id="cb28-375"><a href="#cb28-375" aria-hidden="true" tabindex="-1"></a>reused for a *secondary* one. <span class="in">`reuse_ncc_endpoint()`</span> keeps the controls' primary</span>
+<span id="cb28-376"><a href="#cb28-376" aria-hidden="true" tabindex="-1"></a>inclusion weights 1/π_j (the inclusion probability is a property of the sampling,</span>
+<span id="cb28-377"><a href="#cb28-377" aria-hidden="true" tabindex="-1"></a>not the endpoint) and augments the secondary endpoint's cases that were not</span>
+<span id="cb28-378"><a href="#cb28-378" aria-hidden="true" tabindex="-1"></a>sampled — pulled from the Phase-1 cohort with weight 1, since every case of an</span>
+<span id="cb28-379"><a href="#cb28-379" aria-hidden="true" tabindex="-1"></a>analysed endpoint is ascertained with probability 1:</span>
+<span id="cb28-380"><a href="#cb28-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-383"><a href="#cb28-383" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-384"><a href="#cb28-384" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb28-385"><a href="#cb28-385" aria-hidden="true" tabindex="-1"></a>ncc_primary <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(co, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d1"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-386"><a href="#cb28-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-387"><a href="#cb28-387" aria-hidden="true" tabindex="-1"></a>ncc_reuse <span class="ot">&lt;-</span> <span class="fu">reuse_ncc_endpoint</span>(ncc_primary, <span class="at">cohort =</span> co, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d2"</span>)</span>
+<span id="cb28-388"><a href="#cb28-388" aria-hidden="true" tabindex="-1"></a>fit_reuse <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc_reuse, <span class="at">outcome =</span> <span class="st">"d2"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb28-389"><a href="#cb28-389" aria-hidden="true" tabindex="-1"></a>                    <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-390"><a href="#cb28-390" aria-hidden="true" tabindex="-1"></a>                    <span class="at">confounders =</span> <span class="sc">~</span> z, <span class="at">estimator =</span> <span class="st">"ipw_cox"</span>)</span>
+<span id="cb28-391"><a href="#cb28-391" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">contrast</span>(fit_reuse))</span>
+<span id="cb28-392"><a href="#cb28-392" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-393"><a href="#cb28-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-394"><a href="#cb28-394" aria-hidden="true" tabindex="-1"></a>Reusing the secondary endpoint needs the cohort to recover its unsampled cases;</span>
+<span id="cb28-395"><a href="#cb28-395" aria-hidden="true" tabindex="-1"></a>omitting it is rejected:</span>
+<span id="cb28-396"><a href="#cb28-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-399"><a href="#cb28-399" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-400"><a href="#cb28-400" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb28-401"><a href="#cb28-401" aria-hidden="true" tabindex="-1"></a><span class="fu">reuse_ncc_endpoint</span>(ncc_primary, <span class="at">cohort =</span> <span class="cn">NULL</span>, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d2"</span>)</span>
+<span id="cb28-402"><a href="#cb28-402" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-403"><a href="#cb28-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-404"><a href="#cb28-404" aria-hidden="true" tabindex="-1"></a><span class="fu">## Alternative models: time ratios and excess hazards</span></span>
+<span id="cb28-405"><a href="#cb28-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-406"><a href="#cb28-406" aria-hidden="true" tabindex="-1"></a>Breaking the matching also frees the analysis from the proportional-hazards</span>
+<span id="cb28-407"><a href="#cb28-407" aria-hidden="true" tabindex="-1"></a>scale. The same Samuelsen-weighted sample supports two non-Cox models, each</span>
+<span id="cb28-408"><a href="#cb28-408" aria-hidden="true" tabindex="-1"></a>reporting a different effect measure.</span>
+<span id="cb28-409"><a href="#cb28-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-410"><a href="#cb28-410" aria-hidden="true" tabindex="-1"></a>The **accelerated failure time** model (<span class="in">`estimator = "ipw_aft"`</span>) acts on the</span>
+<span id="cb28-411"><a href="#cb28-411" aria-hidden="true" tabindex="-1"></a>survival-*time* scale: `contrast(type = "af")` reports the **time ratio**</span>
+<span id="cb28-412"><a href="#cb28-412" aria-hidden="true" tabindex="-1"></a>exp(β) — the factor by which a unit of exposure multiplies the survival time</span>
+<span id="cb28-413"><a href="#cb28-413" aria-hidden="true" tabindex="-1"></a>(above one prolongs, below one shortens). It is a weighted Weibull <span class="in">`survreg`</span></span>
+<span id="cb28-414"><a href="#cb28-414" aria-hidden="true" tabindex="-1"></a>with a robust sandwich.</span>
+<span id="cb28-415"><a href="#cb28-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-418"><a href="#cb28-418" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-419"><a href="#cb28-419" aria-hidden="true" tabindex="-1"></a>fit_aft <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb28-420"><a href="#cb28-420" aria-hidden="true" tabindex="-1"></a>                  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-421"><a href="#cb28-421" aria-hidden="true" tabindex="-1"></a>                  <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aft"</span>)</span>
+<span id="cb28-422"><a href="#cb28-422" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_aft)</span>
+<span id="cb28-423"><a href="#cb28-423" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-424"><a href="#cb28-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-425"><a href="#cb28-425" aria-hidden="true" tabindex="-1"></a>The fitted Weibull is a full *survival curve*, so <span class="in">`absolute_risk()`</span> also serves</span>
+<span id="cb28-426"><a href="#cb28-426" aria-hidden="true" tabindex="-1"></a>the <span class="in">`ipw_aft`</span> engine — reading the cumulative incidence straight off the</span>
+<span id="cb28-427"><a href="#cb28-427" aria-hidden="true" tabindex="-1"></a>parameters, with no Breslow step:</span>
+<span id="cb28-428"><a href="#cb28-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-429"><a href="#cb28-429" aria-hidden="true" tabindex="-1"></a>$$F_x(t) = 1 - \exp<span class="sc">\!</span>\big(-\exp((\log t - \hat\eta)/\hat\sigma)\big),$$</span>
+<span id="cb28-430"><a href="#cb28-430" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-431"><a href="#cb28-431" aria-hidden="true" tabindex="-1"></a>where $\hat\eta = \hat\beta^{\top} x$ is the AFT linear predictor and</span>
+<span id="cb28-432"><a href="#cb28-432" aria-hidden="true" tabindex="-1"></a>$\hat\sigma$ the scale. The interval again uses the delta method on the</span>
+<span id="cb28-433"><a href="#cb28-433" aria-hidden="true" tabindex="-1"></a>complementary log-log scale, here over $(\beta, \log\sigma)$ with the robust</span>
+<span id="cb28-434"><a href="#cb28-434" aria-hidden="true" tabindex="-1"></a><span class="in">`survreg`</span> sandwich. Because the curve is parametric, $\hat F_x(t)$ is smooth in</span>
+<span id="cb28-435"><a href="#cb28-435" aria-hidden="true" tabindex="-1"></a>$t$ (the Cox engine's $\hat F_x(t)$ is a step function on the event times).</span>
+<span id="cb28-436"><a href="#cb28-436" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-439"><a href="#cb28-439" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-440"><a href="#cb28-440" aria-hidden="true" tabindex="-1"></a>ar_aft <span class="ot">&lt;-</span> <span class="fu">absolute_risk</span>(fit_aft, <span class="at">newdata =</span> newdata, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span>
+<span id="cb28-441"><a href="#cb28-441" aria-hidden="true" tabindex="-1"></a>ar_aft</span>
+<span id="cb28-442"><a href="#cb28-442" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-443"><a href="#cb28-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-444"><a href="#cb28-444" aria-hidden="true" tabindex="-1"></a>The baseline defaults to Weibull, but <span class="in">`dist`</span> selects any of four AFT</span>
+<span id="cb28-445"><a href="#cb28-445" aria-hidden="true" tabindex="-1"></a>distributions — <span class="in">`"weibull"`</span>, <span class="in">`"exponential"`</span>, <span class="in">`"lognormal"`</span>, <span class="in">`"loglogistic"`</span>.</span>
+<span id="cb28-446"><a href="#cb28-446" aria-hidden="true" tabindex="-1"></a>All report the same time ratio <span class="in">`exp(β)`</span>; they differ in the survival-curve shape</span>
+<span id="cb28-447"><a href="#cb28-447" aria-hidden="true" tabindex="-1"></a>(<span class="in">`"lognormal"`</span> / <span class="in">`"loglogistic"`</span> allow a non-monotone hazard). <span class="in">`absolute_risk()`</span></span>
+<span id="cb28-448"><a href="#cb28-448" aria-hidden="true" tabindex="-1"></a>follows the chosen baseline automatically:</span>
+<span id="cb28-449"><a href="#cb28-449" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-452"><a href="#cb28-452" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-453"><a href="#cb28-453" aria-hidden="true" tabindex="-1"></a>fit_ln <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb28-454"><a href="#cb28-454" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-455"><a href="#cb28-455" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aft"</span>,</span>
+<span id="cb28-456"><a href="#cb28-456" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dist =</span> <span class="st">"lognormal"</span>)</span>
+<span id="cb28-457"><a href="#cb28-457" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_ln)</span>
+<span id="cb28-458"><a href="#cb28-458" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-459"><a href="#cb28-459" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-460"><a href="#cb28-460" aria-hidden="true" tabindex="-1"></a>The **additive-hazards** model (<span class="in">`estimator = "ipw_aalen"`</span>) acts on the *rate*</span>
+<span id="cb28-461"><a href="#cb28-461" aria-hidden="true" tabindex="-1"></a>scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so</span>
+<span id="cb28-462"><a href="#cb28-462" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast(type = "excess")`</span> reports the **excess hazard** γ — an additive rate</span>
+<span id="cb28-463"><a href="#cb28-463" aria-hidden="true" tabindex="-1"></a>difference. Unlike a ratio it can be negative (a protective exposure lowers the</span>
+<span id="cb28-464"><a href="#cb28-464" aria-hidden="true" tabindex="-1"></a>rate), and its confidence interval is symmetric (it is not exponentiated).</span>
+<span id="cb28-465"><a href="#cb28-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-468"><a href="#cb28-468" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-469"><a href="#cb28-469" aria-hidden="true" tabindex="-1"></a>fit_add <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"exposure"</span>,</span>
+<span id="cb28-470"><a href="#cb28-470" aria-hidden="true" tabindex="-1"></a>                  <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb28-471"><a href="#cb28-471" aria-hidden="true" tabindex="-1"></a>                  <span class="at">confounders =</span> <span class="sc">~</span> confounder, <span class="at">estimator =</span> <span class="st">"ipw_aalen"</span>)</span>
+<span id="cb28-472"><a href="#cb28-472" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_add)</span>
+<span id="cb28-473"><a href="#cb28-473" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-474"><a href="#cb28-474" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-475"><a href="#cb28-475" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast()`</span> reports a single time-*constant* excess hazard (the Lin-Ying model).</span>
+<span id="cb28-476"><a href="#cb28-476" aria-hidden="true" tabindex="-1"></a>To let the effect vary with time, <span class="in">`excess_risk()`</span> returns the **cumulative**</span>
+<span id="cb28-477"><a href="#cb28-477" aria-hidden="true" tabindex="-1"></a>excess hazard $B_j(t) = \int_0^t \beta_j(s)\,ds$ — the additive analogue of</span>
+<span id="cb28-478"><a href="#cb28-478" aria-hidden="true" tabindex="-1"></a><span class="in">`absolute_risk()`</span>. A straight line means a constant rate difference; curvature</span>
+<span id="cb28-479"><a href="#cb28-479" aria-hidden="true" tabindex="-1"></a>means a time-varying one.</span>
+<span id="cb28-480"><a href="#cb28-480" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-483"><a href="#cb28-483" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-484"><a href="#cb28-484" aria-hidden="true" tabindex="-1"></a>er <span class="ot">&lt;-</span> <span class="fu">excess_risk</span>(fit_add, <span class="at">times =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)</span>
+<span id="cb28-485"><a href="#cb28-485" aria-hidden="true" tabindex="-1"></a>er</span>
+<span id="cb28-486"><a href="#cb28-486" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-487"><a href="#cb28-487" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-490"><a href="#cb28-490" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-491"><a href="#cb28-491" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb28-492"><a href="#cb28-492" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb28-493"><a href="#cb28-493" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-alt: &gt;</span></span>
+<span id="cb28-494"><a href="#cb28-494" aria-hidden="true" tabindex="-1"></a><span class="co">#|   Cumulative excess hazard of the exposure over follow-up estimated from the</span></span>
+<span id="cb28-495"><a href="#cb28-495" aria-hidden="true" tabindex="-1"></a><span class="co">#|   IPW nested case-control additive-hazards model, with a pointwise 95%</span></span>
+<span id="cb28-496"><a href="#cb28-496" aria-hidden="true" tabindex="-1"></a><span class="co">#|   confidence band. The curve rises roughly linearly, indicating an</span></span>
+<span id="cb28-497"><a href="#cb28-497" aria-hidden="true" tabindex="-1"></a><span class="co">#|   approximately constant excess rate.</span></span>
+<span id="cb28-498"><a href="#cb28-498" aria-hidden="true" tabindex="-1"></a>ex <span class="ot">&lt;-</span> er<span class="sc">$</span>estimates[er<span class="sc">$</span>estimates<span class="sc">$</span>term <span class="sc">==</span> <span class="st">"exposure"</span>, ]</span>
+<span id="cb28-499"><a href="#cb28-499" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ex<span class="sc">$</span>time, ex<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"#8e44ad"</span>,</span>
+<span id="cb28-500"><a href="#cb28-500" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">range</span>(ex<span class="sc">$</span>ci_lower, ex<span class="sc">$</span>ci_upper),</span>
+<span id="cb28-501"><a href="#cb28-501" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"time"</span>, <span class="at">ylab =</span> <span class="fu">expression</span>(<span class="fu">hat</span>(B)[x](t)),</span>
+<span id="cb28-502"><a href="#cb28-502" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"IPW NCC cumulative excess hazard"</span>)</span>
+<span id="cb28-503"><a href="#cb28-503" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(ex<span class="sc">$</span>time, ex<span class="sc">$</span>ci_lower, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"#8e44ad"</span>)</span>
+<span id="cb28-504"><a href="#cb28-504" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(ex<span class="sc">$</span>time, ex<span class="sc">$</span>ci_upper, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">"#8e44ad"</span>)</span>
+<span id="cb28-505"><a href="#cb28-505" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"grey60"</span>)</span>
+<span id="cb28-506"><a href="#cb28-506" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-507"><a href="#cb28-507" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-508"><a href="#cb28-508" aria-hidden="true" tabindex="-1"></a>Each estimator identifies exactly one scale, so asking for another is rejected:</span>
+<span id="cb28-509"><a href="#cb28-509" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-512"><a href="#cb28-512" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb28-513"><a href="#cb28-513" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb28-514"><a href="#cb28-514" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_aft, <span class="at">type =</span> <span class="st">"hr"</span>)</span>
+<span id="cb28-515"><a href="#cb28-515" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb28-516"><a href="#cb28-516" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-517"><a href="#cb28-517" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb28-518"><a href="#cb28-518" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-519"><a href="#cb28-519" aria-hidden="true" tabindex="-1"></a>Lin DY &amp; Ying Z (1994). Semiparametric analysis of the additive risk model.</span>
+<span id="cb28-520"><a href="#cb28-520" aria-hidden="true" tabindex="-1"></a>*Biometrika*, 81(1), 61–71.</span>
+<span id="cb28-521"><a href="#cb28-521" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-522"><a href="#cb28-522" aria-hidden="true" tabindex="-1"></a>Borgan Ø &amp; Langholz B (1997). Estimation of excess risk from case-control data</span>
+<span id="cb28-523"><a href="#cb28-523" aria-hidden="true" tabindex="-1"></a>using Aalen's linear regression model. *Biometrics*, 53(2), 690–697.</span>
+<span id="cb28-524"><a href="#cb28-524" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-525"><a href="#cb28-525" aria-hidden="true" tabindex="-1"></a>Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested</span>
+<span id="cb28-526"><a href="#cb28-526" aria-hidden="true" tabindex="-1"></a>case-control studies. *Biometrika*, 84(2), 379–394.</span>
+<span id="cb28-527"><a href="#cb28-527" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-528"><a href="#cb28-528" aria-hidden="true" tabindex="-1"></a>Saarela O, Kulathinal S, Arjas E &amp; Läärä E (2008). Nested case–control data</span>
+<span id="cb28-529"><a href="#cb28-529" aria-hidden="true" tabindex="-1"></a>utilized for multiple outcomes: a likelihood approach and alternatives.</span>
+<span id="cb28-530"><a href="#cb28-530" aria-hidden="true" tabindex="-1"></a>*Statistics in Medicine*, 27(28), 5991–6008.</span>
+<span id="cb28-531"><a href="#cb28-531" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-532"><a href="#cb28-532" aria-hidden="true" tabindex="-1"></a>Støer NC &amp; Samuelsen SO (2012). Comparison of estimators in nested case–control</span>
+<span id="cb28-533"><a href="#cb28-533" aria-hidden="true" tabindex="-1"></a>studies with multiple outcomes. *Lifetime Data Analysis*, 18(3), 261–283.</span>
+<span id="cb28-534"><a href="#cb28-534" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-535"><a href="#cb28-535" aria-hidden="true" tabindex="-1"></a>Støer NC &amp; Samuelsen SO (2013). Inverse probability weighting in nested</span>
+<span id="cb28-536"><a href="#cb28-536" aria-hidden="true" tabindex="-1"></a>case-control studies with additional matching — a simulation study.</span>
+<span id="cb28-537"><a href="#cb28-537" aria-hidden="true" tabindex="-1"></a>*Statistics in Medicine*, 32(30), 5328–5339.</span>
+<span id="cb28-538"><a href="#cb28-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-539"><a href="#cb28-539" aria-hidden="true" tabindex="-1"></a>Kang S, Lu W &amp; Liu M (2017). Efficient estimation for accelerated failure time</span>
+<span id="cb28-540"><a href="#cb28-540" aria-hidden="true" tabindex="-1"></a>model under case-cohort and nested case-control sampling. *Biometrics*, 73(1),</span>
+<span id="cb28-541"><a href="#cb28-541" aria-hidden="true" tabindex="-1"></a>114–123.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

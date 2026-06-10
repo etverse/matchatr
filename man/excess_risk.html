@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>print.matchatr_homogeneity – matchatr</title>
+<title>excess_risk – matchatr</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_homogeneity.html">print.matchatr_homogeneity</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/excess_risk.html">excess_risk</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -287,7 +287,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/excess_risk.html" class="sidebar-item-text sidebar-link">
+  <a href="../man/excess_risk.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">excess_risk</span></a>
   </div>
 </li>
@@ -335,7 +335,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../man/print.matchatr_homogeneity.html" class="sidebar-item-text sidebar-link active">
+  <a href="../man/print.matchatr_homogeneity.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_homogeneity</span></a>
   </div>
 </li>
@@ -447,11 +447,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#print-a-matchatr-homogeneity-test" id="toc-print-a-matchatr-homogeneity-test" class="nav-link active" data-scroll-target="#print-a-matchatr-homogeneity-test">Print a matchatr homogeneity test</a>
+  <li><a href="#time-varying-cumulative-excess-hazard-from-an-additive-ncc-fit" id="toc-time-varying-cumulative-excess-hazard-from-an-additive-ncc-fit" class="nav-link active" data-scroll-target="#time-varying-cumulative-excess-hazard-from-an-additive-ncc-fit">Time-varying cumulative excess hazard from an additive NCC fit</a>
   <ul class="collapse">
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
@@ -460,21 +461,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/print.matchatr_homogeneity.html">print.matchatr_homogeneity</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../man/absolute_risk.html">Reference</a></li><li class="breadcrumb-item"><a href="../man/excess_risk.html">excess_risk</a></li></ol></nav></header>
 
 
 
 
-<section id="print-a-matchatr-homogeneity-test" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="print-a-matchatr-homogeneity-test">Print a matchatr homogeneity test</h2>
+<section id="time-varying-cumulative-excess-hazard-from-an-additive-ncc-fit" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="time-varying-cumulative-excess-hazard-from-an-additive-ncc-fit">Time-varying cumulative excess hazard from an additive NCC fit</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Displays a compact summary of a <code>matchatr_homogeneity</code> object: the estimator and engine, the baseline reference group, the analysis size, and the table of per-exposure common (pooled) odds ratios with their homogeneity Wald chi-squared statistic, degrees of freedom, and p-value.</p>
+<p>Estimates the Aalen cumulative regression functions B_j(t) = ∫₀ᵗ β_j(s) ds — the <strong>time-varying excess cumulative hazard</strong> for each covariate — from a fitted IPW nested case-control additive-hazards (<code>“ipw_aalen”</code>) design. Where <code>contrast(type = “excess”)</code> reports one time-<em>constant</em> excess hazard per covariate (the Lin-Ying model), <code>excess_risk()</code> relaxes the constant-effect assumption and returns the full cumulative regression function over time — the additive analogue of <code>absolute_risk()</code>.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">## S3 method for class 'matchatr_homogeneity'
-print(x, ...)
+<pre><code class="language-R">excess_risk(fit, ...)
+
+## S3 method for class 'matchatr_fit'
+excess_risk(fit, times, conf_level = 0.95, ...)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -482,10 +485,10 @@ print(x, ...)
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="x">x</code>
+<code id="fit">fit</code>
 </td>
 <td>
-A <code>matchatr_homogeneity</code> object returned by <code>test_homogeneity()</code>.
+A <code>matchatr_fit</code> returned by <code>matcha()</code> with <code>estimator = “ipw_aalen”</code>.
 </td>
 </tr>
 <tr>
@@ -496,52 +499,67 @@ A <code>matchatr_homogeneity</code> object returned by <code>test_homogeneity()<
 Unused; present for S3 consistency.
 </td>
 </tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="times">times</code>
+</td>
+<td>
+Non-empty numeric vector of evaluation times. Duplicates are dropped and times sorted; times before the first event return B̂ = 0, times after the last estimable event return the last cumulative value (step-function extrapolation).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="conf_level">conf_level</code>
+</td>
+<td>
+Numeric in (0, 1). Pointwise confidence level. Default <code>0.95</code>.
+</td>
+</tr>
 </tbody></table>
+</section>
+<section id="details" class="level3">
+<h3 class="anchored" data-anchor-id="details">Details</h3>
+<p>The fully nonparametric additive-hazards model (Aalen 1980) writes λ(t | x) = β₀(t) + Σ_j β_j(t) x_j with time-varying coefficients. Its weighted least-squares estimator gives the cumulative regression functions in increments at each event time t_i,</p>
+<p>dB̂(t_i) = (X̃ᵀ W X̃)⁻¹ X̃ᵀ W dN(t_i),</p>
+<p>where X̃ is the at-risk design matrix (an intercept column plus the covariates), W = diag(w) the Samuelsen inclusion weights, and dN(t_i) the event indicator over the risk set. B̂_j(t) = Σ over (t_i ≤ t) of dB̂_j(t_i). Pointwise variances use the Aalen (martingale) estimator</p>
+<p>V̂(t) = Σ over (t_i ≤ t) of (X̃ᵀ W X̃)⁻¹ (Σ over failures w_i² x̃_i x̃_iᵀ) (X̃ᵀ W X̃)⁻¹,</p>
+<p>and the pointwise interval is B̂_j(t) ± z·sqrt(V̂_jj(t)) on the linear scale (symmetric, possibly negative — an excess hazard is a rate difference). The weighted estimator reuses controls via 1/π_j and is valid under nested case-control sampling (Borgan &amp; Langholz 1997). <code>timereg::aalen</code> (without <code>const()</code>) computes the same <code>cum</code> and <code>var.cum</code>.</p>
+<p>The estimator is defined only while the weighted design X̃ᵀWX̃ is non-singular; if the risk set shrinks below full column rank at a late event time, B̂(t) is truncated there and a <code>matchatr_truncated_excess</code> warning reports the last estimable time. The intercept (baseline cumulative hazard) is not reported — only the covariate excess-hazard functions.</p>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>Invisibly returns <code>x</code>.</p>
+<p>A <code>matchatr_excess_risk</code> object. See <code>excess_risk.matchatr_fit</code> for the structure.</p>
+<p>A <code>matchatr_excess_risk</code> list with elements:</p>
+<ul>
+<li>
+<p><code style="white-space: pre;">$estimates</code>: a <code>data.table</code> with columns <code>term</code> (covariate), <code>time</code>, <code>estimate</code> (B̂_j(t)), <code>se</code>, <code>ci_lower</code>, <code>ci_upper</code> (symmetric Wald interval on the linear scale).</p>
+</li>
+<li>
+<p><code style="white-space: pre;">$times</code>: the sorted evaluation times.</p>
+</li>
+<li>
+<p><code style="white-space: pre;">$terms</code>: the reported covariate terms.</p>
+</li>
+<li>
+<p><code style="white-space: pre;">$conf_level</code>, <code style="white-space: pre;">$ci_method</code>, <code style="white-space: pre;">$engine</code>, <code style="white-space: pre;">$estimator</code>, <code style="white-space: pre;">$n</code>.</p>
+</li>
+</ul>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
-<p><code>test_homogeneity()</code></p>
+<p><code>matcha()</code>, <code>contrast()</code>, <code>absolute_risk()</code>, <code>sample_ncc()</code></p>
+<p>Other contrasts: <code>absolute_risk()</code>, <code>contrast()</code>, <code>print.matchatr_absolute_risk()</code>, <code>print.matchatr_excess_risk()</code>, <code>tidy.matchatr_absolute_risk()</code>, <code>tidy.matchatr_excess_risk()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"matchatr"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">2000</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="at">control =</span> <span class="dv">0</span>, <span class="at">A =</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x, <span class="at">B =</span> <span class="sc">-</span><span class="fl">1.4</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta) <span class="sc">/</span> <span class="fu">rowSums</span>(<span class="fu">exp</span>(eta))</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">apply</span>(prob, <span class="dv">1</span>, <span class="cf">function</span>(p) <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>), <span class="dv">1</span>, <span class="at">prob =</span> p))</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">g =</span> g, <span class="at">x =</span> x)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(d, <span class="at">outcome =</span> <span class="st">"g"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"polytomous"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">reference =</span> <span class="st">"control"</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">test_homogeneity</span>(fit))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;matchatr_homogeneity&gt;
- Estimator:  polytomous  (engine: multinom)
- Test:       Homogeneity of subtype odds ratios (Wald)
- Reference:  control
- N:          2000
-
-Common (pooled) odds ratio per exposure term and homogeneity test:
-     term common_or        se ci_lower ci_upper statistic    df   p.value
-   &lt;char&gt;     &lt;num&gt;     &lt;num&gt;    &lt;num&gt;    &lt;num&gt;     &lt;num&gt; &lt;int&gt;     &lt;num&gt;
-1:      x  2.168761 0.2006846 1.809033 2.600022 0.6589249     1 0.4169398
-
-Per-subtype odds ratios (pooled):
-   comparison       or ci_lower ci_upper
-       &lt;char&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
-1:       A: x 2.267207 1.836532 2.798877
-2:       B: x 2.035590 1.605604 2.580728
-
-A small p-value is evidence the exposure odds ratio differs across subtypes.</code></pre>
-</div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>ncc <span class="ot">&lt;-</span> <span class="fu">sample_ncc</span>(cohort, <span class="at">time =</span> <span class="st">"t"</span>, <span class="at">event =</span> <span class="st">"d"</span>, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">incl_prob =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ncc, <span class="at">outcome =</span> <span class="st">"d"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">nested_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">time =</span> <span class="st">"t"</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">estimator =</span> <span class="st">"ipw_aalen"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">excess_risk</span>(fit, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

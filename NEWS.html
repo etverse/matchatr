@@ -252,6 +252,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./man/excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">excess_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./man/matcha.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">matcha</span></a>
   </div>
@@ -278,6 +284,12 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="./man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/print.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -332,6 +344,12 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="./man/tidy.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tidy.matchatr_absolute_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./man/tidy.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -396,6 +414,10 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#matchatr-development-version" id="toc-matchatr-development-version" class="nav-link active" data-scroll-target="#matchatr-development-version">matchatr (development version)</a>
   <ul class="collapse">
+  <li><a href="#time-varying-additive-excess-risk-for-ipw-ncc-phase_7-follow-up" id="toc-time-varying-additive-excess-risk-for-ipw-ncc-phase_7-follow-up" class="nav-link" data-scroll-target="#time-varying-additive-excess-risk-for-ipw-ncc-phase_7-follow-up">2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)</a></li>
+  <li><a href="#split-rweighted_cox.r-internal-refactor" id="toc-split-rweighted_cox.r-internal-refactor" class="nav-link" data-scroll-target="#split-rweighted_cox.r-internal-refactor">2026-06-10 — Split R/weighted_cox.R (internal refactor)</a></li>
+  <li><a href="#non-weibull-aft-distributions-for-ipw-ncc-phase_7-follow-up" id="toc-non-weibull-aft-distributions-for-ipw-ncc-phase_7-follow-up" class="nav-link" data-scroll-target="#non-weibull-aft-distributions-for-ipw-ncc-phase_7-follow-up">2026-06-10 — Non-Weibull AFT distributions for IPW NCC (PHASE_7 follow-up)</a></li>
+  <li><a href="#aft-survival-curve-absolute-risk-for-ipw-ncc-phase_7-follow-up" id="toc-aft-survival-curve-absolute-risk-for-ipw-ncc-phase_7-follow-up" class="nav-link" data-scroll-target="#aft-survival-curve-absolute-risk-for-ipw-ncc-phase_7-follow-up">2026-06-10 — AFT survival-curve absolute risk for IPW NCC (PHASE_7 follow-up)</a></li>
   <li><a href="#additive-hazards-and-aft-models-for-ipw-ncc-phase_7-chunk-5" id="toc-additive-hazards-and-aft-models-for-ipw-ncc-phase_7-chunk-5" class="nav-link" data-scroll-target="#additive-hazards-and-aft-models-for-ipw-ncc-phase_7-chunk-5">2026-06-10 — Additive-hazards and AFT models for IPW NCC (PHASE_7 Chunk 5)</a></li>
   <li><a href="#multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4" id="toc-multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4" class="nav-link" data-scroll-target="#multiple-endpoints-from-one-reused-ncc-control-set-phase_7-chunk-4">2026-06-10 — Multiple endpoints from one reused NCC control set (PHASE_7 Chunk 4)</a></li>
   <li><a href="#ipw-absolute-risk-correctness-for-complicated-designs-critical-review" id="toc-ipw-absolute-risk-correctness-for-complicated-designs-critical-review" class="nav-link" data-scroll-target="#ipw-absolute-risk-correctness-for-complicated-designs-critical-review">2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)</a></li>
@@ -436,6 +458,30 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="matchatr-development-version" class="level1">
 <h1>matchatr (development version)</h1>
+<section id="time-varying-additive-excess-risk-for-ipw-ncc-phase_7-follow-up" class="level2">
+<h2 class="anchored" data-anchor-id="time-varying-additive-excess-risk-for-ipw-ncc-phase_7-follow-up">2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)</h2>
+<p>New exported verb <code>excess_risk(fit, times)</code> for an <code>ipw_aalen</code> fit reports the <strong>time-varying</strong> Aalen cumulative regression functions B_j(t) = ∫₀ᵗ β_j(s) ds — the cumulative excess hazard for each covariate, the additive analogue of <code>absolute_risk()</code>. Where <code>contrast(type = "excess")</code> reports one time-<em>constant</em> excess hazard per covariate (the Lin-Ying model), <code>excess_risk()</code> relaxes the constant-effect assumption and returns the full cumulative regression function over time, completing the Phase-7 deferred item “time-varying additive effects / cumulative regression B(t)”.</p>
+<p>The weighted least-squares estimator (<code>aalen_cumulative()</code>, <code>R/excess_risk.R</code>) accumulates dB̂(t_i) = (X̃ᵀWX̃)⁻¹ X̃ᵀW dN(t_i) over the event times of the deduplicated, Samuelsen-weighted analysis sample, with the Aalen martingale pointwise variance (X̃ᵀWX̃)⁻¹{Σ w² x̃x̃ᵀ}(X̃ᵀWX̃)⁻¹; the interval is a symmetric Wald band on the linear scale (B can be negative). The estimator truncates with a <code>matchatr_truncated_excess</code> warning if the weighted design becomes singular in a sparse late risk set. <code>print</code> / <code>tidy</code> methods render the per-(covariate, time) table; non-<code>ipw_aalen</code> engines are rejected with <code>matchatr_not_implemented</code>.</p>
+<p>Validated in <code>test-excess_risk.R</code>: B̂_j(t) and the pointwise SE match <code>timereg::aalen</code> (without <code>const()</code>) <code>cum</code> and <code>var.cum</code> to machine precision (1e-8), including a three-level factor exposure; a known constant-excess-hazard truth DGP recovers B_x(t) = β_x·t within a SE band.</p>
+</section>
+<section id="split-rweighted_cox.r-internal-refactor" class="level2">
+<h2 class="anchored" data-anchor-id="split-rweighted_cox.r-internal-refactor">2026-06-10 — Split R/weighted_cox.R (internal refactor)</h2>
+<p>The Samuelsen IPW weighted Cox engine and its shared helpers (<code>fit_ipw_cox()</code> / <code>contrast_ipw_cox()</code> / <code>ncc_ipw_analysis_data()</code> / <code>require_ipw_ncc_columns()</code>) move from <code>R/weighted_cox.R</code> into a new <code>R/ipw_cox.R</code>; <code>R/weighted_cox.R</code> now holds only the counter-matched <code>fit_weighted_cox()</code> / <code>contrast_weighted_cox()</code>. Pure code move, no behaviour change — both files are now under the ~300-line guideline. No user-visible change.</p>
+</section>
+<section id="non-weibull-aft-distributions-for-ipw-ncc-phase_7-follow-up" class="level2">
+<h2 class="anchored" data-anchor-id="non-weibull-aft-distributions-for-ipw-ncc-phase_7-follow-up">2026-06-10 — Non-Weibull AFT distributions for IPW NCC (PHASE_7 follow-up)</h2>
+<p><code>matcha(estimator = "ipw_aft")</code> gains a <code>dist</code> argument selecting the accelerated-failure-time baseline — <code>"weibull"</code> (default), <code>"exponential"</code>, <code>"lognormal"</code>, or <code>"loglogistic"</code> — completing the Phase-7 deferred item “non-Weibull AFT distributions”. All four are log-location-scale AFT models, so <code>contrast(type = "af")</code> reports the same time-ratio estimand exp(β) under each; they differ in the baseline error distribution (and therefore the survival-curve shape). <code>"exponential"</code> is the one-parameter Weibull (it fixes σ = 1).</p>
+<p><code>absolute_risk()</code> follows the distribution: the cumulative incidence is F̂_x(t) = G((log t − η̂)/σ̂), where G is the baseline error CDF — extreme-value (complementary log-log) for weibull/exponential, Φ for lognormal, plogis for loglogistic. The delta-method CI is the Wald interval on the standardised residual mapped through the monotone G; for the extreme-value baselines this is exactly the cloglog inversion the Cox-type engines share. The exponential’s fixed scale carries no log-scale parameter, so the scale term correctly drops out of the gradient.</p>
+<p><code>dist</code> joins <code>model_fn</code> / <code>effect_modifier</code> / <code>reference</code> as an estimator-specific <code>matcha()</code> argument: supplying it for a non-AFT estimator, or naming an unsupported <code>survreg</code> distribution, is <code>matchatr_bad_input</code>.</p>
+<p>Validated in <code>test-aft_ncc.R</code> / <code>test-absolute_risk_aft.R</code>: each distribution’s coefficient/SE matches an independent <code>multipleNCC::KMprob</code> + <code>survreg</code> reconstruction (1e-6); each survival curve round-trips through <code>predict.survreg(type = "quantile")</code> and matches a numDeriv reconstruction through its error CDF (1e-7).</p>
+</section>
+<section id="aft-survival-curve-absolute-risk-for-ipw-ncc-phase_7-follow-up" class="level2">
+<h2 class="anchored" data-anchor-id="aft-survival-curve-absolute-risk-for-ipw-ncc-phase_7-follow-up">2026-06-10 — AFT survival-curve absolute risk for IPW NCC (PHASE_7 follow-up)</h2>
+<p><code>absolute_risk()</code> gains an <code>ipw_aft</code> engine path, completing the Phase-7 deferred item “AFT acceleration-factor absolute risk”. The fitted weighted Weibull accelerated failure time model is a parametric survival curve, so the cumulative incidence is read directly off the coefficients,</p>
+<p>F̂_x(t) = 1 − exp(−exp((log t − η̂) / σ̂)),</p>
+<p>where η̂ is the AFT linear predictor and σ̂ the scale — no Breslow step function. Pointwise intervals use the delta method on the complementary log-log scale over θ = (β, log σ), with the gradient ∂ξ/∂β = −x̃/σ, ∂ξ/∂(log σ) = −ξ and the robust Lin-Wei sandwich <code>survival::survreg(robust = TRUE)</code> stores in <code>vcov()</code>; the interval is inverted to the risk scale by the shared cloglog inversion the Cox-type engines already use (<code>cloglog_risk_ci()</code> / <code>new_matchatr_absolute_risk()</code>, factored out of <code>assemble_absolute_risk()</code> in <code>R/absolute_risk.R</code>; the engine is <code>R/absolute_risk_aft.R</code>). The result is weight-agnostic — KM (Samuelsen) and GLM/GAM working-model weights both feed it through the same fit.</p>
+<p>Validated in <code>test-absolute_risk_aft.R</code>: F̂_x(t) round-trips through <code>predict.survreg(type = "quantile")</code> (survival’s own inverse CDF) to 1e-7; the estimate and CI match an independent <code>numDeriv</code> reconstruction of the ξ(θ) gradient (including factor contrasts); the NCC subsample recovers the full-cohort <code>survreg</code> curve within sampling tolerance; and a Weibull truth DGP’s analytical F_x(t) is covered by the CI. <code>absolute_risk()</code> on the additive (<code>ipw_aalen</code>) engine — which has no survival-curve verb — is rejected with <code>matchatr_not_implemented</code>.</p>
+</section>
 <section id="additive-hazards-and-aft-models-for-ipw-ncc-phase_7-chunk-5" class="level2">
 <h2 class="anchored" data-anchor-id="additive-hazards-and-aft-models-for-ipw-ncc-phase_7-chunk-5">2026-06-10 — Additive-hazards and AFT models for IPW NCC (PHASE_7 Chunk 5)</h2>
 <p>Two non-Cox alternative models on the deduplicated Samuelsen-weighted NCC sample (Handbook Ch19 §19.5), completing Phase 7.</p>

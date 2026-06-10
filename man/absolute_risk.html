@@ -287,6 +287,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">excess_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/matcha.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">matcha</span></a>
   </div>
@@ -313,6 +319,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/print.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -367,6 +379,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/tidy.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tidy.matchatr_absolute_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -451,7 +469,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="unnumbered anchored" data-anchor-id="absolute-risk-from-a-sampled-cohort-survival-fit">Absolute risk from a sampled-cohort survival fit</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Estimates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from a fitted survival design, where Λ̂₀(t) is an inverse-probability-weighted (IPW) Breslow cumulative baseline hazard. Two engines are supported: the case-cohort pseudo-likelihood (<code>“cch”</code>, Borgan &amp; Liestøl 1990) and the IPW nested case-control weighted Cox (<code>“ipw_cox”</code>, Samuelsen-weighted Breslow over the reused controls). Pointwise confidence intervals use the delta method on the complementary log-log scale (the "log-log" CI for the survival function, inverted to the risk scale).</p>
+<p>Estimates the cumulative incidence F_x(t) from a fitted survival design. Three engines are supported: the case-cohort pseudo-likelihood (<code>“cch”</code>, Borgan &amp; Liestøl 1990) and the IPW nested case-control weighted Cox (<code>“ipw_cox”</code>, Samuelsen-weighted Breslow over the reused controls) both build F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from an inverse-probability-weighted (IPW) Breslow cumulative baseline hazard Λ̂₀(t); the IPW nested case-control parametric AFT (<code>“ipw_aft”</code>, any of the Weibull / exponential / lognormal / loglogistic baselines) builds F_x(t) = G((log t − η̂)/σ̂) directly from the fitted survival curve, where η̂ is the AFT linear predictor, σ̂ the scale, and G the baseline error CDF. Pointwise confidence intervals use the delta method: for the Cox-type engines and the extreme-value AFT baselines this is the complementary log-log scale inverted to the risk scale; for the lognormal / loglogistic baselines it is the Wald interval on the standardised residual mapped through G.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
@@ -469,7 +487,7 @@ absolute_risk(fit, newdata, times, conf_level = 0.95, ...)
 <code id="fit">fit</code>
 </td>
 <td>
-A <code>matchatr_fit</code> object returned by <code>matcha()</code>. The case-cohort (<code>“cch”</code>) and IPW nested case-control (<code>“ipw_cox”</code>) engines are supported.
+A <code>matchatr_fit</code> object returned by <code>matcha()</code>. The case-cohort (<code>“cch”</code>), IPW nested case-control weighted Cox (<code>“ipw_cox”</code>), and IPW nested case-control Weibull AFT (<code>“ipw_aft”</code>) engines are supported.
 </td>
 </tr>
 <tr>
@@ -528,7 +546,7 @@ Numeric in (0, 1). Confidence level for the pointwise intervals. Default <code>0
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
 <p><code>matcha()</code>, <code>contrast()</code>, <code>case_cohort()</code>, <code>sample_ncc()</code></p>
-<p>Other contrasts: <code>contrast()</code>, <code>print.matchatr_absolute_risk()</code>, <code>tidy.matchatr_absolute_risk()</code></p>
+<p>Other contrasts: <code>contrast()</code>, <code>excess_risk()</code>, <code>print.matchatr_absolute_risk()</code>, <code>print.matchatr_excess_risk()</code>, <code>tidy.matchatr_absolute_risk()</code>, <code>tidy.matchatr_excess_risk()</code></p>
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>

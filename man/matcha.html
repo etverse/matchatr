@@ -287,6 +287,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../man/excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">excess_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../man/matcha.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">matcha</span></a>
   </div>
@@ -313,6 +319,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/print.matchatr_design.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">print.matchatr_design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/print.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">print.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -367,6 +379,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../man/tidy.matchatr_absolute_risk.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tidy.matchatr_absolute_risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../man/tidy.matchatr_excess_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tidy.matchatr_excess_risk</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -465,7 +483,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   estimator = NULL,
   model_fn = NULL,
   effect_modifier = NULL,
-  reference = NULL
+  reference = NULL,
+  dist = NULL
 )
 </code></pre>
 </section>
@@ -542,6 +561,14 @@ Optional model-fitting function for the unmatched case-control logistic engine, 
 </td>
 <td>
 <code>NULL</code> or a character scalar naming the reference outcome group for <code>estimator = “polytomous”</code>. The multinomial logistic contrasts every other group against this baseline, so each non-reference equation’s exposure coefficient is that subtype’s log odds ratio versus the reference. It must name one of the observed groups; when <code>NULL</code> the first factor level (or the first level in sorted order, for a character outcome) is used. Supplying it for a non-polytomous estimator is an error. Defaults to <code>NULL</code>.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="dist">dist</code>
+</td>
+<td>
+<code>NULL</code> or a character scalar naming the parametric baseline for <code>estimator = “ipw_aft”</code>: one of <code>“weibull”</code> (the default), <code>“exponential”</code>, <code>“lognormal”</code>, or <code>“loglogistic”</code>. All four are accelerated failure time models, so <code>contrast(type = “af”)</code> reports the same time-ratio estimand <code>exp(beta)</code>; they differ in the baseline error distribution (and hence the survival-curve shape used by <code>absolute_risk()</code>). <code>“weibull”</code> and <code>“exponential”</code> are additionally proportional-hazards. Supplying it for a non-AFT estimator is an error. Defaults to <code>NULL</code> (Weibull).
 </td>
 </tr>
 </tbody></table>
