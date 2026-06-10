@@ -192,14 +192,31 @@ reuse_ncc_endpoint <- function(ncc, cohort, time, event) {
   cohort_df <- as.data.frame(cohort)
   ncc_df <- as.data.frame(ncc)
 
+  # An empty sample has no ascertained cases and no controls to reuse; the
+  # augmentation below would otherwise derive set ids from `max(integer(0))`
+  # (-Inf). `sample_ncc()` never returns an empty sample (it needs >= 1 event),
+  # so this only guards a hand-built malformed input.
+  if (nrow(ncc_df) == 0L) {
+    rlang::abort(
+      c(
+        "`ncc` has no rows; there is no control set to reuse.",
+        i = "Supply a non-empty NCC sample from `sample_ncc(incl_prob = TRUE)`."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
+  }
+
   # Resolve the secondary endpoint to a 0/1 indicator; reusing for an endpoint
   # with no cases is meaningless (`resolve_event_indicator` enforces >= 1 case).
   d2 <- resolve_event_indicator(cohort_df, event, call = call)
   d2_rows <- which(d2 == 1L)
 
   # Secondary cases already represented in the sample keep their rows; the rest
-  # are augmented. Their inclusion weight is 1 (ascertained), set on every row
-  # of the subject so a secondary case drawn as a control is not left at 1/π_j.
+  # are augmented. Every secondary case is ascertained (weight 1), forced on
+  # every row of the subject so one drawn as a control is not left at 1/π_j. The
+  # `ipw_cox` engine re-enforces weight 1 for ascertained subjects when it
+  # deduplicates, so this also keeps the returned data self-consistent on its own.
   in_sample <- unique(ncc_df[[".cohort_row"]])
   aug_rows <- setdiff(d2_rows, in_sample)
   ncc_df[["ipw_weight"]][ncc_df[[".cohort_row"]] %in% d2_rows] <- 1.0
@@ -208,6 +225,28 @@ reuse_ncc_endpoint <- function(ncc, cohort, time, event) {
     # Shared-control case: every secondary case was already ascertained (e.g. the
     # NCC was drawn on the union event), so there is nothing to augment.
     return(data.table::as.data.table(ncc_df))
+  }
+
+  # An augmented secondary case must have an observed event time to contribute a
+  # valid event to the weighted Cox; an NA / non-finite time would be silently
+  # dropped by the downstream fit. Mirror `sample_ncc()`'s rejection of cases
+  # whose risk set cannot be formed.
+  aug_time <- cohort_df[[time]][aug_rows]
+  if (anyNA(aug_time) || any(!is.finite(aug_time))) {
+    rlang::abort(
+      c(
+        paste0(
+          "Some augmented `",
+          event,
+          "` cases have a missing or non-finite `",
+          time,
+          "`, so they cannot contribute a valid event."
+        ),
+        i = "Drop or correct the cohort cases with missing event times before reusing the control set."
+      ),
+      class = c("matchatr_bad_input", "matchatr_error"),
+      call = call
+    )
   }
 
   # The NCC carries the cohort columns plus this bookkeeping; the augmented rows
@@ -237,7 +276,7 @@ reuse_ncc_endpoint <- function(ncc, cohort, time, event) {
   max_set <- as.integer(max(ncc_df[["set"]], na.rm = TRUE))
   aug[["set"]] <- max_set + seq_along(aug_rows)
   aug[["case"]] <- 1L
-  aug[["risk_time"]] <- cohort_df[[time]][aug_rows]
+  aug[["risk_time"]] <- aug_time
   aug[[".cohort_row"]] <- aug_rows
   aug[["ipw_weight"]] <- 1.0
 

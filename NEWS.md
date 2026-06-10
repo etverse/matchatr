@@ -34,6 +34,13 @@ and a competing-risks truth DGP with known cause-specific Cox log-HRs (each mode
 recovers the full-cohort HR within a 3.5-SE band). Additive/AFT models
 (Ch19 §19.5) remain deferred.
 
+`reuse_ncc_endpoint()` rejects two malformed inputs with `matchatr_bad_input`
+rather than producing degenerate output: an empty NCC sample (whose augmented
+set ids would come from `max(integer(0)) = -Inf`), and an augmented secondary
+case with a missing / non-finite event time (which the downstream weighted Cox
+would silently drop) — mirroring `sample_ncc()`'s rejection of cases whose risk
+set cannot be formed.
+
 ## 2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)
 
 Three correctness fixes to the IPW nested case-control absolute risk, all in the

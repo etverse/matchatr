@@ -394,3 +394,37 @@ test_that("reuse_ncc_endpoint aborts when the secondary endpoint has no cases", 
     class = "matchatr_bad_outcome"
   )
 })
+
+test_that("reuse_ncc_endpoint aborts on an empty NCC sample", {
+  # A malformed empty sample would otherwise derive augmented set ids from
+  # max(integer(0)) = -Inf; reject it as bad input instead.
+  cohort <- make_competing_cohort(n = 400L, seed = 1L)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc(cohort, "t", "d1", m = 2L, incl_prob = TRUE)
+  )
+  expect_error(
+    reuse_ncc_endpoint(ncc[0L, ], cohort = cohort, time = "t", event = "d2"),
+    class = "matchatr_bad_input"
+  )
+})
+
+test_that("reuse_ncc_endpoint aborts when an augmented secondary case has a non-finite time", {
+  # An augmented secondary case with NA event time would be silently dropped by
+  # the downstream weighted Cox; mirror sample_ncc()'s rejection of cases whose
+  # risk set cannot be formed.
+  cohort <- make_competing_cohort(n = 400L, seed = 1L)
+  ncc <- withr::with_seed(
+    2L,
+    sample_ncc(cohort, "t", "d1", m = 2L, incl_prob = TRUE)
+  )
+  # Corrupt the time of a secondary case that was NOT drawn into the sample.
+  d2_rows <- which(cohort$d2 == 1L)
+  aug_candidate <- setdiff(d2_rows, unique(ncc$.cohort_row))[1L]
+  skip_if(is.na(aug_candidate), "no unsampled secondary case to corrupt")
+  cohort$t[aug_candidate] <- NA_real_
+  expect_error(
+    reuse_ncc_endpoint(ncc, cohort = cohort, time = "t", event = "d2"),
+    class = "matchatr_bad_input"
+  )
+})
