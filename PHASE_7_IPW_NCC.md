@@ -180,13 +180,18 @@ estimators than alternatives (Ch19 §19.3).
   as F̂_x(t) = G((log t − η̂)/σ̂) with G the error CDF (`aft_risk_ci()`). Oracles:
   per-distribution `KMprob` + `survreg` reconstruction and `predict.survreg`
   round-trip (`test-aft_ncc.R`, `test-absolute_risk_aft.R`).
-- **Time-varying additive effects / cumulative regression function B(t).** The
-  current additive engine fits the *constant-effect* Lin-Ying model (one excess
-  hazard per covariate). The fully nonparametric Aalen model gives the cumulative
-  regression functions B_j(t) = ∫β_j(s)ds (time-varying excess risk), the additive
-  analogue of `absolute_risk()`. Surfacing it needs a function-over-time verb
-  (e.g. `excess_risk(fit, times)`) and a hand-rolled B̂(t) + variance, not a scalar
-  `contrast()`. `timereg::aalen` (without `const()`) is the oracle.
+- ✅ **Time-varying additive effects / cumulative regression function B(t) (done).**
+  The exported `excess_risk(fit, times)` verb (`R/excess_risk.R`,
+  `test-excess_risk.R`) reports the time-varying Aalen cumulative regression
+  functions B_j(t) = ∫β_j(s)ds (the additive analogue of `absolute_risk()`),
+  relaxing the Lin-Ying constant-effect assumption. The hand-rolled
+  `aalen_cumulative()` accumulates dB̂(t_i) = (X̃ᵀWX̃)⁻¹X̃ᵀW dN(t_i) with the Aalen
+  martingale pointwise variance, on the deduplicated Samuelsen-weighted sample.
+  Oracle: `timereg::aalen` (without `const()`) reproduces `cum` and `var.cum` to
+  machine precision (incl. a factor exposure); a constant-excess-hazard truth DGP
+  recovers B_x(t) = β_x·t. Rejects non-`ipw_aalen` engines
+  (`matchatr_not_implemented`); truncates a singular late risk set
+  (`matchatr_truncated_excess`).
 - ✅ **AFT acceleration-factor absolute risk (done).** `absolute_risk()` now also
   dispatches on the `ipw_aft` engine (`R/absolute_risk_aft.R`,
   `test-absolute_risk_aft.R`): the fitted weighted Weibull is a parametric survival

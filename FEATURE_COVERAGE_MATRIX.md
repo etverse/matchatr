@@ -458,6 +458,8 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 | invalid / off-estimator `dist` | — | — | — | ⛔ `matchatr_bad_input` | `test-aft_ncc.R` |
 | AFT absolute risk F_x(t), S(t\|x) for all four baselines | `ipw_aft` | F̂_x(t) | survreg robust + delta-method CI (log-log for extreme-value baselines, standardised-residual otherwise) | ✅ `predict.survreg` quantile round-trip (1e-7) + numDeriv gradient reconstruction of estimate + CI via each error CDF (1e-7, incl. factor contrasts) + full-cohort `survreg` recovery (sampling tol) + truth DGP (Weibull, CI covers); weight-agnostic (KM + GLM) | `test-absolute_risk_aft.R` |
 | additive hazards, constant effects (`estimator = "ipw_aalen"`) | `ipw_aalen` | excess hazard γ (rate difference) | Lin-Ying robust sandwich | ✅ truth-DGP recovery (3.5-SE, binary + 3-level factor exposure) + `timereg::aalen` oracle (point exact 1e-6 incl. full coef vector on a complex covariate set; robust SE within 5%) | `test-additive_ncc.R` |
+| time-varying additive cumulative regression B_j(t) (`excess_risk()`) | `ipw_aalen` | cumulative excess hazard B_j(t) = ∫β_j(s)ds | Aalen martingale | ✅ `timereg::aalen` (no `const()`) `cum` + `var.cum` exact (1e-8, incl. 3-level factor exposure) + truth DGP (B_x(t) = β_x·t, SE band, CI covers) | `test-excess_risk.R` |
+| `excess_risk()` on a non-`ipw_aalen` engine / bad `times` | — | — | — | ⛔ `matchatr_not_implemented` / `matchatr_bad_input` | `test-excess_risk.R` |
 | `ipw_aft` / `ipw_aalen` off-scale `type` / `ci_method` / non-`incl_prob` / non-nested | — | — | — | ⛔ `matchatr_unidentified_estimand` / `matchatr_unsupported_variance` / `matchatr_missing_ipw_weights` / `matchatr_bad_estimator` | `test-aft_ncc.R`, `test-additive_ncc.R` |
 
 ## Case-control-weighted causal contrasts (PHASE_9)
@@ -499,7 +501,7 @@ Quarto, `lumen` theme).
 | `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, `test_homogeneity()` (Wald test + pooled common OR), collinearity guard |
 | `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 | `case-cohort.qmd` | Prentice / SelfPrentice / LinYing / Borgan I/II HRs, stratified subcohort, `absolute_risk()` IPW Breslow F_x(t), design rejections |
-| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `ipw_aft` time ratio + `ipw_aalen` excess hazard, `absolute_risk()` IPW Breslow (Cox) and parametric Weibull (AFT) F_x(t) + cumulative-incidence plot, classical vs IPW comparison, rejection paths |
+| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `ipw_aft` time ratio (Weibull / exponential / lognormal / loglogistic baselines) + `ipw_aalen` excess hazard, `absolute_risk()` IPW Breslow (Cox) and parametric AFT F_x(t) + cumulative-incidence plot, `excess_risk()` time-varying cumulative excess hazard B_j(t), classical vs IPW comparison, rejection paths |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

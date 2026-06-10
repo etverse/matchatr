@@ -151,7 +151,7 @@ absolute_risk_aft <- function(fit, newdata, times, conf_level = 0.95) {
 #' @param se_z Numeric scalar standard error of z (delta method).
 #' @param z_crit Numeric critical value (e.g. `qnorm(0.975)`).
 #' @param dist Character `survreg` baseline distribution name (one of
-#'   [aft_supported_dists()]).
+#'   `aft_supported_dists()`).
 #' @returns A list with `$estimate`, `$ci_lower`, `$ci_upper` on the probability
 #'   scale.
 #' @family contrasts

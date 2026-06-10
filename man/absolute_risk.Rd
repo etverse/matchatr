@@ -72,7 +72,10 @@ absolute_risk(fit, newdata = data.frame(x = 1, z = 0), times = c(1, 2, 3))
 
 Other contrasts: 
 \code{\link{contrast}()},
+\code{\link{excess_risk}()},
 \code{\link{print.matchatr_absolute_risk}()},
-\code{\link{tidy.matchatr_absolute_risk}()}
+\code{\link{print.matchatr_excess_risk}()},
+\code{\link{tidy.matchatr_absolute_risk}()},
+\code{\link{tidy.matchatr_excess_risk}()}
 }
 \concept{contrasts}

@@ -422,6 +422,35 @@ fit_add <- matcha(ncc, outcome = "d", exposure = "exposure",
 contrast(fit_add)
 ```
 
+`contrast()` reports a single time-*constant* excess hazard (the Lin-Ying model).
+To let the effect vary with time, `excess_risk()` returns the **cumulative**
+excess hazard $B_j(t) = \int_0^t \beta_j(s)\,ds$ — the additive analogue of
+`absolute_risk()`. A straight line means a constant rate difference; curvature
+means a time-varying one.
+
+```{r}
+er <- excess_risk(fit_add, times = 1:5)
+er
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 4
+#| fig-alt: >
+#|   Cumulative excess hazard of the exposure over follow-up estimated from the
+#|   IPW nested case-control additive-hazards model, with a pointwise 95%
+#|   confidence band. The curve rises roughly linearly, indicating an
+#|   approximately constant excess rate.
+ex <- er$estimates[er$estimates$term == "exposure", ]
+plot(ex$time, ex$estimate, type = "b", pch = 19, col = "#8e44ad",
+     ylim = range(ex$ci_lower, ex$ci_upper),
+     xlab = "time", ylab = expression(hat(B)[x](t)),
+     main = "IPW NCC cumulative excess hazard")
+lines(ex$time, ex$ci_lower, lty = 2, col = "#8e44ad")
+lines(ex$time, ex$ci_upper, lty = 2, col = "#8e44ad")
+abline(h = 0, col = "grey60")
+```
+
 Each estimator identifies exactly one scale, so asking for another is rejected:
 
 ```{r}

@@ -1,5 +1,30 @@
 # matchatr (development version)
 
+## 2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)
+
+New exported verb `excess_risk(fit, times)` for an `ipw_aalen` fit reports the
+**time-varying** Aalen cumulative regression functions
+B_j(t) = ∫₀ᵗ β_j(s) ds — the cumulative excess hazard for each covariate, the
+additive analogue of `absolute_risk()`. Where `contrast(type = "excess")` reports
+one time-*constant* excess hazard per covariate (the Lin-Ying model),
+`excess_risk()` relaxes the constant-effect assumption and returns the full
+cumulative regression function over time, completing the Phase-7 deferred item
+"time-varying additive effects / cumulative regression B(t)".
+
+The weighted least-squares estimator (`aalen_cumulative()`, `R/excess_risk.R`)
+accumulates dB̂(t_i) = (X̃ᵀWX̃)⁻¹ X̃ᵀW dN(t_i) over the event times of the
+deduplicated, Samuelsen-weighted analysis sample, with the Aalen martingale
+pointwise variance (X̃ᵀWX̃)⁻¹{Σ w² x̃x̃ᵀ}(X̃ᵀWX̃)⁻¹; the interval is a symmetric Wald
+band on the linear scale (B can be negative). The estimator truncates with a
+`matchatr_truncated_excess` warning if the weighted design becomes singular in a
+sparse late risk set. `print` / `tidy` methods render the per-(covariate, time)
+table; non-`ipw_aalen` engines are rejected with `matchatr_not_implemented`.
+
+Validated in `test-excess_risk.R`: B̂_j(t) and the pointwise SE match
+`timereg::aalen` (without `const()`) `cum` and `var.cum` to machine precision
+(1e-8), including a three-level factor exposure; a known constant-excess-hazard
+truth DGP recovers B_x(t) = β_x·t within a SE band.
+
 ## 2026-06-10 — Split R/weighted_cox.R (internal refactor)
 
 The Samuelsen IPW weighted Cox engine and its shared helpers

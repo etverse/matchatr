@@ -160,7 +160,17 @@ on person-period data) wherever possible.
 > differ in the error distribution, so `absolute_risk()` reads
 > `F̂_x(t) = G((log t − η̂)/σ̂)` with G the baseline error CDF (extreme-value /
 > cloglog for weibull-exponential, Φ for lognormal, `plogis` for loglogistic) via
-> the shared `aft_risk_ci()`. PHASE_8+ remain `Status: DESIGN`.
+> the shared `aft_risk_ci()`. A third **Phase-7 follow-up** adds the exported
+> `excess_risk(fit, times)` verb (`R/excess_risk.R`): for an `ipw_aalen` fit it
+> reports the **time-varying** Aalen cumulative regression functions
+> B_j(t) = ∫β_j(s)ds (cumulative excess hazard per covariate, the additive analogue
+> of `absolute_risk()`), relaxing the Lin-Ying constant-effect assumption. The
+> weighted least-squares estimator `aalen_cumulative()` accumulates
+> dB̂(t_i) = (X̃ᵀWX̃)⁻¹X̃ᵀW dN(t_i) with the Aalen martingale pointwise variance, on
+> the deduplicated Samuelsen-weighted sample; it reproduces `timereg::aalen` (no
+> `const()`) `cum` and `var.cum` to machine precision (the test oracle). Non-`ipw_aalen`
+> engines are rejected (`matchatr_not_implemented`); a singular late risk set
+> truncates with `matchatr_truncated_excess`. PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -255,6 +265,11 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `lin_ying.R` (PHASE_7 Chunk 5 — `lin_ying_additive()`: the weighted Lin & Ying
   1994 constant additive-hazards point estimate + martingale-residual robust
   sandwich; `timereg::aalen` is its test oracle),
+  `excess_risk.R` (PHASE_7 follow-up — the exported `excess_risk()` verb +
+  `aalen_cumulative()`: the weighted time-varying Aalen cumulative regression
+  functions B_j(t) for an `ipw_aalen` fit, with the Aalen martingale pointwise
+  variance, matching `timereg::aalen` (no `const()`) to machine precision; plus
+  `assemble_excess_risk()` and `print` / `tidy.matchatr_excess_risk`),
   `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
   `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
   Self-Prentice / Lin-Ying / Borgan I/II),
