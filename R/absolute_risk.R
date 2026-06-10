@@ -1,17 +1,21 @@
 #' Absolute risk from a sampled-cohort survival fit
 #'
 #' @description
-#' Estimates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from a
-#' fitted survival design, where Λ̂₀(t) is an inverse-probability-weighted (IPW)
-#' Breslow cumulative baseline hazard. Two engines are supported: the case-cohort
-#' pseudo-likelihood (`"cch"`, Borgan & Liestøl 1990) and the IPW nested
-#' case-control weighted Cox (`"ipw_cox"`, Samuelsen-weighted Breslow over the
-#' reused controls). Pointwise confidence intervals use the delta method on the
-#' complementary log-log scale (the "log-log" CI for the survival function,
+#' Estimates the cumulative incidence F_x(t) from a fitted survival design. Three
+#' engines are supported: the case-cohort pseudo-likelihood (`"cch"`, Borgan &
+#' Liestøl 1990) and the IPW nested case-control weighted Cox (`"ipw_cox"`,
+#' Samuelsen-weighted Breslow over the reused controls) both build
+#' F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from an inverse-probability-weighted (IPW)
+#' Breslow cumulative baseline hazard Λ̂₀(t); the IPW nested case-control weighted
+#' Weibull AFT (`"ipw_aft"`) builds F_x(t) = 1 − exp(−exp((log t − η)/σ̂))
+#' directly from the fitted parametric survival curve (η is the AFT linear
+#' predictor, σ̂ the scale). Pointwise confidence intervals use the delta method on
+#' the complementary log-log scale (the "log-log" CI for the survival function,
 #' inverted to the risk scale).
 #'
 #' @param fit A `matchatr_fit` object returned by [matcha()]. The case-cohort
-#'   (`"cch"`) and IPW nested case-control (`"ipw_cox"`) engines are supported.
+#'   (`"cch"`), IPW nested case-control weighted Cox (`"ipw_cox"`), and IPW nested
+#'   case-control Weibull AFT (`"ipw_aft"`) engines are supported.
 #' @param ... Unused; present for S3 consistency.
 #' @returns A `matchatr_absolute_risk` object. See `absolute_risk.matchatr_fit`
 #'   for details on the return structure.
@@ -56,10 +60,11 @@ absolute_risk.matchatr_fit <- function(
   conf_level = 0.95,
   ...
 ) {
-  # The cumulative-incidence estimator needs a fitted Cox-type model with a
-  # cumulative baseline hazard. Both supported engines provide one: the
-  # case-cohort pseudo-likelihood and the IPW nested case-control weighted Cox.
-  supported <- c("cch", "ipw_cox")
+  # The cumulative-incidence estimator needs a fitted survival model with a
+  # well-defined survival curve S(t | x). The Cox-type engines (case-cohort
+  # pseudo-likelihood, IPW nested case-control weighted Cox) supply a cumulative
+  # baseline hazard; the IPW AFT supplies a parametric Weibull curve.
+  supported <- c("cch", "ipw_cox", "ipw_aft")
   if (!fit$engine %in% supported) {
     rlang::abort(
       c(
@@ -69,8 +74,9 @@ absolute_risk.matchatr_fit <- function(
           "` engine."
         ),
         i = paste0(
-          "Supported engines: the case-cohort (`cch`) and IPW nested ",
-          "case-control (`ipw_cox`) survival fits."
+          "Supported engines: the case-cohort (`cch`), IPW nested ",
+          "case-control weighted Cox (`ipw_cox`), and IPW nested case-control ",
+          "Weibull AFT (`ipw_aft`) survival fits."
         )
       ),
       class = c("matchatr_not_implemented", "matchatr_error")
@@ -103,6 +109,12 @@ absolute_risk.matchatr_fit <- function(
       conf_level = conf_level
     ),
     ipw_cox = absolute_risk_ncc(
+      fit,
+      newdata = newdata,
+      times = times,
+      conf_level = conf_level
+    ),
+    ipw_aft = absolute_risk_aft(
       fit,
       newdata = newdata,
       times = times,
@@ -210,37 +222,96 @@ assemble_absolute_risk <- function(
       # Delta method on log(-log(1 - F(t))) = log(Lambda_x(t)) = xi
       # Var(xi) = x' V_beta x  +  Var(log Lambda_0(t))
       se_xi <- sqrt(var_beta_r + var_log_t[j])
-
-      xi <- log(lambda_x)
-      f_est <- 1 - exp(-lambda_x)
-      # CI on the log-log scale inverted to [0, 1]: higher xi -> lower S -> higher F
-      ci_lo <- 1 - exp(-exp(xi - z_crit * se_xi))
-      ci_hi <- 1 - exp(-exp(xi + z_crit * se_xi))
-      # Clamp to [0, 1] to defend against numerical overflow at extreme times
-      ci_lo <- max(0, min(1, ci_lo))
-      ci_hi <- max(0, min(1, ci_hi))
+      ci <- cloglog_risk_ci(log(lambda_x), se_xi, z_crit)
 
       rows[[k <- k + 1L]] <- list(
         row = r,
         time = times[j],
-        estimate = f_est,
-        ci_lower = ci_lo,
-        ci_upper = ci_hi
+        estimate = ci$estimate,
+        ci_lower = ci$ci_lower,
+        ci_upper = ci$ci_upper
       )
     }
   }
 
-  estimates <- data.table::rbindlist(rows)
+  new_matchatr_absolute_risk(
+    estimates = data.table::rbindlist(rows),
+    times = times,
+    newdata = newdata,
+    conf_level = conf_level,
+    ci_method = "delta (log-log)",
+    engine = fit$engine,
+    estimator = fit$estimator,
+    method = method
+  )
+}
 
+#' Risk estimate and complementary-log-log CI from a cloglog linear predictor
+#'
+#' Shared inversion for every absolute-risk engine. Given ξ = log(−log S(t | x))
+#' (the cumulative incidence on the complementary log-log scale) and its standard
+#' error, returns the cumulative incidence F = 1 − exp(−exp(ξ)) and a pointwise CI
+#' formed by inverting the symmetric Wald interval ξ ± z·SE(ξ) back to the risk
+#' scale. Because higher ξ means lower survival, ξ − z·SE maps to the lower risk
+#' bound. The CI bounds are clamped to `[0, 1]` to defend against numerical overflow
+#' at extreme times. The Cox-type engines pass ξ = log Λ_x(t); the AFT engine
+#' passes ξ = (log t − η)/σ̂ — the same scale, different ξ.
+#'
+#' @param xi Numeric scalar ξ = log(−log S(t | x)).
+#' @param se_xi Numeric scalar standard error of ξ (delta method).
+#' @param z_crit Numeric critical value (e.g. `qnorm(0.975)`).
+#' @returns A list with `$estimate`, `$ci_lower`, `$ci_upper` on the probability
+#'   scale.
+#' @family contrasts
+#' @noRd
+cloglog_risk_ci <- function(xi, se_xi, z_crit) {
+  f_est <- 1 - exp(-exp(xi))
+  # Higher xi -> lower S -> higher F, so xi - z*se gives the lower risk bound.
+  ci_lo <- 1 - exp(-exp(xi - z_crit * se_xi))
+  ci_hi <- 1 - exp(-exp(xi + z_crit * se_xi))
+  list(
+    estimate = f_est,
+    ci_lower = max(0, min(1, ci_lo)),
+    ci_upper = max(0, min(1, ci_hi))
+  )
+}
+
+#' Construct a matchatr_absolute_risk object
+#'
+#' Wraps the estimates table and evaluation metadata in the `matchatr_absolute_risk`
+#' S3 structure shared by the case-cohort, IPW Cox, and IPW AFT engines, so the
+#' class and field layout live in one place.
+#'
+#' @param estimates A `data.table` with columns `row`, `time`, `estimate`,
+#'   `ci_lower`, `ci_upper`.
+#' @param times Sorted numeric evaluation times.
+#' @param newdata The covariate patterns supplied to [absolute_risk()].
+#' @param conf_level Numeric confidence level.
+#' @param ci_method Character label for the interval method.
+#' @param engine,estimator Character labels carried from the fit.
+#' @param method Character label for the baseline-hazard / parametric variant.
+#' @returns A `matchatr_absolute_risk` object.
+#' @family contrasts
+#' @noRd
+new_matchatr_absolute_risk <- function(
+  estimates,
+  times,
+  newdata,
+  conf_level,
+  ci_method,
+  engine,
+  estimator,
+  method
+) {
   structure(
     list(
       estimates = estimates,
       times = times,
       newdata = newdata,
       conf_level = conf_level,
-      ci_method = "delta (log-log)",
-      engine = fit$engine,
-      estimator = fit$estimator,
+      ci_method = ci_method,
+      engine = engine,
+      estimator = estimator,
       method = method
     ),
     class = c("matchatr_absolute_risk", "matchatr")

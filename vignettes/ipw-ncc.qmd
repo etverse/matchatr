@@ -378,6 +378,23 @@ fit_aft <- matcha(ncc, outcome = "d", exposure = "exposure",
 contrast(fit_aft)
 ```
 
+The fitted Weibull is a full *survival curve*, so `absolute_risk()` also serves
+the `ipw_aft` engine — reading the cumulative incidence straight off the
+parameters, with no Breslow step:
+
+$$F_x(t) = 1 - \exp\!\big(-\exp((\log t - \hat\eta)/\hat\sigma)\big),$$
+
+where $\hat\eta = \hat\beta^{\top} x$ is the AFT linear predictor and
+$\hat\sigma$ the scale. The interval again uses the delta method on the
+complementary log-log scale, here over $(\beta, \log\sigma)$ with the robust
+`survreg` sandwich. Because the curve is parametric, $\hat F_x(t)$ is smooth in
+$t$ (the Cox engine's $\hat F_x(t)$ is a step function on the event times).
+
+```{r}
+ar_aft <- absolute_risk(fit_aft, newdata = newdata, times = c(1, 2, 3, 4))
+ar_aft
+```
+
 The **additive-hazards** model (`estimator = "ipw_aalen"`) acts on the *rate*
 scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so
 `contrast(type = "excess")` reports the **excess hazard** γ — an additive rate

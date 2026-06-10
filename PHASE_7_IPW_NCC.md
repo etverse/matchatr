@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: complete (Chunks 1–5).**
+> **Status: complete (Chunks 1–5) + AFT absolute-risk follow-up.**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -60,6 +60,7 @@ fit2 <- matcha(ncc, outcome = "case_alav", exposure = "sbp",
 | KM | — | absolute risk F_x(t) | IPW Breslow | ✅ done (Chunk 3) |
 | KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | ✅ done (Chunk 4) |
 | KM | ipw_aft (Weibull) | time ratio exp(β) | survreg robust | ✅ done (Chunk 5) |
+| KM | ipw_aft | absolute risk F_x(t) (Weibull S(t\|x)) | survreg robust + delta log-log | ✅ done (follow-up) |
 | KM | ipw_aalen (additive) | excess hazard γ | Lin-Ying robust | ✅ done (Chunk 5) |
 | working-model, no Phase-1 times | — | — | ⛔ `matchatr_missing_phase1` |
 
@@ -181,9 +182,15 @@ estimators than alternatives (Ch19 §19.3).
   analogue of `absolute_risk()`. Surfacing it needs a function-over-time verb
   (e.g. `excess_risk(fit, times)`) and a hand-rolled B̂(t) + variance, not a scalar
   `contrast()`. `timereg::aalen` (without `const()`) is the oracle.
-- **AFT acceleration-factor absolute risk.** `absolute_risk()` is wired for the
-  `cch` and `ipw_cox` engines only; an AFT survival curve S(t | x) from the fitted
-  Weibull is a natural addition.
+- ✅ **AFT acceleration-factor absolute risk (done).** `absolute_risk()` now also
+  dispatches on the `ipw_aft` engine (`R/absolute_risk_aft.R`,
+  `test-absolute_risk_aft.R`): the fitted weighted Weibull is a parametric survival
+  curve, so F̂_x(t) = 1 − exp(−exp((log t − η̂)/σ̂)) is read directly off (β̂, σ̂)
+  with a delta-method complementary-log-log CI over θ = (β, log σ) using the robust
+  survreg sandwich (no Breslow step). It reuses the cloglog inversion and result
+  assembly factored out of the Cox-type path (`cloglog_risk_ci()` /
+  `new_matchatr_absolute_risk()`). Oracles: `predict.survreg(type = "quantile")`
+  round-trip and a `numDeriv` ξ(θ)-gradient reconstruction of the estimate + CI.
 
 ### Technical follow-up (not a feature)
 

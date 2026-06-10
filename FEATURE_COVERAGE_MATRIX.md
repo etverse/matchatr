@@ -376,7 +376,7 @@ subcohort) and absolute risk are deferred to Chunks 2–3.
 | missing `stratum` column in data | — | — | ⛔ `matchatr_bad_design` | `test-case_cohort.R` |
 | absolute risk F_x(t), Prentice / SelfPrentice / LinYing | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ nwtco oracle (vs full-cohort survfit, tolerance 0.06) + truth DGP (exponential, CI covers truth) | `test-absolute_risk.R` |
 | absolute risk F_x(t), Borgan I/II stratified | F̂_x(t) | per-stratum IPW Breslow + delta-method CI | ✅ structural + CI-ordering check | `test-absolute_risk.R` |
-| `absolute_risk()` on a non-cch/ipw_cox engine (e.g. clogit) | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
+| `absolute_risk()` on a non-cch/ipw_cox/ipw_aft engine (e.g. clogit) | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
 | mismatched `newdata` columns | — | — | ⛔ `matchatr_bad_input` | `test-absolute_risk.R` |
 
 `fit_cch()` / `contrast_cch()` / `cch_exposure_coef_names()` live in
@@ -425,6 +425,13 @@ with a robust sandwich) and `contrast(type = "excess")` reports the excess hazar
 negative estimand, so its Wald interval is symmetric, not exponentiated. Both
 identify one scale and reject the others; `timereg::aalen` is the additive
 oracle, `survival::survreg` / `multipleNCC::KMprob` the AFT oracle.
+**AFT absolute risk** extends `absolute_risk()` to the `ipw_aft` engine: the
+fitted weighted Weibull is a parametric survival curve, so
+F̂_x(t) = 1 − exp(−exp((log t − η̂)/σ̂)) is read directly off (β̂, σ̂) with a
+delta-method complementary-log-log CI over θ = (β, log σ) using the robust
+survreg sandwich — no Breslow step. It shares the cloglog inversion and result
+assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
+`cloglog_risk_ci()` / `new_matchatr_absolute_risk()` in `R/absolute_risk.R`).
 
 | Weight | Estimator | Estimand | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -438,7 +445,7 @@ oracle, `survival::survreg` / `multipleNCC::KMprob` the AFT oracle.
 | `compute_ncc_weights`, `time` col absent from `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
 | `compute_ncc_weights` without `.cohort_row` in `ncc` | — | — | — | ⛔ `matchatr_bad_input` | `test-ipw_ncc.R` |
 | IPW absolute risk F_x(t) (Chunk 3) | `ipw_cox` | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ exact vs `survival::survfit` (weighted Breslow, 1e-8) + full-cohort survfit (sampling tol) + truth DGP (exponential, CI covers truth) | `test-absolute_risk_ncc.R` |
-| `absolute_risk()` on a non-cch/ipw_cox engine | — | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
+| `absolute_risk()` on a non-cch/ipw_cox/ipw_aft engine (clogit, ipw_aalen) | — | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R`, `test-absolute_risk_aft.R` |
 | multiple endpoints, combined-event reuse (mode A) | `ipw_cox` | HR per endpoint | Lin-Wei robust sandwich | ✅ `multipleNCC::wpl` oracle (exact, per endpoint) + truth-DGP recovery (both causes, 3.5-SE band) | `test-multi_endpoint.R` |
 | multiple endpoints, cohort-augmented reuse (mode B) | `ipw_cox` | HR (secondary) | Lin-Wei robust sandwich | ✅ independent `KMprob` + `survival::coxph` reconstruction (1e-6) + truth-DGP recovery (3.5-SE band) | `test-multi_endpoint.R` |
 | competing-endpoint case reused as a control | `ipw_cox` | HR | — | ✅ ascertained → weight 1 in the analysis sample | `test-multi_endpoint.R` |
@@ -447,6 +454,7 @@ oracle, `survival::survreg` / `multipleNCC::KMprob` the AFT oracle.
 | `reuse_ncc_endpoint` without `.cohort_row` / missing bookkeeping col / event absent | — | — | — | ⛔ `matchatr_bad_input` | `test-multi_endpoint.R` |
 | `reuse_ncc_endpoint`, secondary endpoint with no cases | — | — | — | ⛔ `matchatr_bad_outcome` | `test-multi_endpoint.R` |
 | accelerated failure time, Weibull (`estimator = "ipw_aft"`) | `ipw_aft` | time ratio exp(β) | survreg robust sandwich | ✅ full-cohort `survreg` recovery (3.5-SE) + independent `KMprob` + `survreg` reconstruction (1e-6, incl. complex continuous-exposure / factor-confounder set) | `test-aft_ncc.R` |
+| AFT absolute risk F_x(t), Weibull S(t\|x) | `ipw_aft` | F̂_x(t) | survreg robust + delta-method log-log CI | ✅ `predict.survreg` quantile round-trip (1e-7) + numDeriv gradient reconstruction of estimate + CI (1e-7, incl. factor contrasts) + full-cohort `survreg` recovery (sampling tol) + truth DGP (Weibull, CI covers); weight-agnostic (KM + GLM) | `test-absolute_risk_aft.R` |
 | additive hazards, constant effects (`estimator = "ipw_aalen"`) | `ipw_aalen` | excess hazard γ (rate difference) | Lin-Ying robust sandwich | ✅ truth-DGP recovery (3.5-SE, binary + 3-level factor exposure) + `timereg::aalen` oracle (point exact 1e-6 incl. full coef vector on a complex covariate set; robust SE within 5%) | `test-additive_ncc.R` |
 | `ipw_aft` / `ipw_aalen` off-scale `type` / `ci_method` / non-`incl_prob` / non-nested | — | — | — | ⛔ `matchatr_unidentified_estimand` / `matchatr_unsupported_variance` / `matchatr_missing_ipw_weights` / `matchatr_bad_estimator` | `test-aft_ncc.R`, `test-additive_ncc.R` |
 
@@ -489,7 +497,7 @@ Quarto, `lumen` theme).
 | `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, `test_homogeneity()` (Wald test + pooled common OR), collinearity guard |
 | `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 | `case-cohort.qmd` | Prentice / SelfPrentice / LinYing / Borgan I/II HRs, stratified subcohort, `absolute_risk()` IPW Breslow F_x(t), design rejections |
-| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `absolute_risk()` IPW Breslow F_x(t) + cumulative-incidence plot, classical vs IPW comparison, rejection paths |
+| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `ipw_aft` time ratio + `ipw_aalen` excess hazard, `absolute_risk()` IPW Breslow (Cox) and parametric Weibull (AFT) F_x(t) + cumulative-incidence plot, classical vs IPW comparison, rejection paths |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

@@ -1,5 +1,33 @@
 # matchatr (development version)
 
+## 2026-06-10 — AFT survival-curve absolute risk for IPW NCC (PHASE_7 follow-up)
+
+`absolute_risk()` gains an `ipw_aft` engine path, completing the Phase-7 deferred
+item "AFT acceleration-factor absolute risk". The fitted weighted Weibull
+accelerated failure time model is a parametric survival curve, so the cumulative
+incidence is read directly off the coefficients,
+
+  F̂_x(t) = 1 − exp(−exp((log t − η̂) / σ̂)),
+
+where η̂ is the AFT linear predictor and σ̂ the scale — no Breslow step function.
+Pointwise intervals use the delta method on the complementary log-log scale over
+θ = (β, log σ), with the gradient ∂ξ/∂β = −x̃/σ, ∂ξ/∂(log σ) = −ξ and the robust
+Lin-Wei sandwich `survival::survreg(robust = TRUE)` stores in `vcov()`; the
+interval is inverted to the risk scale by the shared cloglog inversion the
+Cox-type engines already use (`cloglog_risk_ci()` / `new_matchatr_absolute_risk()`,
+factored out of `assemble_absolute_risk()` in `R/absolute_risk.R`; the engine is
+`R/absolute_risk_aft.R`). The result is weight-agnostic — KM (Samuelsen) and
+GLM/GAM working-model weights both feed it through the same fit.
+
+Validated in `test-absolute_risk_aft.R`: F̂_x(t) round-trips through
+`predict.survreg(type = "quantile")` (survival's own inverse CDF) to 1e-7; the
+estimate and CI match an independent `numDeriv` reconstruction of the ξ(θ)
+gradient (including factor contrasts); the NCC subsample recovers the full-cohort
+`survreg` curve within sampling tolerance; and a Weibull truth DGP's analytical
+F_x(t) is covered by the CI. `absolute_risk()` on the additive (`ipw_aalen`)
+engine — which has no survival-curve verb — is rejected with
+`matchatr_not_implemented`.
+
 ## 2026-06-10 — Additive-hazards and AFT models for IPW NCC (PHASE_7 Chunk 5)
 
 Two non-Cox alternative models on the deduplicated Samuelsen-weighted NCC sample

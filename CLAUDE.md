@@ -143,7 +143,15 @@ on person-period data) wherever possible.
 > Oracles: `timereg::aalen` (additive point estimate exact, full coefficient vector,
 > incl. a complex continuous-exposure / factor-confounder set; SE within 5%),
 > `survival::survreg` + `multipleNCC::KMprob` (AFT, machine precision); `timereg` is a
-> test-only Suggests, not wrapped. PHASE_8+ remain `Status: DESIGN`.
+> test-only Suggests, not wrapped. A **Phase-7 follow-up** extends `absolute_risk()`
+> to the `ipw_aft` engine (`R/absolute_risk_aft.R`): the fitted weighted Weibull is
+> a parametric survival curve, so `F̂_x(t) = 1 − exp(−exp((log t − η̂)/σ̂))` is read
+> directly off (β̂, σ̂) with a delta-method complementary-log-log CI over
+> θ = (β, log σ) (∂ξ/∂β = −x̃/σ, ∂ξ/∂log σ = −ξ) using the robust survreg sandwich —
+> no Breslow step. It shares the cloglog inversion (`cloglog_risk_ci()`) and result
+> assembly (`new_matchatr_absolute_risk()`) factored out of `assemble_absolute_risk()`;
+> oracles are `predict.survreg(type = "quantile")` (round-trip) and a `numDeriv`
+> ξ(θ)-gradient reconstruction (estimate + CI). PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -239,13 +247,18 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
   `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
   Self-Prentice / Lin-Ying / Borgan I/II),
-  `absolute_risk.R` (the exported `absolute_risk()` verb dispatching on the `cch`
-  and `ipw_cox` engines, plus the shared `assemble_absolute_risk()` F_x(t) /
-  delta-method-CI assembly and `ar_lp_from_newdata()`), `absolute_risk_cch.R`
-  (PHASE_6 Chunk 3 — `ipw_breslow_cch()`: IPW Breslow `F̂_x(t)` for case-cohort),
+  `absolute_risk.R` (the exported `absolute_risk()` verb dispatching on the `cch`,
+  `ipw_cox`, and `ipw_aft` engines, plus the shared `assemble_absolute_risk()`
+  F_x(t) / delta-method-CI assembly, the `cloglog_risk_ci()` /
+  `new_matchatr_absolute_risk()` helpers, and `ar_lp_from_newdata()`),
+  `absolute_risk_cch.R` (PHASE_6 Chunk 3 — `ipw_breslow_cch()`: IPW Breslow
+  `F̂_x(t)` for case-cohort),
   `absolute_risk_ncc.R` (PHASE_7 Chunk 3 — `ipw_breslow_ncc()`: weighted IPW
   Breslow `F̂_x(t)` for IPW nested case-control, agreeing with `survival::survfit`
-  to machine precision).
+  to machine precision),
+  `absolute_risk_aft.R` (PHASE_7 follow-up — `absolute_risk_aft()`: parametric
+  Weibull `F̂_x(t)` from the IPW AFT fit with a delta-method log-log CI over
+  (β, log σ)).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).

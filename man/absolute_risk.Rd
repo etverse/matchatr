@@ -11,7 +11,8 @@ absolute_risk(fit, ...)
 }
 \arguments{
 \item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}. The case-cohort
-(\code{"cch"}) and IPW nested case-control (\code{"ipw_cox"}) engines are supported.}
+(\code{"cch"}), IPW nested case-control weighted Cox (\code{"ipw_cox"}), and IPW nested
+case-control Weibull AFT (\code{"ipw_aft"}) engines are supported.}
 
 \item{...}{Unused; present for S3 consistency.}
 
@@ -43,13 +44,16 @@ on the probability scale).
 }
 }
 \description{
-Estimates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from a
-fitted survival design, where Λ̂₀(t) is an inverse-probability-weighted (IPW)
-Breslow cumulative baseline hazard. Two engines are supported: the case-cohort
-pseudo-likelihood (\code{"cch"}, Borgan & Liestøl 1990) and the IPW nested
-case-control weighted Cox (\code{"ipw_cox"}, Samuelsen-weighted Breslow over the
-reused controls). Pointwise confidence intervals use the delta method on the
-complementary log-log scale (the "log-log" CI for the survival function,
+Estimates the cumulative incidence F_x(t) from a fitted survival design. Three
+engines are supported: the case-cohort pseudo-likelihood (\code{"cch"}, Borgan &
+Liestøl 1990) and the IPW nested case-control weighted Cox (\code{"ipw_cox"},
+Samuelsen-weighted Breslow over the reused controls) both build
+F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from an inverse-probability-weighted (IPW)
+Breslow cumulative baseline hazard Λ̂₀(t); the IPW nested case-control weighted
+Weibull AFT (\code{"ipw_aft"}) builds F_x(t) = 1 − exp(−exp((log t − η)/σ̂))
+directly from the fitted parametric survival curve (η is the AFT linear
+predictor, σ̂ the scale). Pointwise confidence intervals use the delta method on
+the complementary log-log scale (the "log-log" CI for the survival function,
 inverted to the risk scale).
 }
 \examples{
