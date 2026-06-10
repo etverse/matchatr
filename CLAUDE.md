@@ -265,11 +265,14 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `lin_ying.R` (PHASE_7 Chunk 5 — `lin_ying_additive()`: the weighted Lin & Ying
   1994 constant additive-hazards point estimate + martingale-residual robust
   sandwich; `timereg::aalen` is its test oracle),
-  `excess_risk.R` (PHASE_7 follow-up — the exported `excess_risk()` verb +
-  `aalen_cumulative()`: the weighted time-varying Aalen cumulative regression
-  functions B_j(t) for an `ipw_aalen` fit, with the Aalen martingale pointwise
-  variance, matching `timereg::aalen` (no `const()`) to machine precision; plus
-  `assemble_excess_risk()` and `print` / `tidy.matchatr_excess_risk`),
+  `excess_risk.R` (PHASE_7 follow-up — the exported `excess_risk()` verb for the
+  weighted time-varying Aalen cumulative regression functions B_j(t) of an
+  `ipw_aalen` fit; plus `assemble_excess_risk()` and `print` /
+  `tidy.matchatr_excess_risk`),
+  `aalen_cumulative.R` (PHASE_7 follow-up — `aalen_cumulative()`: the weighted
+  time-varying Aalen point estimate + Aalen martingale pointwise variance,
+  matching `timereg::aalen` (no `const()`) to machine precision; the
+  time-varying counterpart of `lin_ying.R`),
   `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
   `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
   Self-Prentice / Lin-Ying / Borgan I/II),
