@@ -376,7 +376,7 @@ subcohort) and absolute risk are deferred to Chunks 2–3.
 | missing `stratum` column in data | — | — | ⛔ `matchatr_bad_design` | `test-case_cohort.R` |
 | absolute risk F_x(t), Prentice / SelfPrentice / LinYing | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ nwtco oracle (vs full-cohort survfit, tolerance 0.06) + truth DGP (exponential, CI covers truth) | `test-absolute_risk.R` |
 | absolute risk F_x(t), Borgan I/II stratified | F̂_x(t) | per-stratum IPW Breslow + delta-method CI | ✅ structural + CI-ordering check | `test-absolute_risk.R` |
-| `absolute_risk()` on non-cch engine | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
+| `absolute_risk()` on a non-cch/ipw_cox engine (e.g. clogit) | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
 | mismatched `newdata` columns | — | — | ⛔ `matchatr_bad_input` | `test-absolute_risk.R` |
 
 `fit_cch()` / `contrast_cch()` / `cch_exposure_coef_names()` live in
@@ -387,7 +387,7 @@ use standard R contrasts) rather than using `term_assign()`, because
 
 ## IPW for nested case-control (PHASE_7)
 
-**Chunks 1–2 implemented; Chunk 3 pending.**
+**Chunks 1–3 implemented; Chunk 4 pending.**
 `sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and
 appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data.
 `matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits
@@ -400,6 +400,10 @@ probabilities fitted via logistic regression (`method = "glm"`) or a generalised
 additive model (`method = "gam"`) of the binary control-selection indicator across
 all (eligible subject, event-time) pairs. Requires the full Phase-1 cohort; omitting
 `cohort` or `time` aborts with `matchatr_missing_phase1`.
+**Chunk 3** extends `absolute_risk()` to the `ipw_cox` engine: a native
+inverse-probability-weighted Breslow cumulative baseline hazard over the deduplicated,
+Samuelsen-weighted NCC analysis sample gives `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))`
+with delta-method complementary-log-log CIs.
 
 | Weight | Estimator | Estimand | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -412,8 +416,9 @@ all (eligible subject, event-time) pairs. Requires the full Phase-1 cohort; omit
 | `compute_ncc_weights` without `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
 | `compute_ncc_weights`, `time` col absent from `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
 | `compute_ncc_weights` without `.cohort_row` in `ncc` | — | — | — | ⛔ `matchatr_bad_input` | `test-ipw_ncc.R` |
-| multiple endpoints | ipw_cox | HR per endpoint | robust | Chunk 3 pending |
-| IPW absolute risk F_x(t) | — | F_x(t) | IPW Breslow | Chunk 3 pending |
+| IPW absolute risk F_x(t) (Chunk 3) | `ipw_cox` | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ exact vs `survival::survfit` (weighted Breslow, 1e-8) + full-cohort survfit (sampling tol) + truth DGP (exponential, CI covers truth) | `test-absolute_risk_ncc.R` |
+| `absolute_risk()` on a non-cch/ipw_cox engine | — | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
+| multiple endpoints / additive-AFT | ipw_cox | HR per endpoint / excess | robust | Chunk 4 pending |
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 
@@ -454,7 +459,7 @@ Quarto, `lumen` theme).
 | `multiple-groups.qmd` | `polytomous` per-subtype ORs vs reference, the `y.level` tidy table, `test_homogeneity()` (Wald test + pooled common OR), collinearity guard |
 | `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 | `case-cohort.qmd` | Prentice / SelfPrentice / LinYing / Borgan I/II HRs, stratified subcohort, `absolute_risk()` IPW Breslow F_x(t), design rejections |
-| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, classical vs IPW comparison, rejection paths |
+| `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `absolute_risk()` IPW Breslow F_x(t) + cumulative-incidence plot, classical vs IPW comparison, rejection paths |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

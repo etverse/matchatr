@@ -19,7 +19,7 @@
 #' @details
 #' The working-model inclusion probability for subject j is:
 #'
-#'   π_j = 1 − ∏_{k: j ∈ R(t_k)} (1 − p̂_jk)
+#'   π_j = 1 − ∏_(k: j ∈ R(t_k)) (1 − p̂_jk)
 #'
 #' where the product runs over all event times t_k at which j was in the risk
 #' set R(t_k) (excluding the case's own failure time), and p̂_jk is the
@@ -349,7 +349,7 @@ build_ncc_selection_dataset <- function(
 #' Applies the product formula to convert per-(subject, event) predicted
 #' selection probabilities into per-subject inclusion probabilities:
 #'
-#'   π_j = 1 − ∏_{k: j ∈ R(t_k)} (1 − p̂_jk)
+#'   π_j = 1 − ∏_(k: j ∈ R(t_k)) (1 − p̂_jk)
 #'
 #' Numerically stable via log-sum: log(1 − π_j) = Σ log(1 − p̂_jk), and
 #' `π_j = −expm1(Σ log(1 − p̂_jk))`. Predicted probabilities are clamped below

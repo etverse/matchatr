@@ -1,5 +1,64 @@
 # matchatr (development version)
 
+## 2026-06-09 — IPW absolute risk correctness for complicated designs (critical review)
+
+Three correctness fixes to the IPW nested case-control absolute risk, all in the
+"complicated case" regime the initial tests (plain factors, continuous times) did
+not exercise.
+
+- **Data-dependent confounder bases** (`poly()`, `ns()`/`bs()`, `scale()`):
+  `ar_lp_from_newdata()` rebuilt the design from `term.labels` and called
+  `model.matrix()` on `newdata` alone, recomputing the basis from those rows — a
+  *different* basis than the fit, with the *same* coefficient names (so the
+  name-based guard passed) and a silently wrong linear predictor (F off by ~0.4).
+  It now builds the design from the fitted model's `terms` (reusing the
+  `predvars` basis) and `xlevels` for the `ipw_cox`/coxph engine. The `cch` engine
+  keeps the original-formula path (its non-standard internal formula has no usable
+  `predvars`).
+- **Tied event times**: `fit_ipw_cox()` fitted the weighted Cox with the coxph
+  default Efron ties, but `ipw_breslow_ncc()` uses the plain Breslow baseline, so
+  the two disagreed at tied event times (F off by ~0.03). The fit now uses
+  `ties = "breslow"` so the partial-likelihood coefficients and the Breslow
+  cumulative baseline hazard are mutually consistent; for continuous failure times
+  (the usual NCC setting) this is identical to Efron.
+- **Event at the time origin**: the `t = 0` fence post prepended on top of a real
+  `t = 0` event time (possible with rounded times) duplicated the knot and made
+  `approx()` collapse it. `breslow_step_with_fence()` now skips the fence when an
+  event already sits at `t = 0`.
+- The hand-rolled Breslow now agrees with `survival::survfit` to machine precision
+  across all three regimes; regression tests in `test-absolute_risk_ncc.R` cover a
+  tied-time design, a `poly(z, 2)` confounder, and an event at `t = 0`.
+
+## 2026-06-09 — IPW Breslow absolute risk for nested case-control (PHASE_7 Chunk 3)
+
+Extends `absolute_risk(fit, newdata, times)` to the IPW nested case-control
+(`"ipw_cox"`) engine, alongside the existing case-cohort (`"cch"`) path. Returns
+`F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))` for each covariate pattern at each time.
+
+- **Native IPW Breslow cumulative baseline hazard** (`ipw_breslow_ncc()`,
+  `R/absolute_risk_ncc.R`) over the deduplicated, Samuelsen-weighted NCC analysis
+  sample (cases at weight 1, each unique control at 1/π_j): the increment
+  `dΛ̂₀(t_k) = (Σ events) / (Σ_{at risk} w_j exp(β̂ᵀ x_j))` is the Horvitz-Thompson
+  weighted Breslow step, so the upweighted controls stand in for the unsampled
+  cohort. The hand-rolled step function agrees with `survival::survfit` on the
+  same weighted Cox to machine precision — across KM and GLM/GAM weights, factor
+  and continuous confounders, and multiple covariate patterns.
+- **Pointwise CIs** via the delta method on the complementary log-log scale,
+  `Var(log Λ_x(t)) = x' V_β x + Var(log Λ̂₀(t))` with the IPW robust sandwich for
+  the β part. Monte Carlo coverage is conservative (errs wide, never
+  anti-conservative); the baseline-hazard variance is the within-sample
+  Nelson-Aalen approximation, as in the case-cohort path.
+- **Refactor**: the per-time / per-pattern F_x(t) assembly and the delta-method CI
+  are shared by both engines via `assemble_absolute_risk()` (`R/absolute_risk.R`);
+  the case-cohort Breslow moved to `R/absolute_risk_cch.R`. The deduplication of
+  the NCC analysis sample is shared between the weighted Cox fit and the Breslow
+  via `ncc_ipw_analysis_data()` (`R/weighted_cox.R`).
+- A non-`cch`/`ipw_cox` engine still aborts with `matchatr_not_implemented`
+  (message updated to name both supported engines).
+- Validated in `tests/testthat/test-absolute_risk_ncc.R`: exact `survival::survfit`
+  agreement (1e-8) including a GLM-weighted factor-confounder design, full-cohort
+  survfit cross-check, and analytical exponential truth recovery with CI coverage.
+
 ## 2026-06-09 — Working-model inclusion-probability weights for NCC (PHASE_7 Chunk 2)
 
 Adds `compute_ncc_weights()` for GLM and GAM working-model inclusion probabilities.

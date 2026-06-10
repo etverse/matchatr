@@ -228,6 +228,52 @@ The Phase-1 cohort is required: omitting it aborts with `matchatr_missing_phase1
 compute_ncc_weights(ncc, cohort = NULL, method = "glm", time = "t")
 ```
 
+## Absolute risk
+
+Because the IPW reformulation builds a *weighted pseudo-cohort*, it recovers the
+cumulative baseline hazard — which the classical conditional partial likelihood
+conditions away. `absolute_risk()` turns the fitted weighted Cox into a
+cumulative incidence
+
+$$F_x(t) = 1 - \exp\!\big(-\exp(\hat\beta^{\top} x)\,\hat\Lambda_0(t)\big),$$
+
+where $\hat\Lambda_0(t)$ is an inverse-probability-weighted Breslow cumulative
+baseline hazard over the deduplicated analysis sample: at each event time the
+at-risk denominator $\sum_j w_j \exp(\hat\beta^{\top} x_j)$ upweights each control
+by $1/\pi_j$ so it stands in for the unsampled cohort. Confidence intervals use
+the delta method on the complementary log-log scale.
+
+```{r}
+newdata <- data.frame(exposure = c(1, 0), confounder = c(0, 0))
+ar <- absolute_risk(fit_ipw, newdata = newdata, times = c(1, 2, 3, 4))
+ar
+```
+
+The hand-rolled weighted Breslow agrees with `survival::survfit` on the same
+weighted Cox model to machine precision, so the point estimate is exact; the
+interval is conservative (the within-sample Nelson-Aalen baseline variance).
+
+```{r}
+#| fig-width: 6
+#| fig-height: 4
+#| fig-alt: >
+#|   Cumulative incidence over follow-up for an exposed versus an unexposed
+#|   subject estimated from the IPW nested case-control weighted Cox model. The
+#|   exposed curve rises faster, reflecting the hazard ratio above one.
+est <- ar$estimates
+exposed   <- est[est$row == 1, ]
+unexposed <- est[est$row == 2, ]
+plot(exposed$time, exposed$estimate, type = "b", pch = 19, col = "#c0392b",
+     ylim = c(0, max(est$ci_upper)), xlab = "time", ylab = expression(hat(F)[x](t)),
+     main = "IPW NCC cumulative incidence")
+lines(unexposed$time, unexposed$estimate, type = "b", pch = 19, col = "#2980b9")
+legend("topleft", c("exposed", "unexposed"), col = c("#c0392b", "#2980b9"),
+       pch = 19, lty = 1, bty = "n")
+```
+
+The same verb serves the case-cohort `cch` engine (see `vignette("case-cohort")`);
+only the baseline-hazard weighting differs.
+
 ## References
 
 Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested

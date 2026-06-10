@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: Chunks 1–2 complete. Chunk 3 remains.**
+> **Status: Chunks 1–3 complete. Chunk 4 remains.**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -57,9 +57,9 @@ fit2 <- matcha(ncc, outcome = "case_alav", exposure = "sbp",
 | KM (design) | ipw_cox | HR | robust sandwich | needs-test |
 | GLM working-model | ipw_cox | HR | robust sandwich | needs-test |
 | GAM / Chen | ipw_cox | HR | robust sandwich | needs-test |
-| KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | needs-test |
-| KM | ipw_aft / additive | param/excess | robust | needs-test (Ch19 §19.5) |
-| KM | — | absolute risk F_x(t) | IPW Breslow | needs-test |
+| KM | — | absolute risk F_x(t) | IPW Breslow | ✅ done (Chunk 3) |
+| KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | deferred (Chunk 4) |
+| KM | ipw_aft / additive | param/excess | robust | deferred (Chunk 4, Ch19 §19.5) |
 | working-model, no Phase-1 times | — | — | ⛔ `matchatr_missing_phase1` |
 
 ## Implementation plan
@@ -69,8 +69,9 @@ fit2 <- matcha(ncc, outcome = "case_alav", exposure = "sbp",
 - `R/weighted_cox.R` — `fit_ipw_cox()` (delegate to `multipleNCC::wpl`; fall back to
   `survival::coxph(weights=, robust=TRUE)` for the weighted partial likelihood),
   multiple-endpoint dispatch.
-- `R/absolute_risk.R` (shared with Phase 6) — IPW Breslow Λ̂₀ and F̂_x(t) under reuse
-  weights.
+- `R/absolute_risk_ncc.R` (Chunk 3) — IPW Breslow Λ̂₀ and F̂_x(t) under reuse weights,
+  via the shared `assemble_absolute_risk()` core in `R/absolute_risk.R` (split out of
+  the Phase-6 `cch` path, now in `R/absolute_risk_cch.R`).
 
 ## Variance / inference notes
 
@@ -102,7 +103,23 @@ estimators than alternatives (Ch19 §19.3).
    - Fits logistic GLM or GAM of selection indicator; applies product formula for π_j
    - `matchatr_missing_phase1` fires when `cohort = NULL` or the time column is absent
    - Oracle: `multipleNCC::wpl(weight.method = "glm")` agrees within 2e-2 in log-HR
-3. Multiple endpoints + IPW absolute risk + (optional) additive/AFT models.
+3. ✅ IPW absolute risk F_x(t) under reuse weights.
+   - `absolute_risk()` gains an `ipw_cox` engine path alongside the existing `cch` path
+   - `ipw_breslow_ncc()` (native, `R/absolute_risk_ncc.R`) computes the inverse-
+     probability-weighted Breslow cumulative baseline hazard over the deduplicated
+     NCC analysis sample: dΛ̂₀(t_k) = (Σ events) / (Σ_{at risk} w_j exp(β̂ᵀ x_j)),
+     with the case weight 1 and each unique control's weight 1/π_j
+   - F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) with delta-method complementary-log-log CIs,
+     reusing the shared `assemble_absolute_risk()` core split out of the `cch` path
+   - Oracle: full-cohort `survival::survfit(coxph)` F_x(t) (hand-rolled Breslow agrees
+     to machine precision); truth DGP (exponential, analytical F_x(t)) covered by CI
+4. Multiple endpoints (HR per endpoint from one reused control set) + (optional)
+   additive/AFT models (Ch19 §19.5). The multi-endpoint reuse weight is a genuine
+   design decision: the theoretically-correct inverse-sampling-probability weight is
+   the *primary* sampling's π_j (what `sample_ncc(incl_prob = TRUE)` already attaches),
+   whereas `multipleNCC::wpl` recomputes π per endpoint from that endpoint's risk sets.
+   This warrants its own chunk so the reuse semantics, the cohort-case augmentation,
+   and the (approximate) oracle strategy are decided deliberately.
 
 ## Deferred items
 
