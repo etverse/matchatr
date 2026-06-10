@@ -387,7 +387,7 @@ use standard R contrasts) rather than using `term_assign()`, because
 
 ## IPW for nested case-control (PHASE_7)
 
-**Chunks 1–3 implemented; Chunk 4 pending.**
+**Chunks 1–4 implemented; additive/AFT models deferred.**
 `sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and
 appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data.
 `matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits
@@ -404,6 +404,16 @@ all (eligible subject, event-time) pairs. Requires the full Phase-1 cohort; omit
 inverse-probability-weighted Breslow cumulative baseline hazard over the deduplicated,
 Samuelsen-weighted NCC analysis sample gives `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))`
 with delta-method complementary-log-log CIs.
+**Chunk 4** reuses one control set across **multiple endpoints**. Two modes feed
+the same `ipw_cox` weighted Cox: (A) sampling on the union "any-failure" event
+ascertains every endpoint's cases at once, so each cause-specific endpoint is
+analysed directly with `matcha(outcome = "<cause>", estimator = "ipw_cox")`; (B)
+`reuse_ncc_endpoint(ncc, cohort, time, event)` augments a primary-endpoint NCC
+with the secondary endpoint's unsampled cohort cases (weight 1), keeping the
+controls' primary inclusion weights 1/π_j. Competing-endpoint cases (ascertained
+by the sampling) keep weight 1: `ncc_ipw_analysis_data()` forces weight 1 for any
+subject that is a case of the analysed endpoint **or** the failing subject of some
+sampled risk set. Additive/AFT models (Ch19 §19.5) are deferred.
 
 | Weight | Estimator | Estimand | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -418,7 +428,14 @@ with delta-method complementary-log-log CIs.
 | `compute_ncc_weights` without `.cohort_row` in `ncc` | — | — | — | ⛔ `matchatr_bad_input` | `test-ipw_ncc.R` |
 | IPW absolute risk F_x(t) (Chunk 3) | `ipw_cox` | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ exact vs `survival::survfit` (weighted Breslow, 1e-8) + full-cohort survfit (sampling tol) + truth DGP (exponential, CI covers truth) | `test-absolute_risk_ncc.R` |
 | `absolute_risk()` on a non-cch/ipw_cox engine | — | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R` |
-| multiple endpoints / additive-AFT | ipw_cox | HR per endpoint / excess | robust | Chunk 4 pending |
+| multiple endpoints, combined-event reuse (mode A) | `ipw_cox` | HR per endpoint | Lin-Wei robust sandwich | ✅ `multipleNCC::wpl` oracle (exact, per endpoint) + truth-DGP recovery (both causes, 3.5-SE band) | `test-multi_endpoint.R` |
+| multiple endpoints, cohort-augmented reuse (mode B) | `ipw_cox` | HR (secondary) | Lin-Wei robust sandwich | ✅ independent `KMprob` + `survival::coxph` reconstruction (1e-6) + truth-DGP recovery (3.5-SE band) | `test-multi_endpoint.R` |
+| competing-endpoint case reused as a control | `ipw_cox` | HR | — | ✅ ascertained → weight 1 in the analysis sample | `test-multi_endpoint.R` |
+| `reuse_ncc_endpoint` structural (augments unsampled cases, weight 1; no-op on combined-event NCC) | — | — | — | ✅ structural invariants | `test-multi_endpoint.R` |
+| `reuse_ncc_endpoint` without `cohort` / `time` col absent | — | — | — | ⛔ `matchatr_missing_phase1` | `test-multi_endpoint.R` |
+| `reuse_ncc_endpoint` without `.cohort_row` / missing bookkeeping col / event absent | — | — | — | ⛔ `matchatr_bad_input` | `test-multi_endpoint.R` |
+| `reuse_ncc_endpoint`, secondary endpoint with no cases | — | — | — | ⛔ `matchatr_bad_outcome` | `test-multi_endpoint.R` |
+| additive / AFT models (Ch19 §19.5) | — | — | — | ⏳ deferred | — |
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 

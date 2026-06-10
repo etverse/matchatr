@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: Chunks 1–3 complete. Chunk 4 remains.**
+> **Status: Chunks 1–4 complete. Additive/AFT models (Ch19 §19.5) deferred.**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -58,8 +58,8 @@ fit2 <- matcha(ncc, outcome = "case_alav", exposure = "sbp",
 | GLM working-model | ipw_cox | HR | robust sandwich | needs-test |
 | GAM / Chen | ipw_cox | HR | robust sandwich | needs-test |
 | KM | — | absolute risk F_x(t) | IPW Breslow | ✅ done (Chunk 3) |
-| KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | deferred (Chunk 4) |
-| KM | ipw_aft / additive | param/excess | robust | deferred (Chunk 4, Ch19 §19.5) |
+| KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | ✅ done (Chunk 4) |
+| KM | ipw_aft / additive | param/excess | robust | deferred (Ch19 §19.5) |
 | working-model, no Phase-1 times | — | — | ⛔ `matchatr_missing_phase1` |
 
 ## Implementation plan
@@ -113,15 +113,41 @@ estimators than alternatives (Ch19 §19.3).
      reusing the shared `assemble_absolute_risk()` core split out of the `cch` path
    - Oracle: full-cohort `survival::survfit(coxph)` F_x(t) (hand-rolled Breslow agrees
      to machine precision); truth DGP (exponential, analytical F_x(t)) covered by CI
-4. Multiple endpoints (HR per endpoint from one reused control set) + (optional)
-   additive/AFT models (Ch19 §19.5). The multi-endpoint reuse weight is a genuine
-   design decision: the theoretically-correct inverse-sampling-probability weight is
-   the *primary* sampling's π_j (what `sample_ncc(incl_prob = TRUE)` already attaches),
-   whereas `multipleNCC::wpl` recomputes π per endpoint from that endpoint's risk sets.
-   This warrants its own chunk so the reuse semantics, the cohort-case augmentation,
-   and the (approximate) oracle strategy are decided deliberately.
+4. ✅ Multiple endpoints (HR per endpoint from one reused control set). Two modes
+   feed the existing `ipw_cox` weighted Cox:
+   - **(A) Combined-event reuse.** Sampling on the union "any-failure" event with
+     `sample_ncc()` ascertains every endpoint's cases at once; each cause-specific
+     endpoint is then analysed directly via `matcha(outcome = "<cause>",
+     estimator = "ipw_cox")`. No augmentation; the inclusion weights 1/π_j are
+     shared. This is the canonical multiple-endpoints NCC design (ascertain all
+     cases, share controls).
+   - **(B) Cohort-augmented reuse.** `reuse_ncc_endpoint(ncc, cohort, time, event)`
+     reuses a *primary*-endpoint NCC for a *secondary* endpoint: the controls keep
+     the primary sampling's π_j (the theoretically-correct inverse-sampling weight,
+     since the inclusion probability is a property of the sampling, not the
+     endpoint), and the secondary endpoint's cases not drawn into the sample are
+     augmented from the cohort with weight 1. Requires the Phase-1 cohort.
+   - **Shared mechanism.** Both rest on the generalised `ncc_ipw_analysis_data()`:
+     a subject ascertained with probability 1 — a case of the analysed endpoint or
+     the failing subject of some sampled risk set (a competing-endpoint case) —
+     keeps weight 1 rather than the control weight 1/π_j on a row where it was
+     drawn as a control. For the single-endpoint analysis the two clauses coincide
+     (a no-op generalisation).
+   - **Oracles.** `multipleNCC::wpl` reproduces mode (A) *exactly* for each
+     endpoint (it ascertains all cases at weight 1 and computes π over all event
+     times, identical to the combined-event NCC; its `$coefficients` exposes the
+     endpoint coded `2` in `samplestat`). Mode (B) is matched to machine precision
+     by an independent `KMprob` (d1-only π) + `survival::coxph` reconstruction.
+     Both modes recover the cause-specific full-cohort Cox HR within a 3.5-SE band
+     on a competing-risks truth DGP. (The doc's earlier "approximate oracle"
+     concern applied to making `wpl` reproduce mode (B); the exact mode-(A) oracle
+     and the independent mode-(B) reconstruction supersede it.)
+5. Deferred: additive (Aalen) / AFT models (Ch19 §19.5) for IPW NCC — a separate
+   estimator family (`timereg::aalen` / weighted `survival::survreg`), out of scope
+   for the weighted-Cox chunk.
 
 ## Deferred items
 
-Weight calibration (Phase 12), marginal causal contrasts under NCC sampling (Phase 10),
-quota-matching weights, counter-matching weighted analysis (cross-ref Phase 5).
+Additive (Aalen) / AFT IPW-NCC models (Ch19 §19.5), weight calibration (Phase 12),
+marginal causal contrasts under NCC sampling (Phase 10), quota-matching weights,
+counter-matching weighted analysis (cross-ref Phase 5).

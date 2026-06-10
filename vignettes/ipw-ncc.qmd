@@ -274,10 +274,102 @@ legend("topleft", c("exposed", "unexposed"), col = c("#c0392b", "#2980b9"),
 The same verb serves the case-cohort `cch` engine (see `vignette("case-cohort")`);
 only the baseline-hazard weighting differs.
 
+## Multiple endpoints from one control set
+
+The real payoff of breaking the matching is **control reuse across endpoints**.
+The classical conditional analysis ties each control to its case's failure time,
+so a control set sampled for one endpoint cannot serve another. Under IPW the
+sample is a weighted pseudo-cohort, so the *same* controls can fit a weighted Cox
+for any endpoint recorded in the cohort. matchatr supports two modes.
+
+We build a cohort with two competing endpoints — a harmful exposure for endpoint
+1, a protective one for endpoint 2:
+
+```{r}
+set.seed(20)
+n <- 4000
+x <- rbinom(n, 1, 0.4)
+z <- rnorm(n)
+t1 <- rexp(n, 0.05 * exp(log(2.0) * x + 0.3 * z))   # endpoint 1: HR 2.0
+t2 <- rexp(n, 0.05 * exp(log(0.5) * x + 0.2 * z))   # endpoint 2: HR 0.5
+tau <- 6
+tt    <- pmin(t1, t2, tau)
+cause <- ifelse(tt >= tau, 0L, ifelse(t1 < t2, 1L, 2L))
+co <- data.frame(
+  id = seq_len(n), t = tt,
+  d_any = as.integer(cause != 0L),   # any failure
+  d1    = as.integer(cause == 1L),   # endpoint 1
+  d2    = as.integer(cause == 2L),   # endpoint 2
+  x = x, z = z
+)
+```
+
+### Mode A — sample on the union event, analyse each endpoint
+
+Sampling on the "any-failure" event ascertains *every* endpoint's cases at once,
+so each cause-specific endpoint is analysed directly by passing it as `outcome`.
+The single sampled control set, with its shared inclusion weights, backs both
+fits:
+
+```{r}
+set.seed(1)
+ncc_multi <- sample_ncc(co, time = "t", event = "d_any", m = 3, incl_prob = TRUE)
+
+fit_e1 <- matcha(ncc_multi, outcome = "d1", exposure = "x",
+                 design = nested_cc(strata = "set", time = "t"),
+                 confounders = ~ z, estimator = "ipw_cox")
+fit_e2 <- matcha(ncc_multi, outcome = "d2", exposure = "x",
+                 design = nested_cc(strata = "set", time = "t"),
+                 confounders = ~ z, estimator = "ipw_cox")
+
+rbind(cbind(endpoint = "d1", tidy(contrast(fit_e1))),
+      cbind(endpoint = "d2", tidy(contrast(fit_e2))))
+```
+
+Both hazard ratios sit near their cohort truths (2.0 and 0.5). A competing-endpoint
+case is *ascertained* by the sampling, so it keeps weight 1 (not the control
+weight 1/π_j) when a different endpoint is analysed — matchatr handles this when
+it builds the deduplicated analysis sample.
+
+### Mode B — reuse a primary-endpoint control set for a secondary endpoint
+
+If the NCC was drawn for a single *primary* endpoint, its controls can still be
+reused for a *secondary* one. `reuse_ncc_endpoint()` keeps the controls' primary
+inclusion weights 1/π_j (the inclusion probability is a property of the sampling,
+not the endpoint) and augments the secondary endpoint's cases that were not
+sampled — pulled from the Phase-1 cohort with weight 1, since every case of an
+analysed endpoint is ascertained with probability 1:
+
+```{r}
+set.seed(1)
+ncc_primary <- sample_ncc(co, time = "t", event = "d1", m = 3, incl_prob = TRUE)
+
+ncc_reuse <- reuse_ncc_endpoint(ncc_primary, cohort = co, time = "t", event = "d2")
+fit_reuse <- matcha(ncc_reuse, outcome = "d2", exposure = "x",
+                    design = nested_cc(strata = "set", time = "t"),
+                    confounders = ~ z, estimator = "ipw_cox")
+tidy(contrast(fit_reuse))
+```
+
+Reusing the secondary endpoint needs the cohort to recover its unsampled cases;
+omitting it is rejected:
+
+```{r}
+#| error: true
+reuse_ncc_endpoint(ncc_primary, cohort = NULL, time = "t", event = "d2")
+```
+
 ## References
 
 Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
 case-control studies. *Biometrika*, 84(2), 379–394.
+
+Saarela O, Kulathinal S, Arjas E & Läärä E (2008). Nested case–control data
+utilized for multiple outcomes: a likelihood approach and alternatives.
+*Statistics in Medicine*, 27(28), 5991–6008.
+
+Støer NC & Samuelsen SO (2012). Comparison of estimators in nested case–control
+studies with multiple outcomes. *Lifetime Data Analysis*, 18(3), 261–283.
 
 Borgan Ø, Samuelsen SO & Aastveit AH (2003). Estimation of excess risk from
 case-control data using Aalen's linear regression model. *Lifetime Data

@@ -113,6 +113,7 @@ contrast(fit)
 \code{\link[=sample_ncc]{sample_ncc()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=nested_cc]{nested_cc()}}
 
 Other sampling: 
+\code{\link{reuse_ncc_endpoint}()},
 \code{\link{sample_ncc}()},
 \code{\link{sample_ncc_counter_matched}()}
 }

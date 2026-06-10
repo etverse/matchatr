@@ -210,23 +210,55 @@ contrast_ipw_cox <- function(
 #' Breaks the matching of an NCC dataset drawn by `sample_ncc(incl_prob = TRUE)`:
 #' a control sampled into several risk sets carries identical cohort-level rows,
 #' so the data is deduplicated by `.cohort_row` to keep each unique subject once,
-#' and cohort cases (outcome = 1, sampled with probability 1) are forced to weight
-#' 1 regardless of which duplicate row deduplication retained. This is the sample
-#' both `fit_ipw_cox()` (the weighted Cox) and `ipw_breslow_ncc()` (the IPW
-#' Breslow cumulative baseline hazard) operate on, so it is computed once here.
+#' and every subject ascertained with probability 1 is forced to weight 1
+#' regardless of which duplicate row deduplication retained.
+#'
+#' @details
+#' A subject is ascertained with probability 1 (hence weight 1) when it is
+#' either a case of the analysed endpoint (`outcome == 1`) **or** the failing
+#' subject of some sampled risk set (`case == 1` in any set). The second clause
+#' matters for the multiple-endpoint reuse: when one control set is reused to fit
+#' a *different* endpoint, the primary endpoint's cases are competing events for
+#' the new analysis — they are not the analysed outcome, but they were ascertained
+#' by the sampling (each anchors a risk set), so they must keep weight 1 rather
+#' than the control weight 1/π_j they would carry on a row where they happened to
+#' be sampled as a control. The ascertained set is read from the *pre*-dedup data
+#' so the weight is correct even when deduplication retains a subject's control
+#' row over its case row. For the single-endpoint analysis the two clauses
+#' coincide (the sampling cases are exactly the outcome cases), so this is a
+#' no-op generalisation of the original case-weight-1 rule.
+#'
+#' This is the sample both `fit_ipw_cox()` (the weighted Cox) and
+#' `ipw_breslow_ncc()` (the IPW Breslow cumulative baseline hazard) operate on,
+#' so it is computed once here.
 #'
 #' @param fit A `matchatr_fit` whose `data` carries the `.cohort_row` and
-#'   `ipw_weight` columns and a binary `outcome` column.
+#'   `ipw_weight` columns, a binary `outcome` column, and (for the reuse
+#'   generalisation) the per-set `case` indicator.
 #' @returns A data frame with one row per unique cohort subject, the `ipw_weight`
-#'   column overridden to 1 for cases.
+#'   column overridden to 1 for every ascertained subject.
 #' @family estimators
-#' @seealso `fit_ipw_cox()`, `ipw_breslow_ncc()`
+#' @seealso `fit_ipw_cox()`, `ipw_breslow_ncc()`, [reuse_ncc_endpoint()]
 #' @noRd
 ncc_ipw_analysis_data <- function(fit) {
   dt <- fit$data
+  # Cohort rows ascertained with probability 1: cases of the analysed endpoint,
+  # plus the failing subject of any sampled risk set (the `case == 1` rows).
+  # Computed before deduplication so a subject that also appears as a control is
+  # still recognised as ascertained.
+  outcome_pos <- as.logical(dt[[fit$outcome]])
+  if ("case" %in% names(dt)) {
+    sampling_case <- !is.na(dt[["case"]]) & dt[["case"]] == 1L
+    ascertained <- outcome_pos | sampling_case
+  } else {
+    ascertained <- outcome_pos
+  }
+  ascertained_rows <- unique(dt[[".cohort_row"]][ascertained])
+
   dup_rows <- duplicated(dt[[".cohort_row"]])
   dt_unique <- dt[!dup_rows, , drop = FALSE]
-  dt_unique[["ipw_weight"]][as.logical(dt_unique[[fit$outcome]])] <- 1.0
+  is_ascertained <- dt_unique[[".cohort_row"]] %in% ascertained_rows
+  dt_unique[["ipw_weight"]][is_ascertained] <- 1.0
   dt_unique
 }
 
