@@ -166,7 +166,34 @@ estimators than alternatives (Ch19 §19.3).
 
 ## Deferred items
 
+### Within Phase 7's alternative-model family (pick up here to extend Chunk 5)
+
+- **Non-Weibull AFT distributions.** `fit_ipw_aft()` hardcodes `dist = "weibull"`
+  (the canonical AFT, also PH). Lognormal / loglogistic / exponential are a small
+  extension but need a way to pass `dist` through `matcha()` — there is no engine
+  option slot today (`model_fn` is the logistic fitter only). Decide the API
+  (a `matcha(... , dist = )` arg, or an `ipw_aft(dist = )`-style spec on the
+  design) before adding them.
+- **Time-varying additive effects / cumulative regression function B(t).** The
+  current additive engine fits the *constant-effect* Lin-Ying model (one excess
+  hazard per covariate). The fully nonparametric Aalen model gives the cumulative
+  regression functions B_j(t) = ∫β_j(s)ds (time-varying excess risk), the additive
+  analogue of `absolute_risk()`. Surfacing it needs a function-over-time verb
+  (e.g. `excess_risk(fit, times)`) and a hand-rolled B̂(t) + variance, not a scalar
+  `contrast()`. `timereg::aalen` (without `const()`) is the oracle.
+- **AFT acceleration-factor absolute risk.** `absolute_risk()` is wired for the
+  `cch` and `ipw_cox` engines only; an AFT survival curve S(t | x) from the fitted
+  Weibull is a natural addition.
+
+### Technical follow-up (not a feature)
+
+- **Split `R/weighted_cox.R`** (≈500 lines) into `R/ipw_cox.R` (the Samuelsen IPW
+  Cox + the shared `ncc_ipw_analysis_data()` / `require_ipw_ncc_columns()`) and a
+  trimmed `R/weighted_cox.R` (counter-matched only), per the ~300-line file rule.
+  Deferred from Chunk 5 to avoid churn on already-committed code.
+
+### Owned by later phases
+
 Weight calibration (Phase 12), marginal causal contrasts under NCC sampling
 (Phase 10), quota-matching weights, counter-matching weighted analysis (cross-ref
-Phase 5). Within the alternative-model family: non-Weibull AFT distributions and
-the time-varying additive cumulative regression function B(t).
+Phase 5).
