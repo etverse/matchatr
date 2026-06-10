@@ -143,7 +143,34 @@ on person-period data) wherever possible.
 > Oracles: `timereg::aalen` (additive point estimate exact, full coefficient vector,
 > incl. a complex continuous-exposure / factor-confounder set; SE within 5%),
 > `survival::survreg` + `multipleNCC::KMprob` (AFT, machine precision); `timereg` is a
-> test-only Suggests, not wrapped. PHASE_8+ remain `Status: DESIGN`.
+> test-only Suggests, not wrapped. A **Phase-7 follow-up** extends `absolute_risk()`
+> to the `ipw_aft` engine (`R/absolute_risk_aft.R`): the fitted weighted Weibull is
+> a parametric survival curve, so `F̂_x(t) = 1 − exp(−exp((log t − η̂)/σ̂))` is read
+> directly off (β̂, σ̂) with a delta-method complementary-log-log CI over
+> θ = (β, log σ) (∂ξ/∂β = −x̃/σ, ∂ξ/∂log σ = −ξ) using the robust survreg sandwich —
+> no Breslow step. It shares the cloglog inversion (`cloglog_risk_ci()`) and result
+> assembly (`new_matchatr_absolute_risk()`) factored out of `assemble_absolute_risk()`;
+> oracles are `predict.survreg(type = "quantile")` (round-trip) and a `numDeriv`
+> ξ(θ)-gradient reconstruction (estimate + CI). A second **Phase-7 follow-up**
+> adds non-Weibull AFT baselines: `matcha(estimator = "ipw_aft", dist = )` accepts
+> `"weibull"` (default), `"exponential"`, `"lognormal"`, or `"loglogistic"` (an
+> estimator-specific `matcha()` arg like `model_fn` / `reference`; off-estimator or
+> unsupported `dist` is `matchatr_bad_input`). All four are log-location-scale AFT
+> models, so `contrast(type = "af")` reports the same time ratio exp(β); they
+> differ in the error distribution, so `absolute_risk()` reads
+> `F̂_x(t) = G((log t − η̂)/σ̂)` with G the baseline error CDF (extreme-value /
+> cloglog for weibull-exponential, Φ for lognormal, `plogis` for loglogistic) via
+> the shared `aft_risk_ci()`. A third **Phase-7 follow-up** adds the exported
+> `excess_risk(fit, times)` verb (`R/excess_risk.R`): for an `ipw_aalen` fit it
+> reports the **time-varying** Aalen cumulative regression functions
+> B_j(t) = ∫β_j(s)ds (cumulative excess hazard per covariate, the additive analogue
+> of `absolute_risk()`), relaxing the Lin-Ying constant-effect assumption. The
+> weighted least-squares estimator `aalen_cumulative()` accumulates
+> dB̂(t_i) = (X̃ᵀWX̃)⁻¹X̃ᵀW dN(t_i) with the Aalen martingale pointwise variance, on
+> the deduplicated Samuelsen-weighted sample; it reproduces `timereg::aalen` (no
+> `const()`) `cum` and `var.cum` to machine precision (the test oracle). Non-`ipw_aalen`
+> engines are rejected (`matchatr_not_implemented`); a singular late risk set
+> truncates with `matchatr_truncated_excess`. PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -186,7 +213,7 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `multi_endpoint.R` (PHASE_7 Chunk 4 — `reuse_ncc_endpoint()`: augments a
   primary-endpoint NCC with a secondary endpoint's unsampled cohort cases so one
   control set can be reused across endpoints; pairs with the generalised
-  `ncc_ipw_analysis_data()` in `weighted_cox.R`).
+  `ncc_ipw_analysis_data()` in `ipw_cox.R`).
   Still to come: `weights_cc.R` (case-control / q₀ weights).
 - **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
   wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and
@@ -220,13 +247,15 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   the `matchatr_homogeneity` class),
   `weighted_cox.R` (PHASE_5 Chunk 3 — `fit_weighted_cox()` /
   `contrast_weighted_cox()`: Langholz-Borgan weighted partial likelihood for
-  counter-matched NCC via `coxph(offset = log_w)`; PHASE_7 Chunk 1 —
-  `fit_ipw_cox()` / `contrast_ipw_cox()`: Samuelsen IPW weighted Cox for NCC
-  via `coxph(weights = ipw_weight, robust = TRUE)` with Lin-Wei robust sandwich
-  variance; PHASE_7 Chunk 3 — `ncc_ipw_analysis_data()`: the deduplicated,
-  case-weighted analysis sample shared by the weighted Cox, the IPW Breslow, and
-  the AFT / additive engines; PHASE_7 Chunk 5 — `require_ipw_ncc_columns()`: the
-  shared `ipw_weight` / `.cohort_row` / `time` data-contract check),
+  counter-matched NCC via `coxph(offset = log_w)`),
+  `ipw_cox.R` (PHASE_7 Chunk 1 — `fit_ipw_cox()` / `contrast_ipw_cox()`:
+  Samuelsen IPW weighted Cox for NCC via `coxph(weights = ipw_weight, robust =
+  TRUE)` with Lin-Wei robust sandwich variance; PHASE_7 Chunk 3 —
+  `ncc_ipw_analysis_data()`: the deduplicated, case-weighted analysis sample
+  shared by the weighted Cox, the IPW Breslow, and the AFT / additive engines;
+  PHASE_7 Chunk 5 — `require_ipw_ncc_columns()`: the shared `ipw_weight` /
+  `.cohort_row` / `time` data-contract check; split out of `weighted_cox.R` per
+  the ~300-line file rule),
   `aft_ncc.R` (PHASE_7 Chunk 5 — `fit_ipw_aft()` / `contrast_ipw_aft()`: weighted
   Weibull accelerated failure time via `survival::survreg(weights, robust = TRUE)`,
   reporting the time ratio `type = "af"`),
@@ -236,16 +265,29 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `lin_ying.R` (PHASE_7 Chunk 5 — `lin_ying_additive()`: the weighted Lin & Ying
   1994 constant additive-hazards point estimate + martingale-residual robust
   sandwich; `timereg::aalen` is its test oracle),
+  `excess_risk.R` (PHASE_7 follow-up — the exported `excess_risk()` verb for the
+  weighted time-varying Aalen cumulative regression functions B_j(t) of an
+  `ipw_aalen` fit; plus `assemble_excess_risk()` and `print` /
+  `tidy.matchatr_excess_risk`),
+  `aalen_cumulative.R` (PHASE_7 follow-up — `aalen_cumulative()`: the weighted
+  time-varying Aalen point estimate + Aalen martingale pointwise variance,
+  matching `timereg::aalen` (no `const()`) to machine precision; the
+  time-varying counterpart of `lin_ying.R`),
   `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
   `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
   Self-Prentice / Lin-Ying / Borgan I/II),
-  `absolute_risk.R` (the exported `absolute_risk()` verb dispatching on the `cch`
-  and `ipw_cox` engines, plus the shared `assemble_absolute_risk()` F_x(t) /
-  delta-method-CI assembly and `ar_lp_from_newdata()`), `absolute_risk_cch.R`
-  (PHASE_6 Chunk 3 — `ipw_breslow_cch()`: IPW Breslow `F̂_x(t)` for case-cohort),
+  `absolute_risk.R` (the exported `absolute_risk()` verb dispatching on the `cch`,
+  `ipw_cox`, and `ipw_aft` engines, plus the shared `assemble_absolute_risk()`
+  F_x(t) / delta-method-CI assembly, the `cloglog_risk_ci()` /
+  `new_matchatr_absolute_risk()` helpers, and `ar_lp_from_newdata()`),
+  `absolute_risk_cch.R` (PHASE_6 Chunk 3 — `ipw_breslow_cch()`: IPW Breslow
+  `F̂_x(t)` for case-cohort),
   `absolute_risk_ncc.R` (PHASE_7 Chunk 3 — `ipw_breslow_ncc()`: weighted IPW
   Breslow `F̂_x(t)` for IPW nested case-control, agreeing with `survival::survfit`
-  to machine precision).
+  to machine precision),
+  `absolute_risk_aft.R` (PHASE_7 follow-up — `absolute_risk_aft()`: parametric
+  Weibull `F̂_x(t)` from the IPW AFT fit with a delta-method log-log CI over
+  (β, log σ)).
 - **Causal layer:** `ccw.R` (case-control-weighted dispatch into causatr), `tmle_ccw.R`
   (the NEW targeting step — causatr has no TL), `causal_survival_sampled.R` (design-
   weighted survatr).

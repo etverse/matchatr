@@ -84,7 +84,10 @@ try(contrast(fit, type = "difference"))
 
 Other contrasts: 
 \code{\link{absolute_risk}()},
+\code{\link{excess_risk}()},
 \code{\link{print.matchatr_absolute_risk}()},
-\code{\link{tidy.matchatr_absolute_risk}()}
+\code{\link{print.matchatr_excess_risk}()},
+\code{\link{tidy.matchatr_absolute_risk}()},
+\code{\link{tidy.matchatr_excess_risk}()}
 }
 \concept{contrasts}

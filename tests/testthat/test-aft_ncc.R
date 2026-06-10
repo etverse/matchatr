@@ -42,14 +42,15 @@ make_aft_cohort <- function(
   })
 }
 
-aft_estimate <- function(ncc) {
+aft_estimate <- function(ncc, dist = NULL) {
   fit <- matcha(
     ncc,
     outcome = "d",
     exposure = "x",
     design = nested_cc(strata = "set", time = "t"),
     confounders = ~z,
-    estimator = "ipw_aft"
+    estimator = "ipw_aft",
+    dist = dist
   )
   res <- contrast(fit)
   # contrast() reports exp(beta) (time ratio); estimates carries the log-scale
@@ -190,7 +191,104 @@ test_that("ipw_aft matches a KMprob + survreg reconstruction for a complex covar
   )
 })
 
+# ---- non-Weibull AFT distributions ------------------------------------------
+
+test_that("ipw_aft threads each baseline distribution to survreg", {
+  cohort <- make_aft_cohort(n = 800L, seed = 1L)
+  ncc <- withr::with_seed(
+    2L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  for (dd in c("weibull", "exponential", "lognormal", "loglogistic")) {
+    fit <- matcha(
+      ncc,
+      "d",
+      "x",
+      nested_cc(strata = "set", time = "t"),
+      estimator = "ipw_aft",
+      dist = dd
+    )
+    expect_identical(fit$model$dist, dd)
+    # All four are AFT models, so the default scale is the time ratio.
+    expect_identical(contrast(fit)$type, "af")
+  }
+  # The exponential fixes the scale at 1 (it is the one-parameter Weibull).
+  fit_exp <- matcha(
+    ncc,
+    "d",
+    "x",
+    nested_cc(strata = "set", time = "t"),
+    estimator = "ipw_aft",
+    dist = "exponential"
+  )
+  expect_equal(fit_exp$model$scale, 1)
+})
+
+test_that("ipw_aft matches a KMprob + survreg reconstruction for each distribution", {
+  skip_if_not_installed("multipleNCC")
+  # The reported coefficient/SE must equal an independent KMprob-weighted survreg
+  # with the SAME baseline, confirming the distribution threads through unchanged.
+  cohort <- make_aft_cohort(n = 2500L, seed = 41L)
+  ncc <- withr::with_seed(
+    3L,
+    sample_ncc(cohort, "t", "d", m = 3L, incl_prob = TRUE)
+  )
+  n <- nrow(cohort)
+  ctrl_rows <- unique(ncc$.cohort_row[ncc$case == 0L])
+  ss <- rep(0L, n)
+  ss[ctrl_rows] <- 1L
+  ss[cohort$d == 1L] <- 2L
+  pi_km <- multipleNCC::KMprob(survtime = cohort$t, samplestat = ss, m = 3)
+  keep <- sort(unique(c(which(cohort$d == 1L), ctrl_rows)))
+  w <- ifelse(cohort$d[keep] == 1L, 1, 1 / pi_km[keep])
+
+  for (dd in c("exponential", "lognormal", "loglogistic")) {
+    est <- aft_estimate(ncc, dist = dd)
+    ora <- survival::survreg(
+      survival::Surv(t, d) ~ x + z,
+      data = cohort[keep, ],
+      weights = w,
+      dist = dd,
+      robust = TRUE
+    )
+    expect_equal(est$log_tr, unname(stats::coef(ora)["x"]), tolerance = 1e-6)
+    expect_equal(est$log_se, sqrt(stats::vcov(ora)["x", "x"]), tolerance = 1e-6)
+  }
+})
+
 # ---- rejections -------------------------------------------------------------
+
+test_that("ipw_aft rejects an unknown or off-estimator distribution", {
+  cohort <- make_aft_cohort(n = 500L, seed = 1L)
+  ncc <- withr::with_seed(
+    1L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  # An unsupported survreg distribution is rejected up front.
+  expect_error(
+    matcha(
+      ncc,
+      "d",
+      "x",
+      nested_cc(strata = "set", time = "t"),
+      estimator = "ipw_aft",
+      dist = "gaussian"
+    ),
+    class = "matchatr_bad_input"
+  )
+  # `dist` on a non-AFT estimator is rejected, not silently ignored.
+  expect_error(
+    matcha(
+      ncc,
+      "d",
+      "x",
+      nested_cc(strata = "set", time = "t"),
+      estimator = "ipw_cox",
+      dist = "weibull"
+    ),
+    class = "matchatr_bad_input"
+  )
+})
 
 test_that("ipw_aft rejects off-scale contrast types", {
   cohort <- make_aft_cohort(n = 500L, seed = 1L)

@@ -1,5 +1,97 @@
 # matchatr (development version)
 
+## 2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)
+
+New exported verb `excess_risk(fit, times)` for an `ipw_aalen` fit reports the
+**time-varying** Aalen cumulative regression functions
+B_j(t) = ∫₀ᵗ β_j(s) ds — the cumulative excess hazard for each covariate, the
+additive analogue of `absolute_risk()`. Where `contrast(type = "excess")` reports
+one time-*constant* excess hazard per covariate (the Lin-Ying model),
+`excess_risk()` relaxes the constant-effect assumption and returns the full
+cumulative regression function over time, completing the Phase-7 deferred item
+"time-varying additive effects / cumulative regression B(t)".
+
+The weighted least-squares estimator (`aalen_cumulative()`, `R/excess_risk.R`)
+accumulates dB̂(t_i) = (X̃ᵀWX̃)⁻¹ X̃ᵀW dN(t_i) over the event times of the
+deduplicated, Samuelsen-weighted analysis sample, with the Aalen martingale
+pointwise variance (X̃ᵀWX̃)⁻¹{Σ w² x̃x̃ᵀ}(X̃ᵀWX̃)⁻¹; the interval is a symmetric Wald
+band on the linear scale (B can be negative). The estimator truncates with a
+`matchatr_truncated_excess` warning if the weighted design becomes singular in a
+sparse late risk set. `print` / `tidy` methods render the per-(covariate, time)
+table; non-`ipw_aalen` engines are rejected with `matchatr_not_implemented`.
+
+Validated in `test-excess_risk.R`: B̂_j(t) and the pointwise SE match
+`timereg::aalen` (without `const()`) `cum` and `var.cum` to machine precision
+(1e-8), including a three-level factor exposure; a known constant-excess-hazard
+truth DGP recovers B_x(t) = β_x·t within a SE band.
+
+## 2026-06-10 — Split R/weighted_cox.R (internal refactor)
+
+The Samuelsen IPW weighted Cox engine and its shared helpers
+(`fit_ipw_cox()` / `contrast_ipw_cox()` / `ncc_ipw_analysis_data()` /
+`require_ipw_ncc_columns()`) move from `R/weighted_cox.R` into a new
+`R/ipw_cox.R`; `R/weighted_cox.R` now holds only the counter-matched
+`fit_weighted_cox()` / `contrast_weighted_cox()`. Pure code move, no behaviour
+change — both files are now under the ~300-line guideline. No user-visible
+change.
+
+## 2026-06-10 — Non-Weibull AFT distributions for IPW NCC (PHASE_7 follow-up)
+
+`matcha(estimator = "ipw_aft")` gains a `dist` argument selecting the
+accelerated-failure-time baseline — `"weibull"` (default), `"exponential"`,
+`"lognormal"`, or `"loglogistic"` — completing the Phase-7 deferred item
+"non-Weibull AFT distributions". All four are log-location-scale AFT models, so
+`contrast(type = "af")` reports the same time-ratio estimand exp(β) under each;
+they differ in the baseline error distribution (and therefore the survival-curve
+shape). `"exponential"` is the one-parameter Weibull (it fixes σ = 1).
+
+`absolute_risk()` follows the distribution: the cumulative incidence is
+F̂_x(t) = G((log t − η̂)/σ̂), where G is the baseline error CDF — extreme-value
+(complementary log-log) for weibull/exponential, Φ for lognormal, plogis for
+loglogistic. The delta-method CI is the Wald interval on the standardised
+residual mapped through the monotone G; for the extreme-value baselines this is
+exactly the cloglog inversion the Cox-type engines share. The exponential's fixed
+scale carries no log-scale parameter, so the scale term correctly drops out of
+the gradient.
+
+`dist` joins `model_fn` / `effect_modifier` / `reference` as an estimator-specific
+`matcha()` argument: supplying it for a non-AFT estimator, or naming an
+unsupported `survreg` distribution, is `matchatr_bad_input`.
+
+Validated in `test-aft_ncc.R` / `test-absolute_risk_aft.R`: each distribution's
+coefficient/SE matches an independent `multipleNCC::KMprob` + `survreg`
+reconstruction (1e-6); each survival curve round-trips through
+`predict.survreg(type = "quantile")` and matches a numDeriv reconstruction
+through its error CDF (1e-7).
+
+## 2026-06-10 — AFT survival-curve absolute risk for IPW NCC (PHASE_7 follow-up)
+
+`absolute_risk()` gains an `ipw_aft` engine path, completing the Phase-7 deferred
+item "AFT acceleration-factor absolute risk". The fitted weighted Weibull
+accelerated failure time model is a parametric survival curve, so the cumulative
+incidence is read directly off the coefficients,
+
+  F̂_x(t) = 1 − exp(−exp((log t − η̂) / σ̂)),
+
+where η̂ is the AFT linear predictor and σ̂ the scale — no Breslow step function.
+Pointwise intervals use the delta method on the complementary log-log scale over
+θ = (β, log σ), with the gradient ∂ξ/∂β = −x̃/σ, ∂ξ/∂(log σ) = −ξ and the robust
+Lin-Wei sandwich `survival::survreg(robust = TRUE)` stores in `vcov()`; the
+interval is inverted to the risk scale by the shared cloglog inversion the
+Cox-type engines already use (`cloglog_risk_ci()` / `new_matchatr_absolute_risk()`,
+factored out of `assemble_absolute_risk()` in `R/absolute_risk.R`; the engine is
+`R/absolute_risk_aft.R`). The result is weight-agnostic — KM (Samuelsen) and
+GLM/GAM working-model weights both feed it through the same fit.
+
+Validated in `test-absolute_risk_aft.R`: F̂_x(t) round-trips through
+`predict.survreg(type = "quantile")` (survival's own inverse CDF) to 1e-7; the
+estimate and CI match an independent `numDeriv` reconstruction of the ξ(θ)
+gradient (including factor contrasts); the NCC subsample recovers the full-cohort
+`survreg` curve within sampling tolerance; and a Weibull truth DGP's analytical
+F_x(t) is covered by the CI. `absolute_risk()` on the additive (`ipw_aalen`)
+engine — which has no survival-curve verb — is rejected with
+`matchatr_not_implemented`.
+
 ## 2026-06-10 — Additive-hazards and AFT models for IPW NCC (PHASE_7 Chunk 5)
 
 Two non-Cox alternative models on the deduplicated Samuelsen-weighted NCC sample

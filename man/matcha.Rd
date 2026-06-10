@@ -13,7 +13,8 @@ matcha(
   estimator = NULL,
   model_fn = NULL,
   effect_modifier = NULL,
-  reference = NULL
+  reference = NULL,
+  dist = NULL
 )
 }
 \arguments{
@@ -65,6 +66,15 @@ exposure coefficient is that subtype's log odds ratio versus the reference.
 It must name one of the observed groups; when \code{NULL} the first factor level
 (or the first level in sorted order, for a character outcome) is used.
 Supplying it for a non-polytomous estimator is an error. Defaults to \code{NULL}.}
+
+\item{dist}{\code{NULL} or a character scalar naming the parametric baseline for
+\code{estimator = "ipw_aft"}: one of \code{"weibull"} (the default), \code{"exponential"},
+\code{"lognormal"}, or \code{"loglogistic"}. All four are accelerated failure time
+models, so \code{contrast(type = "af")} reports the same time-ratio estimand
+\code{exp(beta)}; they differ in the baseline error distribution (and hence the
+survival-curve shape used by \code{\link[=absolute_risk]{absolute_risk()}}). \code{"weibull"} and
+\code{"exponential"} are additionally proportional-hazards. Supplying it for a
+non-AFT estimator is an error. Defaults to \code{NULL} (Weibull).}
 }
 \value{
 A \code{matchatr_fit} object: a list with the validated specification

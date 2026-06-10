@@ -5,5 +5,5 @@
     Condition
       Error in `absolute_risk()`:
       ! `absolute_risk()` is not implemented for the `clogit` engine.
-      i Supported engines: the case-cohort (`cch`) and IPW nested case-control (`ipw_cox`) survival fits.
+      i Supported engines: the case-cohort (`cch`), IPW nested case-control weighted Cox (`ipw_cox`), and IPW nested case-control Weibull AFT (`ipw_aft`) survival fits.
 

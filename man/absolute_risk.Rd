@@ -11,7 +11,8 @@ absolute_risk(fit, ...)
 }
 \arguments{
 \item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}. The case-cohort
-(\code{"cch"}) and IPW nested case-control (\code{"ipw_cox"}) engines are supported.}
+(\code{"cch"}), IPW nested case-control weighted Cox (\code{"ipw_cox"}), and IPW nested
+case-control Weibull AFT (\code{"ipw_aft"}) engines are supported.}
 
 \item{...}{Unused; present for S3 consistency.}
 
@@ -43,14 +44,20 @@ on the probability scale).
 }
 }
 \description{
-Estimates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from a
-fitted survival design, where Λ̂₀(t) is an inverse-probability-weighted (IPW)
-Breslow cumulative baseline hazard. Two engines are supported: the case-cohort
-pseudo-likelihood (\code{"cch"}, Borgan & Liestøl 1990) and the IPW nested
-case-control weighted Cox (\code{"ipw_cox"}, Samuelsen-weighted Breslow over the
-reused controls). Pointwise confidence intervals use the delta method on the
-complementary log-log scale (the "log-log" CI for the survival function,
-inverted to the risk scale).
+Estimates the cumulative incidence F_x(t) from a fitted survival design. Three
+engines are supported: the case-cohort pseudo-likelihood (\code{"cch"}, Borgan &
+Liestøl 1990) and the IPW nested case-control weighted Cox (\code{"ipw_cox"},
+Samuelsen-weighted Breslow over the reused controls) both build
+F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) from an inverse-probability-weighted (IPW)
+Breslow cumulative baseline hazard Λ̂₀(t); the IPW nested case-control
+parametric AFT (\code{"ipw_aft"}, any of the Weibull / exponential / lognormal /
+loglogistic baselines) builds F_x(t) = G((log t − η̂)/σ̂) directly from the
+fitted survival curve, where η̂ is the AFT linear predictor, σ̂ the scale, and G
+the baseline error CDF. Pointwise confidence intervals use the delta method:
+for the Cox-type engines and the extreme-value AFT baselines this is the
+complementary log-log scale inverted to the risk scale; for the lognormal /
+loglogistic baselines it is the Wald interval on the standardised residual
+mapped through G.
 }
 \examples{
 \dontrun{
@@ -65,7 +72,10 @@ absolute_risk(fit, newdata = data.frame(x = 1, z = 0), times = c(1, 2, 3))
 
 Other contrasts: 
 \code{\link{contrast}()},
+\code{\link{excess_risk}()},
 \code{\link{print.matchatr_absolute_risk}()},
-\code{\link{tidy.matchatr_absolute_risk}()}
+\code{\link{print.matchatr_excess_risk}()},
+\code{\link{tidy.matchatr_absolute_risk}()},
+\code{\link{tidy.matchatr_excess_risk}()}
 }
 \concept{contrasts}

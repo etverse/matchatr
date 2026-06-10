@@ -378,6 +378,37 @@ fit_aft <- matcha(ncc, outcome = "d", exposure = "exposure",
 contrast(fit_aft)
 ```
 
+The fitted Weibull is a full *survival curve*, so `absolute_risk()` also serves
+the `ipw_aft` engine — reading the cumulative incidence straight off the
+parameters, with no Breslow step:
+
+$$F_x(t) = 1 - \exp\!\big(-\exp((\log t - \hat\eta)/\hat\sigma)\big),$$
+
+where $\hat\eta = \hat\beta^{\top} x$ is the AFT linear predictor and
+$\hat\sigma$ the scale. The interval again uses the delta method on the
+complementary log-log scale, here over $(\beta, \log\sigma)$ with the robust
+`survreg` sandwich. Because the curve is parametric, $\hat F_x(t)$ is smooth in
+$t$ (the Cox engine's $\hat F_x(t)$ is a step function on the event times).
+
+```{r}
+ar_aft <- absolute_risk(fit_aft, newdata = newdata, times = c(1, 2, 3, 4))
+ar_aft
+```
+
+The baseline defaults to Weibull, but `dist` selects any of four AFT
+distributions — `"weibull"`, `"exponential"`, `"lognormal"`, `"loglogistic"`.
+All report the same time ratio `exp(β)`; they differ in the survival-curve shape
+(`"lognormal"` / `"loglogistic"` allow a non-monotone hazard). `absolute_risk()`
+follows the chosen baseline automatically:
+
+```{r}
+fit_ln <- matcha(ncc, outcome = "d", exposure = "exposure",
+                 design = nested_cc(strata = "set", time = "t"),
+                 confounders = ~ confounder, estimator = "ipw_aft",
+                 dist = "lognormal")
+contrast(fit_ln)
+```
+
 The **additive-hazards** model (`estimator = "ipw_aalen"`) acts on the *rate*
 scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so
 `contrast(type = "excess")` reports the **excess hazard** γ — an additive rate
@@ -389,6 +420,35 @@ fit_add <- matcha(ncc, outcome = "d", exposure = "exposure",
                   design = nested_cc(strata = "set", time = "t"),
                   confounders = ~ confounder, estimator = "ipw_aalen")
 contrast(fit_add)
+```
+
+`contrast()` reports a single time-*constant* excess hazard (the Lin-Ying model).
+To let the effect vary with time, `excess_risk()` returns the **cumulative**
+excess hazard $B_j(t) = \int_0^t \beta_j(s)\,ds$ — the additive analogue of
+`absolute_risk()`. A straight line means a constant rate difference; curvature
+means a time-varying one.
+
+```{r}
+er <- excess_risk(fit_add, times = 1:5)
+er
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 4
+#| fig-alt: >
+#|   Cumulative excess hazard of the exposure over follow-up estimated from the
+#|   IPW nested case-control additive-hazards model, with a pointwise 95%
+#|   confidence band. The curve rises roughly linearly, indicating an
+#|   approximately constant excess rate.
+ex <- er$estimates[er$estimates$term == "exposure", ]
+plot(ex$time, ex$estimate, type = "b", pch = 19, col = "#8e44ad",
+     ylim = range(ex$ci_lower, ex$ci_upper),
+     xlab = "time", ylab = expression(hat(B)[x](t)),
+     main = "IPW NCC cumulative excess hazard")
+lines(ex$time, ex$ci_lower, lty = 2, col = "#8e44ad")
+lines(ex$time, ex$ci_upper, lty = 2, col = "#8e44ad")
+abline(h = 0, col = "grey60")
 ```
 
 Each estimator identifies exactly one scale, so asking for another is rejected:
