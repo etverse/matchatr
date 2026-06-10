@@ -1,5 +1,15 @@
 # matchatr (development version)
 
+## 2026-06-10 — Split R/weighted_cox.R (internal refactor)
+
+The Samuelsen IPW weighted Cox engine and its shared helpers
+(`fit_ipw_cox()` / `contrast_ipw_cox()` / `ncc_ipw_analysis_data()` /
+`require_ipw_ncc_columns()`) move from `R/weighted_cox.R` into a new
+`R/ipw_cox.R`; `R/weighted_cox.R` now holds only the counter-matched
+`fit_weighted_cox()` / `contrast_weighted_cox()`. Pure code move, no behaviour
+change — both files are now under the ~300-line guideline. No user-visible
+change.
+
 ## 2026-06-10 — Non-Weibull AFT distributions for IPW NCC (PHASE_7 follow-up)
 
 `matcha(estimator = "ipw_aft")` gains a `dist` argument selecting the

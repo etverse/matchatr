@@ -199,10 +199,12 @@ estimators than alternatives (Ch19 §19.3).
 
 ### Technical follow-up (not a feature)
 
-- **Split `R/weighted_cox.R`** (≈500 lines) into `R/ipw_cox.R` (the Samuelsen IPW
-  Cox + the shared `ncc_ipw_analysis_data()` / `require_ipw_ncc_columns()`) and a
-  trimmed `R/weighted_cox.R` (counter-matched only), per the ~300-line file rule.
-  Deferred from Chunk 5 to avoid churn on already-committed code.
+- ✅ **Split `R/weighted_cox.R` (done).** Split into `R/ipw_cox.R` (the Samuelsen
+  IPW Cox `fit_ipw_cox()` / `contrast_ipw_cox()` + the shared
+  `ncc_ipw_analysis_data()` / `require_ipw_ncc_columns()`) and a trimmed
+  `R/weighted_cox.R` (counter-matched `fit_weighted_cox()` /
+  `contrast_weighted_cox()` only), per the ~300-line file rule. Pure code move,
+  no behaviour change.
 
 ### Owned by later phases
 

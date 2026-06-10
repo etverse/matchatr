@@ -203,7 +203,7 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `multi_endpoint.R` (PHASE_7 Chunk 4 — `reuse_ncc_endpoint()`: augments a
   primary-endpoint NCC with a secondary endpoint's unsampled cohort cases so one
   control set can be reused across endpoints; pairs with the generalised
-  `ncc_ipw_analysis_data()` in `weighted_cox.R`).
+  `ncc_ipw_analysis_data()` in `ipw_cox.R`).
   Still to come: `weights_cc.R` (case-control / q₀ weights).
 - **Classical estimators:** `unconditional.R` (PHASE_2 — `fit_logistic_cc()`
   wraps `stats::glm` / pluggable `model_fn`, plus the conditional-OR contrast and
@@ -237,13 +237,15 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   the `matchatr_homogeneity` class),
   `weighted_cox.R` (PHASE_5 Chunk 3 — `fit_weighted_cox()` /
   `contrast_weighted_cox()`: Langholz-Borgan weighted partial likelihood for
-  counter-matched NCC via `coxph(offset = log_w)`; PHASE_7 Chunk 1 —
-  `fit_ipw_cox()` / `contrast_ipw_cox()`: Samuelsen IPW weighted Cox for NCC
-  via `coxph(weights = ipw_weight, robust = TRUE)` with Lin-Wei robust sandwich
-  variance; PHASE_7 Chunk 3 — `ncc_ipw_analysis_data()`: the deduplicated,
-  case-weighted analysis sample shared by the weighted Cox, the IPW Breslow, and
-  the AFT / additive engines; PHASE_7 Chunk 5 — `require_ipw_ncc_columns()`: the
-  shared `ipw_weight` / `.cohort_row` / `time` data-contract check),
+  counter-matched NCC via `coxph(offset = log_w)`),
+  `ipw_cox.R` (PHASE_7 Chunk 1 — `fit_ipw_cox()` / `contrast_ipw_cox()`:
+  Samuelsen IPW weighted Cox for NCC via `coxph(weights = ipw_weight, robust =
+  TRUE)` with Lin-Wei robust sandwich variance; PHASE_7 Chunk 3 —
+  `ncc_ipw_analysis_data()`: the deduplicated, case-weighted analysis sample
+  shared by the weighted Cox, the IPW Breslow, and the AFT / additive engines;
+  PHASE_7 Chunk 5 — `require_ipw_ncc_columns()`: the shared `ipw_weight` /
+  `.cohort_row` / `time` data-contract check; split out of `weighted_cox.R` per
+  the ~300-line file rule),
   `aft_ncc.R` (PHASE_7 Chunk 5 — `fit_ipw_aft()` / `contrast_ipw_aft()`: weighted
   Weibull accelerated failure time via `survival::survreg(weights, robust = TRUE)`,
   reporting the time ratio `type = "af"`),
