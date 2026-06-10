@@ -311,3 +311,34 @@ test_that("ipw_aalen requires incl_prob data and a nested design", {
     class = "matchatr_bad_estimator"
   )
 })
+
+test_that("ipw_aalen aborts when a covariate is collinear (singular design)", {
+  # A confounder equal to the exposure makes the weighted additive design matrix
+  # A singular; the solve must surface a classed error, not a raw LAPACK fault.
+  cohort <- withr::with_seed(1L, {
+    n <- 600L
+    x <- stats::rnorm(n)
+    data.frame(
+      id = seq_len(n),
+      t = pmin(stats::rexp(n, 0.1), 6),
+      d = as.integer(stats::rexp(n, 0.1) <= 6),
+      x = x,
+      z = x
+    )
+  })
+  ncc <- withr::with_seed(
+    2L,
+    sample_ncc(cohort, "t", "d", m = 2L, incl_prob = TRUE)
+  )
+  expect_error(
+    matcha(
+      ncc,
+      "d",
+      "x",
+      nested_cc(strata = "set", time = "t"),
+      confounders = ~z,
+      estimator = "ipw_aalen"
+    ),
+    class = "matchatr_unestimable_exposure"
+  )
+})

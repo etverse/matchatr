@@ -94,7 +94,20 @@ lin_ying_additive <- function(time, status, Z, w) {
   tidx <- match(time, ut)
   centered <- Z - Zbar[tidx, , drop = FALSE]
   B <- colSums(w * status * centered)
-  Ainv <- solve(A)
+  # A singular design (a constant covariate, or one collinear with the others)
+  # has no solution; surface it as a classed error rather than a raw LAPACK fault.
+  Ainv <- tryCatch(
+    solve(A),
+    error = function(e) {
+      rlang::abort(
+        c(
+          "The additive-hazards model has no estimable solution.",
+          i = "A covariate is constant or collinear with the others, so the weighted design is singular."
+        ),
+        class = c("matchatr_unestimable_exposure", "matchatr_error")
+      )
+    }
+  )
   gamma <- as.numeric(Ainv %*% B)
 
   # Robust sandwich via the influence contributions η̂_i.

@@ -18,8 +18,10 @@ Two non-Cox alternative models on the deduplicated Samuelsen-weighted NCC sample
   martingale-residual sandwich A⁻¹(Σ η̂_iη̂_iᵀ)A⁻¹. `contrast(type = "excess")`
   reports the excess hazard γ (additive rate difference; Borgan & Langholz 1997,
   Biometrics 53(2)), a linear-scale, possibly-negative estimand whose Wald
-  interval is symmetric (not exponentiated). `timereg` is a test-only oracle, not
-  a runtime dependency.
+  interval is symmetric (not exponentiated). A constant or collinear covariate
+  makes the weighted design matrix singular and aborts with
+  `matchatr_unestimable_exposure` rather than a raw LAPACK error. `timereg` is a
+  test-only oracle, not a runtime dependency.
 
 Two new contrast scales (`type = "af"`, `type = "excess"`); each engine identifies
 exactly one and rejects the others, bootstrap/sandwich variance, non-`incl_prob`
