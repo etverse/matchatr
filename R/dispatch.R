@@ -24,7 +24,15 @@ dispatch_table <- function() {
     # McNemar closed form is the 1:1 binary-exposure reduction of that
     # likelihood, offered as a faster, formula-level alternative for paired data.
     matched_cc = c(clogit = "clogit", mcnemar = "mcnemar"),
-    nested_cc = c(clogit = "clogit", ipw_cox = "ipw_cox"),
+    # The risk-set conditional likelihood (clogit) plus the three Samuelsen-IPW
+    # estimators that break the matching: weighted Cox (hazard ratio), weighted
+    # AFT (time ratio), and weighted Aalen additive hazards (excess hazard).
+    nested_cc = c(
+      clogit = "clogit",
+      ipw_cox = "ipw_cox",
+      ipw_aft = "ipw_aft",
+      ipw_aalen = "ipw_aalen"
+    ),
     case_cohort = c(cch = "cch"),
     two_phase = c(survey = "survey_twophase"),
     counter_matched = c(weighted_cox = "weighted_cox")
@@ -110,6 +118,11 @@ default_contrast_type <- function(engine, design_type = NULL) {
     weighted_cox = "hr",
     ipw_cox = "hr",
     cch = "hr",
+    # The IPW NCC alternative-model engines each identify one non-Cox scale: the
+    # AFT a time ratio (acceleration factor), the additive Aalen model an excess
+    # hazard (a rate difference).
+    ipw_aft = "af",
+    ipw_aalen = "excess",
     "difference"
   )
 }
@@ -218,6 +231,8 @@ run_engine <- function(fit) {
     multinom = fit_polytomous(fit),
     weighted_cox = fit_weighted_cox(fit),
     ipw_cox = fit_ipw_cox(fit),
+    ipw_aft = fit_ipw_aft(fit),
+    ipw_aalen = fit_ipw_aalen(fit),
     cch = fit_cch(fit),
     NULL
   )

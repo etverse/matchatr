@@ -44,6 +44,7 @@ Suggests:
     riskclustr,
     survey,
     testthat (>= 3.0.0),
+    timereg,
     tinyplot,
     tinytable,
     WeightIt,

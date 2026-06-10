@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: Chunks 1–4 complete. Additive/AFT models (Ch19 §19.5) deferred.**
+> **Status: complete (Chunks 1–5).**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -59,7 +59,8 @@ fit2 <- matcha(ncc, outcome = "case_alav", exposure = "sbp",
 | GAM / Chen | ipw_cox | HR | robust sandwich | needs-test |
 | KM | — | absolute risk F_x(t) | IPW Breslow | ✅ done (Chunk 3) |
 | KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | ✅ done (Chunk 4) |
-| KM | ipw_aft / additive | param/excess | robust | deferred (Ch19 §19.5) |
+| KM | ipw_aft (Weibull) | time ratio exp(β) | survreg robust | ✅ done (Chunk 5) |
+| KM | ipw_aalen (additive) | excess hazard γ | Lin-Ying robust | ✅ done (Chunk 5) |
 | working-model, no Phase-1 times | — | — | ⛔ `matchatr_missing_phase1` |
 
 ## Implementation plan
@@ -142,12 +143,30 @@ estimators than alternatives (Ch19 §19.3).
      on a competing-risks truth DGP. (The doc's earlier "approximate oracle"
      concern applied to making `wpl` reproduce mode (B); the exact mode-(A) oracle
      and the independent mode-(B) reconstruction supersede it.)
-5. Deferred: additive (Aalen) / AFT models (Ch19 §19.5) for IPW NCC — a separate
-   estimator family (`timereg::aalen` / weighted `survival::survreg`), out of scope
-   for the weighted-Cox chunk.
+5. ✅ Additive (Aalen) / AFT alternative models (Ch19 §19.5) on the deduplicated
+   Samuelsen-weighted sample, both reporting their own non-Cox scale:
+   - **AFT** (`estimator = "ipw_aft"`): weighted Weibull accelerated failure time
+     via `survival::survreg(weights, robust = TRUE)`; `contrast(type = "af")`
+     reports the time ratio exp(β) (acceleration factor; Kang, Lu & Liu 2017,
+     Biometrics 73(1)). `survival` is already a core dependency, so this is a
+     delegated wrap like the `clogit` / `coxph` / `cch` engines.
+   - **Additive** (`estimator = "ipw_aalen"`): the weighted constant
+     additive-hazards model (Lin & Ying 1994), implemented in matchatr rather than
+     delegated — a closed form (γ̂ = A⁻¹B) with a martingale-residual robust
+     sandwich. `contrast(type = "excess")` reports the excess hazard γ (additive
+     rate difference; Borgan &
+     Langholz 1997, Biometrics 53(2)) on the linear scale — symmetric Wald interval,
+     possibly negative. `timereg::aalen` is the test oracle, not a runtime dep.
+   - **Oracles.** `timereg::aalen` reproduces the additive point estimate exactly
+     (full coefficient vector, including a complex continuous-exposure /
+     factor-confounder set with heavy ties) and the robust SE within 5%; AFT matches
+     a full-cohort `survreg` (3.5-SE) and an independent `KMprob` + `survreg`
+     reconstruction to machine precision. Other Weibull/AFT distributions and the
+     time-varying additive cumulative regression function B(t) are not exposed.
 
 ## Deferred items
 
-Additive (Aalen) / AFT IPW-NCC models (Ch19 §19.5), weight calibration (Phase 12),
-marginal causal contrasts under NCC sampling (Phase 10), quota-matching weights,
-counter-matching weighted analysis (cross-ref Phase 5).
+Weight calibration (Phase 12), marginal causal contrasts under NCC sampling
+(Phase 10), quota-matching weights, counter-matching weighted analysis (cross-ref
+Phase 5). Within the alternative-model family: non-Weibull AFT distributions and
+the time-varying additive cumulative regression function B(t).

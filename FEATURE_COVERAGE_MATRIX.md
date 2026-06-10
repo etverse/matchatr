@@ -387,7 +387,7 @@ use standard R contrasts) rather than using `term_assign()`, because
 
 ## IPW for nested case-control (PHASE_7)
 
-**Chunks 1–4 implemented; additive/AFT models deferred.**
+**Phase complete (Chunks 1–5).**
 `sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and
 appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data.
 `matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits
@@ -413,7 +413,18 @@ with the secondary endpoint's unsampled cohort cases (weight 1), keeping the
 controls' primary inclusion weights 1/π_j. Competing-endpoint cases (ascertained
 by the sampling) keep weight 1: `ncc_ipw_analysis_data()` forces weight 1 for any
 subject that is a case of the analysed endpoint **or** the failing subject of some
-sampled risk set. Additive/AFT models (Ch19 §19.5) are deferred.
+sampled risk set.
+**Chunk 5** adds two non-Cox alternative models (Ch19 §19.5) on the same
+deduplicated Samuelsen-weighted sample. `estimator = "ipw_aft"` fits a weighted
+Weibull accelerated failure time model (`survival::survreg`, robust sandwich) and
+`contrast(type = "af")` reports the time ratio exp(β) (acceleration factor; Kang,
+Lu & Liu 2017). `estimator = "ipw_aalen"` fits the weighted constant
+additive-hazards model (`lin_ying_additive()`, the Lin & Ying 1994 closed form
+with a robust sandwich) and `contrast(type = "excess")` reports the excess hazard
+γ (additive rate difference; Borgan & Langholz 1997) — a linear-scale, possibly
+negative estimand, so its Wald interval is symmetric, not exponentiated. Both
+identify one scale and reject the others; `timereg::aalen` is the additive
+oracle, `survival::survreg` / `multipleNCC::KMprob` the AFT oracle.
 
 | Weight | Estimator | Estimand | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -435,7 +446,9 @@ sampled risk set. Additive/AFT models (Ch19 §19.5) are deferred.
 | `reuse_ncc_endpoint` without `cohort` / `time` col absent | — | — | — | ⛔ `matchatr_missing_phase1` | `test-multi_endpoint.R` |
 | `reuse_ncc_endpoint` without `.cohort_row` / missing bookkeeping col / event absent | — | — | — | ⛔ `matchatr_bad_input` | `test-multi_endpoint.R` |
 | `reuse_ncc_endpoint`, secondary endpoint with no cases | — | — | — | ⛔ `matchatr_bad_outcome` | `test-multi_endpoint.R` |
-| additive / AFT models (Ch19 §19.5) | — | — | — | ⏳ deferred | — |
+| accelerated failure time, Weibull (`estimator = "ipw_aft"`) | `ipw_aft` | time ratio exp(β) | survreg robust sandwich | ✅ full-cohort `survreg` recovery (3.5-SE) + independent `KMprob` + `survreg` reconstruction (1e-6, incl. complex continuous-exposure / factor-confounder set) | `test-aft_ncc.R` |
+| additive hazards, constant effects (`estimator = "ipw_aalen"`) | `ipw_aalen` | excess hazard γ (rate difference) | Lin-Ying robust sandwich | ✅ truth-DGP recovery (3.5-SE, binary + 3-level factor exposure) + `timereg::aalen` oracle (point exact 1e-6 incl. full coef vector on a complex covariate set; robust SE within 5%) | `test-additive_ncc.R` |
+| `ipw_aft` / `ipw_aalen` off-scale `type` / `ci_method` / non-`incl_prob` / non-nested | — | — | — | ⛔ `matchatr_unidentified_estimand` / `matchatr_unsupported_variance` / `matchatr_missing_ipw_weights` / `matchatr_bad_estimator` | `test-aft_ncc.R`, `test-additive_ncc.R` |
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 

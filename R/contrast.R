@@ -27,13 +27,15 @@
 #'
 #' @param fit A `matchatr_fit` object returned by [matcha()].
 #' @param type Character contrast scale: `"difference"`, `"ratio"`, `"or"`
-#'   (odds ratio), or `"hr"` (hazard ratio, for the nested case-control risk-set
-#'   design). When omitted, it defaults to the estimand the design identifies —
-#'   `"or"` for the classical odds-ratio engines (unmatched / matched
-#'   case-control), `"hr"` for the nested case-control design, `"difference"`
-#'   otherwise. Each conditional design identifies exactly one scale, so the
-#'   off-design request (an odds ratio from a risk-set design, or vice versa)
-#'   aborts with `matchatr_unidentified_estimand`.
+#'   (odds ratio), `"hr"` (hazard ratio, nested case-control risk-set / weighted
+#'   Cox), `"af"` (acceleration factor / time ratio, the IPW NCC accelerated
+#'   failure time model), or `"excess"` (excess hazard / additive rate
+#'   difference, the IPW NCC additive-hazards model). When omitted, it defaults
+#'   to the estimand the design and estimator identify — `"or"` for the classical
+#'   odds-ratio engines, `"hr"` for the risk-set / weighted Cox engines, `"af"`
+#'   for `ipw_aft`, `"excess"` for `ipw_aalen`, `"difference"` otherwise. Each
+#'   estimator identifies exactly one scale, so an off-scale request aborts with
+#'   `matchatr_unidentified_estimand`.
 #' @param ci_method Character variance source for the interval: `"model"`
 #'   (information-matrix Wald, the default), `"sandwich"` (Huber-White robust),
 #'   or `"bootstrap"`.
@@ -63,7 +65,7 @@
 #' @export
 contrast <- function(
   fit,
-  type = c("difference", "ratio", "or", "hr"),
+  type = c("difference", "ratio", "or", "hr", "af", "excess"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
   ...
@@ -149,6 +151,20 @@ contrast <- function(
       call = call
     ),
     ipw_cox = contrast_ipw_cox(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
+    ipw_aft = contrast_ipw_aft(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      call = call
+    ),
+    ipw_aalen = contrast_ipw_aalen(
       fit,
       type = type,
       ci_method = ci_method,

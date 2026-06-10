@@ -1,5 +1,38 @@
 # matchatr (development version)
 
+## 2026-06-10 — Additive-hazards and AFT models for IPW NCC (PHASE_7 Chunk 5)
+
+Two non-Cox alternative models on the deduplicated Samuelsen-weighted NCC sample
+(Handbook Ch19 §19.5), completing Phase 7.
+
+- **Accelerated failure time** (`estimator = "ipw_aft"`, `R/aft_ncc.R`): a
+  weighted Weibull AFT via `survival::survreg(weights = ipw_weight, robust = TRUE)`;
+  `contrast(type = "af")` reports the time ratio exp(β) — the acceleration factor,
+  the factor by which a unit of exposure multiplies survival time (Kang, Lu & Liu
+  2017, Biometrics 73(1)). The robust sandwich is `survreg`'s; the time ratio
+  shares the exponentiated-coefficient interval shape of the odds / hazard ratios.
+- **Additive hazards** (`estimator = "ipw_aalen"`, `R/additive_ncc.R` +
+  `R/lin_ying.R`): the weighted constant additive-hazards model (Lin & Ying 1994,
+  Biometrika 81(1)), implemented in matchatr rather than delegated — the point
+  estimate γ̂ = A⁻¹B is a closed form and the robust variance is the
+  martingale-residual sandwich A⁻¹(Σ η̂_iη̂_iᵀ)A⁻¹. `contrast(type = "excess")`
+  reports the excess hazard γ (additive rate difference; Borgan & Langholz 1997,
+  Biometrics 53(2)), a linear-scale, possibly-negative estimand whose Wald
+  interval is symmetric (not exponentiated). `timereg` is a test-only oracle, not
+  a runtime dependency.
+
+Two new contrast scales (`type = "af"`, `type = "excess"`); each engine identifies
+exactly one and rejects the others, bootstrap/sandwich variance, non-`incl_prob`
+data, and non-nested designs with classed errors.
+
+Validated in `test-aft_ncc.R` / `test-additive_ncc.R`: AFT recovers the
+full-cohort `survreg` coefficient (3.5-SE) and matches an independent `KMprob` +
+`survreg` reconstruction to machine precision; the additive estimator recovers a
+known excess hazard (3.5-SE, binary and three-level-factor exposure) and matches
+`timereg::aalen` exactly on the point estimate (full coefficient vector, including
+a complex continuous-exposure / factor-confounder set with heavy ties) and within
+5% on the robust SE.
+
 ## 2026-06-10 — Multiple endpoints from one reused NCC control set (PHASE_7 Chunk 4)
 
 Reuses a single nested case-control control set to estimate hazard ratios for

@@ -359,7 +359,52 @@ omitting it is rejected:
 reuse_ncc_endpoint(ncc_primary, cohort = NULL, time = "t", event = "d2")
 ```
 
+## Alternative models: time ratios and excess hazards
+
+Breaking the matching also frees the analysis from the proportional-hazards
+scale. The same Samuelsen-weighted sample supports two non-Cox models, each
+reporting a different effect measure.
+
+The **accelerated failure time** model (`estimator = "ipw_aft"`) acts on the
+survival-*time* scale: `contrast(type = "af")` reports the **time ratio**
+exp(β) — the factor by which a unit of exposure multiplies the survival time
+(above one prolongs, below one shortens). It is a weighted Weibull `survreg`
+with a robust sandwich.
+
+```{r}
+fit_aft <- matcha(ncc, outcome = "d", exposure = "exposure",
+                  design = nested_cc(strata = "set", time = "t"),
+                  confounders = ~ confounder, estimator = "ipw_aft")
+contrast(fit_aft)
+```
+
+The **additive-hazards** model (`estimator = "ipw_aalen"`) acts on the *rate*
+scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so
+`contrast(type = "excess")` reports the **excess hazard** γ — an additive rate
+difference. Unlike a ratio it can be negative (a protective exposure lowers the
+rate), and its confidence interval is symmetric (it is not exponentiated).
+
+```{r}
+fit_add <- matcha(ncc, outcome = "d", exposure = "exposure",
+                  design = nested_cc(strata = "set", time = "t"),
+                  confounders = ~ confounder, estimator = "ipw_aalen")
+contrast(fit_add)
+```
+
+Each estimator identifies exactly one scale, so asking for another is rejected:
+
+```{r}
+#| error: true
+contrast(fit_aft, type = "hr")
+```
+
 ## References
+
+Lin DY & Ying Z (1994). Semiparametric analysis of the additive risk model.
+*Biometrika*, 81(1), 61–71.
+
+Borgan Ø & Langholz B (1997). Estimation of excess risk from case-control data
+using Aalen's linear regression model. *Biometrics*, 53(2), 690–697.
 
 Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
 case-control studies. *Biometrika*, 84(2), 379–394.
@@ -371,10 +416,10 @@ utilized for multiple outcomes: a likelihood approach and alternatives.
 Støer NC & Samuelsen SO (2012). Comparison of estimators in nested case–control
 studies with multiple outcomes. *Lifetime Data Analysis*, 18(3), 261–283.
 
-Borgan Ø, Samuelsen SO & Aastveit AH (2003). Estimation of excess risk from
-case-control data using Aalen's linear regression model. *Lifetime Data
-Analysis*, 9(2), 189–202.
-
-Stoer NC & Samuelsen SO (2013). Inverse probability weighting in nested
+Støer NC & Samuelsen SO (2013). Inverse probability weighting in nested
 case-control studies with additional matching — a simulation study.
 *Statistics in Medicine*, 32(30), 5328–5339.
+
+Kang S, Lu W & Liu M (2017). Efficient estimation for accelerated failure time
+model under case-cohort and nested case-control sampling. *Biometrics*, 73(1),
+114–123.
