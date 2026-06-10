@@ -36,43 +36,7 @@
 #' @noRd
 fit_ipw_cox <- function(fit) {
   ipw_col <- "ipw_weight"
-  row_col <- ".cohort_row"
-
-  if (!ipw_col %in% names(fit$data)) {
-    rlang::abort(
-      c(
-        "The `ipw_cox` estimator requires an `ipw_weight` column in `data`.",
-        i = paste0(
-          "Use `sample_ncc(..., incl_prob = TRUE)` to generate the Samuelsen ",
-          "KM inclusion weights before calling `matcha()`."
-        )
-      ),
-      class = c("matchatr_missing_ipw_weights", "matchatr_error")
-    )
-  }
-  if (!row_col %in% names(fit$data)) {
-    rlang::abort(
-      c(
-        "The `ipw_cox` estimator requires a `.cohort_row` column in `data`.",
-        i = paste0(
-          "Use `sample_ncc(..., incl_prob = TRUE)` to attach the cohort row ",
-          "index before calling `matcha()`."
-        )
-      ),
-      class = c("matchatr_missing_ipw_weights", "matchatr_error")
-    )
-  }
-
-  time_col <- fit$design$time
-  if (is.null(time_col)) {
-    rlang::abort(
-      c(
-        "The `ipw_cox` estimator requires a `time` column specified in `nested_cc()`.",
-        i = "Use `nested_cc(strata = \"set\", time = \"t\")` with the cohort time column name."
-      ),
-      class = c("matchatr_bad_design", "matchatr_error")
-    )
-  }
+  time_col <- require_ipw_ncc_columns(fit, "ipw_cox")
 
   # Break the matching: deduplicate by cohort row index so each unique subject
   # appears once, with cohort cases forced to weight 1. The same analysis sample
@@ -163,10 +127,17 @@ contrast_ipw_cox <- function(
   call = rlang::caller_env()
 ) {
   reject_unidentified_rd_rr(type, call = call)
-  if (identical(type, "or")) {
+  # The weighted Cox identifies only the hazard ratio; an odds ratio, the AFT
+  # time ratio, or the additive excess hazard are sibling NCC-IPW scales fit by
+  # the other engines, not relabelings of this fit.
+  if (!identical(type, "hr")) {
     rlang::abort(
       c(
-        "The IPW NCC weighted Cox estimator reports hazard ratios, not odds ratios.",
+        paste0(
+          "The IPW NCC weighted Cox estimator reports hazard ratios, not `type = \"",
+          type,
+          "\"`."
+        ),
         i = 'Use `type = "hr"` (the default for `ipw_cox`).'
       ),
       class = c("matchatr_unidentified_estimand", "matchatr_error"),
@@ -203,6 +174,75 @@ contrast_ipw_cox <- function(
     n = fit$model$n,
     call = call
   )
+}
+
+#' Validate that a fit carries the columns an IPW nested case-control engine needs
+#'
+#' The Samuelsen IPW engines (`ipw_cox`, `ipw_aft`, `ipw_aalen`) all break the
+#' matching and fit a weighted model on the deduplicated NCC analysis sample, so
+#' they share the same data contract: an `ipw_weight` inclusion-weight column, a
+#' `.cohort_row` index for deduplication (both attached by
+#' `sample_ncc(incl_prob = TRUE)`), and a cohort `time` column declared on the
+#' `nested_cc()` design.
+#'
+#' @param fit A `matchatr_fit` whose `data` should carry `ipw_weight` /
+#'   `.cohort_row` and whose `design$time` should be set.
+#' @param estimator Character scalar naming the estimator in the error messages
+#'   (e.g. `"ipw_cox"`, `"ipw_aft"`, `"ipw_aalen"`).
+#' @returns The cohort time column name (character scalar); aborts with
+#'   `matchatr_missing_ipw_weights` (missing weight / row columns) or
+#'   `matchatr_bad_design` (missing time) otherwise.
+#' @family estimators
+#' @seealso `fit_ipw_cox()`, `fit_ipw_aft()`, `fit_ipw_aalen()`
+#' @noRd
+require_ipw_ncc_columns <- function(fit, estimator) {
+  if (!"ipw_weight" %in% names(fit$data)) {
+    rlang::abort(
+      c(
+        paste0(
+          "The `",
+          estimator,
+          "` estimator requires an `ipw_weight` column in `data`."
+        ),
+        i = paste0(
+          "Use `sample_ncc(..., incl_prob = TRUE)` to generate the Samuelsen ",
+          "KM inclusion weights before calling `matcha()`."
+        )
+      ),
+      class = c("matchatr_missing_ipw_weights", "matchatr_error")
+    )
+  }
+  if (!".cohort_row" %in% names(fit$data)) {
+    rlang::abort(
+      c(
+        paste0(
+          "The `",
+          estimator,
+          "` estimator requires a `.cohort_row` column in `data`."
+        ),
+        i = paste0(
+          "Use `sample_ncc(..., incl_prob = TRUE)` to attach the cohort row ",
+          "index before calling `matcha()`."
+        )
+      ),
+      class = c("matchatr_missing_ipw_weights", "matchatr_error")
+    )
+  }
+  time_col <- fit$design$time
+  if (is.null(time_col)) {
+    rlang::abort(
+      c(
+        paste0(
+          "The `",
+          estimator,
+          "` estimator requires a `time` column specified in `nested_cc()`."
+        ),
+        i = "Use `nested_cc(strata = \"set\", time = \"t\")` with the cohort time column name."
+      ),
+      class = c("matchatr_bad_design", "matchatr_error")
+    )
+  }
+  time_col
 }
 
 #' Deduplicated, case-weighted analysis sample for an IPW nested case-control fit

@@ -1,6 +1,6 @@
 # Phase 7 — Inverse Probability Weighting for Nested Case-Control
 
-> **Status: Chunks 1–4 complete. Additive/AFT models (Ch19 §19.5) deferred.**
+> **Status: complete (Chunks 1–5).**
 > Book chapters: 19 (IPW in NCC), with 16, 18 background.
 
 ## Scope
@@ -59,7 +59,8 @@ fit2 <- matcha(ncc, outcome = "case_alav", exposure = "sbp",
 | GAM / Chen | ipw_cox | HR | robust sandwich | needs-test |
 | KM | — | absolute risk F_x(t) | IPW Breslow | ✅ done (Chunk 3) |
 | KM | ipw_cox (multi-endpoint) | HR per endpoint | robust | ✅ done (Chunk 4) |
-| KM | ipw_aft / additive | param/excess | robust | deferred (Ch19 §19.5) |
+| KM | ipw_aft (Weibull) | time ratio exp(β) | survreg robust | ✅ done (Chunk 5) |
+| KM | ipw_aalen (additive) | excess hazard γ | Lin-Ying robust | ✅ done (Chunk 5) |
 | working-model, no Phase-1 times | — | — | ⛔ `matchatr_missing_phase1` |
 
 ## Implementation plan
@@ -142,12 +143,57 @@ estimators than alternatives (Ch19 §19.3).
      on a competing-risks truth DGP. (The doc's earlier "approximate oracle"
      concern applied to making `wpl` reproduce mode (B); the exact mode-(A) oracle
      and the independent mode-(B) reconstruction supersede it.)
-5. Deferred: additive (Aalen) / AFT models (Ch19 §19.5) for IPW NCC — a separate
-   estimator family (`timereg::aalen` / weighted `survival::survreg`), out of scope
-   for the weighted-Cox chunk.
+5. ✅ Additive (Aalen) / AFT alternative models (Ch19 §19.5) on the deduplicated
+   Samuelsen-weighted sample, both reporting their own non-Cox scale:
+   - **AFT** (`estimator = "ipw_aft"`): weighted Weibull accelerated failure time
+     via `survival::survreg(weights, robust = TRUE)`; `contrast(type = "af")`
+     reports the time ratio exp(β) (acceleration factor; Kang, Lu & Liu 2017,
+     Biometrics 73(1)). `survival` is already a core dependency, so this is a
+     delegated wrap like the `clogit` / `coxph` / `cch` engines.
+   - **Additive** (`estimator = "ipw_aalen"`): the weighted constant
+     additive-hazards model (Lin & Ying 1994), implemented in matchatr rather than
+     delegated — a closed form (γ̂ = A⁻¹B) with a martingale-residual robust
+     sandwich. `contrast(type = "excess")` reports the excess hazard γ (additive
+     rate difference; Borgan &
+     Langholz 1997, Biometrics 53(2)) on the linear scale — symmetric Wald interval,
+     possibly negative. `timereg::aalen` is the test oracle, not a runtime dep.
+   - **Oracles.** `timereg::aalen` reproduces the additive point estimate exactly
+     (full coefficient vector, including a complex continuous-exposure /
+     factor-confounder set with heavy ties) and the robust SE within 5%; AFT matches
+     a full-cohort `survreg` (3.5-SE) and an independent `KMprob` + `survreg`
+     reconstruction to machine precision. Other Weibull/AFT distributions and the
+     time-varying additive cumulative regression function B(t) are not exposed.
 
 ## Deferred items
 
-Additive (Aalen) / AFT IPW-NCC models (Ch19 §19.5), weight calibration (Phase 12),
-marginal causal contrasts under NCC sampling (Phase 10), quota-matching weights,
-counter-matching weighted analysis (cross-ref Phase 5).
+### Within Phase 7's alternative-model family (pick up here to extend Chunk 5)
+
+- **Non-Weibull AFT distributions.** `fit_ipw_aft()` hardcodes `dist = "weibull"`
+  (the canonical AFT, also PH). Lognormal / loglogistic / exponential are a small
+  extension but need a way to pass `dist` through `matcha()` — there is no engine
+  option slot today (`model_fn` is the logistic fitter only). Decide the API
+  (a `matcha(... , dist = )` arg, or an `ipw_aft(dist = )`-style spec on the
+  design) before adding them.
+- **Time-varying additive effects / cumulative regression function B(t).** The
+  current additive engine fits the *constant-effect* Lin-Ying model (one excess
+  hazard per covariate). The fully nonparametric Aalen model gives the cumulative
+  regression functions B_j(t) = ∫β_j(s)ds (time-varying excess risk), the additive
+  analogue of `absolute_risk()`. Surfacing it needs a function-over-time verb
+  (e.g. `excess_risk(fit, times)`) and a hand-rolled B̂(t) + variance, not a scalar
+  `contrast()`. `timereg::aalen` (without `const()`) is the oracle.
+- **AFT acceleration-factor absolute risk.** `absolute_risk()` is wired for the
+  `cch` and `ipw_cox` engines only; an AFT survival curve S(t | x) from the fitted
+  Weibull is a natural addition.
+
+### Technical follow-up (not a feature)
+
+- **Split `R/weighted_cox.R`** (≈500 lines) into `R/ipw_cox.R` (the Samuelsen IPW
+  Cox + the shared `ncc_ipw_analysis_data()` / `require_ipw_ncc_columns()`) and a
+  trimmed `R/weighted_cox.R` (counter-matched only), per the ~300-line file rule.
+  Deferred from Chunk 5 to avoid churn on already-committed code.
+
+### Owned by later phases
+
+Weight calibration (Phase 12), marginal causal contrasts under NCC sampling
+(Phase 10), quota-matching weights, counter-matching weighted analysis (cross-ref
+Phase 5).

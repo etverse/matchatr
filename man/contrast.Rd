@@ -6,7 +6,7 @@
 \usage{
 contrast(
   fit,
-  type = c("difference", "ratio", "or", "hr"),
+  type = c("difference", "ratio", "or", "hr", "af", "excess"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
   ...
@@ -16,13 +16,15 @@ contrast(
 \item{fit}{A \code{matchatr_fit} object returned by \code{\link[=matcha]{matcha()}}.}
 
 \item{type}{Character contrast scale: \code{"difference"}, \code{"ratio"}, \code{"or"}
-(odds ratio), or \code{"hr"} (hazard ratio, for the nested case-control risk-set
-design). When omitted, it defaults to the estimand the design identifies —
-\code{"or"} for the classical odds-ratio engines (unmatched / matched
-case-control), \code{"hr"} for the nested case-control design, \code{"difference"}
-otherwise. Each conditional design identifies exactly one scale, so the
-off-design request (an odds ratio from a risk-set design, or vice versa)
-aborts with \code{matchatr_unidentified_estimand}.}
+(odds ratio), \code{"hr"} (hazard ratio, nested case-control risk-set / weighted
+Cox), \code{"af"} (acceleration factor / time ratio, the IPW NCC accelerated
+failure time model), or \code{"excess"} (excess hazard / additive rate
+difference, the IPW NCC additive-hazards model). When omitted, it defaults
+to the estimand the design and estimator identify — \code{"or"} for the classical
+odds-ratio engines, \code{"hr"} for the risk-set / weighted Cox engines, \code{"af"}
+for \code{ipw_aft}, \code{"excess"} for \code{ipw_aalen}, \code{"difference"} otherwise. Each
+estimator identifies exactly one scale, so an off-scale request aborts with
+\code{matchatr_unidentified_estimand}.}
 
 \item{ci_method}{Character variance source for the interval: \code{"model"}
 (information-matrix Wald, the default), \code{"sandwich"} (Huber-White robust),

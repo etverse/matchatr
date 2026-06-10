@@ -404,6 +404,35 @@ make_ncc_cohort <- function(
   cohort
 }
 
+# A richer cohort for IPW NCC oracle-agreement tests: a continuous exposure `xc`,
+# a continuous confounder `z1`, and a three-level factor confounder `z2`.
+# Exponential rates keep hazards positive; the censoring cap at the upper
+# quartile puts ~25% of subjects at the same exit time (heavy ties). The additive
+# / AFT model fit to it need not be correctly specified — these tests check that
+# matchatr and the external oracle agree on the fit for a complex covariate set,
+# not that they recover a known parameter.
+make_complex_ncc_cohort <- function(n = 3000L, seed = 101L) {
+  withr::with_seed(seed, {
+    xc <- stats::rnorm(n)
+    z1 <- stats::rnorm(n)
+    z2 <- factor(
+      sample(c("a", "b", "c"), n, replace = TRUE),
+      levels = c("a", "b", "c")
+    )
+    rate <- 0.05 * exp(0.3 * xc + 0.2 * z1 + 0.4 * (as.integer(z2) - 1L))
+    tt <- stats::rexp(n, rate)
+    tau <- stats::quantile(tt, 0.75)
+    data.frame(
+      id = seq_len(n),
+      t = pmin(tt, tau),
+      d = as.integer(tt <= tau),
+      xc = xc,
+      z1 = z1,
+      z2 = z2
+    )
+  })
+}
+
 # Risk-set (incidence-density) NCC sampler used as a deterministic test fixture.
 # Delegates to the exported sample_ncc() (the production risk-set sampler) under a
 # fixed seed, so the analysis-path tests exercise the real generator rather than a

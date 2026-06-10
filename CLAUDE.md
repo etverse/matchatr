@@ -128,8 +128,22 @@ on person-period data) wherever possible.
 > `multipleNCC::wpl` exact-agreement tests are unchanged). Oracles: `multipleNCC::wpl`
 > (exact per endpoint of a combined-event NCC) and an independent `KMprob` +
 > `survival::coxph` reconstruction of the augmented fit (machine precision), plus a
-> competing-risks truth DGP. **Additive/AFT models (Ch19 §19.5) remain deferred**;
-> PHASE_8+ remain `Status: DESIGN`.
+> competing-risks truth DGP. **Chunk 5 completes Phase 7** with two non-Cox
+> alternative models (Ch19 §19.5) on the same Samuelsen-weighted sample: `estimator
+> = "ipw_aft"` (`R/aft_ncc.R`) fits a weighted Weibull accelerated failure time via
+> `survival::survreg(weights, robust = TRUE)` and `contrast(type = "af")` reports the
+> time ratio exp(β) (acceleration factor; Kang, Lu & Liu 2017), while `estimator =
+> "ipw_aalen"` (`R/additive_ncc.R` + `R/lin_ying.R`) fits the weighted constant
+> additive-hazards model (Lin & Ying 1994 — γ̂ = A⁻¹B closed form with the
+> martingale-residual robust sandwich, implemented in matchatr, not delegated) and
+> `contrast(type = "excess")` reports the excess hazard γ (additive rate difference;
+> Borgan & Langholz 1997) on the linear scale (symmetric, possibly-negative Wald
+> interval). Two new contrast scales (`"af"`, `"excess"`); each engine identifies one
+> and rejects the rest / bootstrap / non-`incl_prob` data / non-nested designs.
+> Oracles: `timereg::aalen` (additive point estimate exact, full coefficient vector,
+> incl. a complex continuous-exposure / factor-confounder set; SE within 5%),
+> `survival::survreg` + `multipleNCC::KMprob` (AFT, machine precision); `timereg` is a
+> test-only Suggests, not wrapped. PHASE_8+ remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -210,7 +224,18 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `fit_ipw_cox()` / `contrast_ipw_cox()`: Samuelsen IPW weighted Cox for NCC
   via `coxph(weights = ipw_weight, robust = TRUE)` with Lin-Wei robust sandwich
   variance; PHASE_7 Chunk 3 — `ncc_ipw_analysis_data()`: the deduplicated,
-  case-weighted analysis sample shared by the weighted Cox and the IPW Breslow),
+  case-weighted analysis sample shared by the weighted Cox, the IPW Breslow, and
+  the AFT / additive engines; PHASE_7 Chunk 5 — `require_ipw_ncc_columns()`: the
+  shared `ipw_weight` / `.cohort_row` / `time` data-contract check),
+  `aft_ncc.R` (PHASE_7 Chunk 5 — `fit_ipw_aft()` / `contrast_ipw_aft()`: weighted
+  Weibull accelerated failure time via `survival::survreg(weights, robust = TRUE)`,
+  reporting the time ratio `type = "af"`),
+  `additive_ncc.R` (PHASE_7 Chunk 5 — `fit_ipw_aalen()` / `contrast_ipw_aalen()` /
+  `additive_excess_result()`: weighted constant additive-hazards engine reporting
+  the excess hazard `type = "excess"` on the linear scale),
+  `lin_ying.R` (PHASE_7 Chunk 5 — `lin_ying_additive()`: the weighted Lin & Ying
+  1994 constant additive-hazards point estimate + martingale-residual robust
+  sandwich; `timereg::aalen` is its test oracle),
   `case_cohort.R` (PHASE_6 — `fit_cch()` / `contrast_cch()` /
   `cch_exposure_coef_names()`: `survival::cch` pseudo-likelihood for Prentice /
   Self-Prentice / Lin-Ying / Borgan I/II),
@@ -343,7 +368,8 @@ NOT in scope: genetics designs (handbook Ch23-28), measurement-error correction
 | Sandwich variance | `sandwich` | **Imports** |
 | Numerical derivatives | `numDeriv` | **Imports** |
 | Bootstrap | `boot` | **Imports** |
-| NCC IPW weights + weighted Cox | `multipleNCC` | **Suggests** (engine + oracle) |
+| NCC IPW weights / weighted Cox cross-check | `multipleNCC` | **Suggests** (oracle only — weights are hand-rolled, fit via `survival`) |
+| Additive-hazards cross-check | `timereg` (`aalen`) | **Suggests** (oracle only — the estimator is matchatr's) |
 | NCC risk-set sampling | `Epi` (`ccwc`) | **Suggests** |
 | Two-phase / calibration | `survey` | **Suggests** |
 | Multiple imputation (missing-by-design) | `mice` | **Suggests** |
