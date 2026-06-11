@@ -76,7 +76,7 @@ fit_ccw <- function(fit) {
   weights <- cc_weights(prevalence, y01)
 
   # The outcome model fitter (NULL -> stats::glm); a user may pass mgcv::gam for
-  # smooth confounder adjustment, mirroring the glm_logistic engine.
+  # smooth confounder adjustment.
   model_fn <- fit$details$model_fn
   if (is.null(model_fn)) {
     model_fn <- stats::glm
