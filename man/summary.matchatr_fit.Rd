@@ -18,7 +18,9 @@
 }
 \value{
 Invisibly, the odds-ratio \code{data.table} (as returned by
-\code{\link[=tidy.matchatr_fit]{tidy.matchatr_fit()}} with \code{exponentiate = TRUE}).
+\code{\link[=tidy.matchatr_fit]{tidy.matchatr_fit()}} with \code{exponentiate = TRUE}). For a case-control-weighted
+fit, instead the marginal-contrast \code{matchatr_result} (the risk difference),
+since the fit reports a marginal effect, not a conditional odds-ratio table.
 }
 \description{
 Prints the odds-ratio table of a fitted unmatched case-control logistic

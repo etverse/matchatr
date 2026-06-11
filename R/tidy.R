@@ -34,7 +34,10 @@ generics::tidy
 #'   `statistic`, `p.value`, and (when `conf.int`) `conf.low`, `conf.high`. For a
 #'   polytomous (`estimator = "polytomous"`) fit the coefficients form one
 #'   equation per non-reference outcome group, so a leading `y.level` column
-#'   names the group each row's contrast is against the reference.
+#'   names the group each row's contrast is against the reference. For a
+#'   case-control-weighted fit the tidied marginal risk-difference contrast (as
+#'   from [tidy.matchatr_result()]), since the fit reports a marginal effect
+#'   rather than a conditional coefficient table.
 #' @examples
 #' set.seed(1)
 #' df <- data.frame(case = rep(c(1, 0), each = 100), x = rbinom(200, 1, 0.4))
@@ -75,6 +78,19 @@ tidy.matchatr_fit <- function(
       conf.level = conf.level,
       exponentiate = exponentiate
     ))
+  }
+
+  # A case-control-weighted fit's model is a causatr g-computation fit, not a
+  # conditional-likelihood model: it carries no coef()/vcov() on the reported
+  # scale that the binary path below could read. Its headline is the marginal
+  # contrast, whose scale is chosen at the contrast step, so `tidy()` reports the
+  # tidied marginal effect (the risk difference, the default ccw scale).
+  # `exponentiate` / `robust` select neither the scale nor the variance of a
+  # marginal contrast (causatr returns its influence-function interval), so they
+  # do not apply here; use `contrast(fit, type =)` for the ratio / odds-ratio
+  # scale.
+  if (inherits(model, "causatr_fit")) {
+    return(tidy(contrast(x, type = "difference", conf_level = conf.level)))
   }
 
   beta_all <- stats::coef(model)

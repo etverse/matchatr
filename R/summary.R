@@ -17,7 +17,9 @@
 #'   `FALSE`.
 #' @param ... Unused; present for S3 consistency.
 #' @returns Invisibly, the odds-ratio `data.table` (as returned by
-#'   [tidy.matchatr_fit()] with `exponentiate = TRUE`).
+#'   [tidy.matchatr_fit()] with `exponentiate = TRUE`). For a case-control-weighted
+#'   fit, instead the marginal-contrast `matchatr_result` (the risk difference),
+#'   since the fit reports a marginal effect, not a conditional odds-ratio table.
 #' @examples
 #' set.seed(1)
 #' df <- data.frame(
@@ -38,6 +40,33 @@ summary.matchatr_fit <- function(
 ) {
   require_estimated(object)
   check_conf_level(conf.level)
+
+  # A case-control-weighted fit reports a marginal effect (chosen scale at the
+  # contrast step), not a conditional odds-ratio coefficient table, and its
+  # causatr model carries no coef()/vcov() the odds-ratio path expects. Show the
+  # marginal contrast (the risk difference, the default ccw scale) under the fit
+  # header instead; `contrast(type =)` gives the ratio / odds-ratio scale.
+  if (inherits(object$model, "causatr_fit")) {
+    cat("<matchatr_fit> summary\n")
+    cat(" Design:     ", design_label(object$design$type), "\n", sep = "")
+    cat(
+      " Estimator:  ",
+      object$estimator,
+      "  (engine: ",
+      object$engine,
+      ")\n",
+      sep = ""
+    )
+    cat(
+      "\nMarginal causal effect (use `contrast(type =)` for the ratio / OR ",
+      "scale):\n",
+      sep = ""
+    )
+    res <- contrast(object, type = "difference", conf_level = conf.level)
+    print(res)
+    return(invisible(res))
+  }
+
   or_table <- tidy(
     object,
     conf.int = TRUE,

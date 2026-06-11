@@ -162,6 +162,57 @@ test_that("ccw_gformula returns a well-formed marginal result", {
   expect_identical(contrast(fit)$type, "difference")
 })
 
+test_that("the S3 surface works on a ccw fit (no causatr_fit vcov crash)", {
+  skip_if_not_installed("causatr")
+
+  cc <- make_cohort_ccw(n = 3000L, ratio = 3L, seed = 7L)
+  fit <- matcha(
+    cc,
+    outcome = "case",
+    exposure = "x",
+    design = unmatched_cc(prevalence = attr(cc, "q0")),
+    confounders = ~w,
+    estimator = "ccw_gformula"
+  )
+
+  # The fitted model is a causatr_fit with no coef()/vcov(); the fit-level tidy /
+  # summary must surface the marginal contrast instead of calling vcov().
+  expect_no_error(print(fit))
+  td <- tidy(fit)
+  expect_s3_class(td, "data.table")
+  # tidy(fit) reports the marginal risk-difference contrast, equal to the value
+  # contrast() returns directly.
+  rd <- contrast(fit, type = "difference")$contrasts$estimate
+  expect_equal(td$estimate, rd)
+  expect_identical(td$type, "difference")
+
+  sm <- summary(fit)
+  expect_s3_class(sm, "matchatr_result")
+  expect_identical(sm$estimand, "marginal risk difference")
+})
+
+test_that("ccw_gformula records the variance it actually computed", {
+  skip_if_not_installed("causatr")
+
+  cc <- make_cohort_ccw(n = 3000L, ratio = 3L, seed = 7L)
+  fit <- matcha(
+    cc,
+    outcome = "case",
+    exposure = "x",
+    design = unmatched_cc(prevalence = attr(cc, "q0")),
+    confounders = ~w,
+    estimator = "ccw_gformula"
+  )
+  # A marginal g-formula contrast has only causatr's influence-function /
+  # sandwich variance, so both ci_method inputs map to it and the result records
+  # "sandwich" (not the requested "model"), with identical SEs.
+  m <- contrast(fit, type = "difference", ci_method = "model")
+  s <- contrast(fit, type = "difference", ci_method = "sandwich")
+  expect_identical(m$ci_method, "sandwich")
+  expect_identical(s$ci_method, "sandwich")
+  expect_equal(m$contrasts$se, s$contrasts$se)
+})
+
 test_that("ccw_gformula rejects a non-binary exposure", {
   cc <- make_cohort_ccw(n = 2000L, ratio = 3L, seed = 3L)
   cc$xc <- rnorm(nrow(cc))

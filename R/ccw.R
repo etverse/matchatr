@@ -125,8 +125,12 @@ fit_ccw <- function(fit) {
 #' @param fit A `matchatr_fit` whose `model` is a `causatr_fit` fitted by
 #'   `fit_ccw()`.
 #' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"or"`.
-#' @param ci_method Character variance source; `"model"` / `"sandwich"` forward
-#'   to causatr's sandwich; `"bootstrap"` is rejected.
+#' @param ci_method Character variance source. A marginal g-formula contrast has
+#'   no information-matrix variance distinct from the influence-function /
+#'   sandwich one, so `"model"` and `"sandwich"` both yield causatr's sandwich
+#'   interval and the result records `ci_method = "sandwich"`. `"bootstrap"` is
+#'   rejected (it must resample within the case / control strata and recompute
+#'   the q0 weights, a later addition).
 #' @param conf_level Numeric confidence level in (0, 1).
 #' @param call Caller environment surfaced in any error.
 #' @returns A `matchatr_result` carrying the intervention means and the marginal
@@ -203,7 +207,12 @@ contrast_ccw <- function(
     contrasts = data.table::as.data.table(res$contrasts),
     type = type,
     estimand = estimand,
-    ci_method = ci_method,
+    # A marginal g-formula contrast has no information-matrix variance distinct
+    # from the influence-function / sandwich one causatr computes, so `"model"`
+    # and `"sandwich"` both yield it. Record what was actually used (causatr's
+    # `"sandwich"`) rather than the requested label, so the result does not
+    # claim a model-based interval it did not compute.
+    ci_method = res$ci_method,
     reference = "control",
     n = res$n,
     estimator = fit$estimator,

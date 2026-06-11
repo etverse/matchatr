@@ -21,7 +21,12 @@ sandwich variance are delegated to causatr; matchatr owns only the weighting
 layer. A non-binary exposure (`matchatr_bad_input`), a missing q0
 (`matchatr_missing_prevalence`), an off-scale contrast
 (`matchatr_unidentified_estimand`), and a bootstrap interval
-(`matchatr_unsupported_variance`) are each rejected.
+(`matchatr_unsupported_variance`) are each rejected. A marginal g-formula
+contrast has no information-matrix variance distinct from the influence-function
+one, so `ci_method = "model"` and `"sandwich"` both yield causatr's sandwich
+interval and the result records `"sandwich"`; `tidy()` and `summary()` on a ccw
+fit surface the marginal contrast (the fitted model is a `causatr_fit` with no
+conditional coefficient table).
 
 Validated in `test-ccw.R`: an **exact** pseudo-cohort oracle (the hand-weighted
 `causatr::causat()` + `contrast()` agrees to machine precision, confirming the
