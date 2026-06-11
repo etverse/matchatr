@@ -90,8 +90,12 @@ fit_ccw <- function(fit) {
     model_fn <- stats::glm
   }
 
-  # quasibinomial fits the same mean model as binomial but is silent on the
-  # fractional "successes" the case-control weights produce.
+  # `family` governs the weighted outcome / marginal-mean fit (g-formula's outcome
+  # model, AIPW's outcome model, IPW's weighted marginal mean) — quasibinomial
+  # fits the same mean model as binomial but is silent on the fractional
+  # "successes" the case-control weights produce. The propensity model's family is
+  # auto-detected by causatr from the (binary) treatment, so this is the right
+  # family for all three estimators.
   args <- list(
     data = dt,
     outcome = fit$outcome,
