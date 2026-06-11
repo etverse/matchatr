@@ -1,0 +1,189 @@
+---
+title: "Marginal causal effects from a case-control sample"
+code-fold: show
+code-tools: true
+vignette: >
+  %\VignetteIndexEntry{Marginal causal effects from a case-control sample}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Every estimator in the previous articles reports a **conditional odds ratio** (or
+a conditional hazard ratio). That is a perfectly good *within-stratum* effect, but
+it is not what a population decision usually needs:
+
+- it is **non-collapsible** — it changes when you add or drop a covariate, even
+  with no confounding, so the "adjusted OR" is not a marginal effect;
+- it is on the **odds-ratio scale** only — there is no risk difference or risk
+  ratio, and no absolute risk, because a case-control sample fixes the outcome
+  margin by design and so carries no information about baseline risk.
+
+A **marginal** causal effect — the average treatment effect as a risk difference
+(RD), risk ratio (RR), or marginal odds ratio (mOR) — needs one extra ingredient:
+the source-population outcome prevalence **q₀ = P(Y = 1)**. With q₀ we can undo the
+case-oversampling and recover the marginal effect by **case-control weighting**
+(Rose & van der Laan, 2008).
+
+```{r}
+#| message: false
+library(matchatr)
+```
+
+## The idea: reweight the sample back to the population
+
+A case-control study oversamples cases. If we weight each case by
+q₀ / (sample case fraction) and each control by (1 − q₀) / (sample control
+fraction), the *weighted* sample has outcome margin q₀ again — its weighted
+empirical distribution mimics the source cohort. A cohort estimator applied to the
+weighted sample (here g-computation: fit a weighted outcome model and standardize
+over the covariates) then targets the **marginal** estimand. matchatr builds these
+weights internally; you only supply q₀ on the design via
+`unmatched_cc(prevalence = q0)`.
+
+The point estimate and its variance are delegated to the etverse causal engine
+[`causatr`](https://github.com/etverse/causatr); matchatr owns the weighting and
+sampling-design layer.
+
+## A cohort with a known marginal effect
+
+We simulate a cohort with a binary exposure `x` confounded by a continuous `w`, so
+the conditional and marginal effects genuinely differ. Because we know the true
+outcome model, we can compute the marginal truth analytically by the g-formula:
+average the counterfactual risks under "everyone exposed" and "everyone
+unexposed" over the cohort.
+
+```{r}
+set.seed(13)
+n      <- 1e5
+alpha  <- -3
+beta_x <- log(2.5)        # the CONDITIONAL log odds ratio for x
+gamma  <- 1.0
+w  <- rnorm(n)
+x  <- rbinom(n, 1, plogis(0.2 * w))                 # x confounded by w
+y  <- rbinom(n, 1, plogis(alpha + beta_x * x + gamma * w))
+
+# g-formula truth on the full cohort (true model): mean counterfactual risks.
+m1 <- mean(plogis(alpha + beta_x + gamma * w))      # treat-all
+m0 <- mean(plogis(alpha + gamma * w))               # treat-none
+truth <- c(
+  RD  = m1 - m0,
+  RR  = m1 / m0,
+  mOR = (m1 / (1 - m1)) / (m0 / (1 - m0)),
+  conditional_OR = exp(beta_x)
+)
+round(truth, 4)
+```
+
+Note the marginal OR (`mOR`) is **not** the conditional OR `exp(beta_x) = 2.5`:
+non-collapsibility pulls the marginal OR toward the null.
+
+Now draw an unmatched case-control sample — every case plus a 5:1 random sample of
+controls — and record the source prevalence q₀ = P(Y = 1).
+
+```{r}
+q0 <- mean(y)
+cohort   <- data.frame(case = y, x = x, w = w)
+cases    <- cohort[cohort$case == 1, ]
+controls <- cohort[cohort$case == 0, ]
+controls <- controls[sample.int(nrow(controls), 5 * nrow(cases)), ]
+cc <- rbind(cases, controls)
+rownames(cc) <- NULL
+c(q0 = round(q0, 4), n_cases = nrow(cases), n_controls = nrow(controls))
+```
+
+## The marginal effect via case-control weighting
+
+`matcha()` with `estimator = "ccw_gformula"` and a design carrying q₀ fits the
+case-control-weighted g-formula. `contrast()` then reports the marginal effect on
+the requested scale — the **risk difference is the default**.
+
+```{r}
+fit <- matcha(
+  cc,
+  outcome = "case", exposure = "x",
+  design = unmatched_cc(prevalence = q0),
+  confounders = ~ w,
+  estimator = "ccw_gformula"
+)
+
+contrast(fit, type = "difference")   # marginal risk difference (default)
+contrast(fit, type = "ratio")        # marginal risk ratio
+contrast(fit, type = "or")           # marginal odds ratio
+```
+
+Each estimate recovers its analytical marginal truth:
+
+```{r}
+est <- c(
+  RD  = contrast(fit, type = "difference")$contrasts$estimate,
+  RR  = contrast(fit, type = "ratio")$contrasts$estimate,
+  mOR = contrast(fit, type = "or")$contrasts$estimate
+)
+round(rbind(estimate = est, truth = truth[c("RD", "RR", "mOR")]), 4)
+```
+
+## Marginal is not conditional
+
+The same sample analysed with the plain conditional logistic estimator returns the
+**conditional** odds ratio `exp(beta_x) = 2.5` — a different number from the
+marginal OR above. This is the non-collapsibility distinction that motivates
+case-control weighting: the two estimators answer different questions.
+
+```{r}
+cond <- matcha(
+  cc,
+  outcome = "case", exposure = "x",
+  design = unmatched_cc(),     # no q0: only the conditional OR is identified
+  confounders = ~ w,
+  estimator = "logistic"
+)
+c(
+  conditional_OR = contrast(cond, type = "or")$contrasts$estimate,
+  marginal_OR    = contrast(fit,  type = "or")$contrasts$estimate
+)
+```
+
+## What is declined
+
+Case-control weighting needs q₀ and targets a marginal effect, so a few requests
+are declined with informative, classed errors:
+
+```{r}
+#| error: true
+# No q0 on the design: the sample cannot be reweighted to the population.
+matcha(
+  cc, outcome = "case", exposure = "x",
+  design = unmatched_cc(), estimator = "ccw_gformula"
+)
+```
+
+```{r}
+#| error: true
+# The CCW g-formula reports a marginal effect, not a hazard ratio.
+contrast(fit, type = "hr")
+```
+
+```{r}
+#| error: true
+# A bootstrap interval must resample within case / control strata and recompute
+# the q0 weights each replicate (a later chunk); only the sandwich is wired here.
+contrast(fit, type = "difference", ci_method = "bootstrap")
+```
+
+A non-binary exposure is also declined: this estimator reports the binary average
+treatment effect (treat-all versus treat-none), so a continuous or multi-level
+exposure is routed to a conditional estimator instead.
+
+## Where this sits
+
+`ccw_gformula` is the first of the case-control-weighting family. The same q₀
+weights will drive CCW-IPW and the doubly-robust CCW-AIPW (both further `causatr`
+reuses) and CCW-TMLE (a targeting step), and will extend to matched and nested
+case-control samples — each a forthcoming chunk. For now it gives every unmatched
+case-control study with a known prevalence a marginal RD, RR, and marginal OR from
+one weighting concept.

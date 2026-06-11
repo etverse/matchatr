@@ -1,5 +1,41 @@
 # matchatr (development version)
 
+## 2026-06-11 — Case-control-weighted marginal causal contrasts (PHASE_9 Chunk 1)
+
+First **marginal** causal effect from a case-control sample. `matcha(estimator =
+"ccw_gformula")` on an unmatched case-control design carrying a known source
+prevalence q0 (`unmatched_cc(prevalence = q0)`) reports the marginal risk
+difference (`contrast(type = "difference")`, the default), risk ratio
+(`type = "ratio"`), or marginal odds ratio (`type = "or"`) — the quantities a
+plain conditional odds ratio cannot deliver (non-collapsible, no baseline risk).
+
+The estimator is the Rose & van der Laan case-control-weighted g-formula: the
+new `cc_weights()` (`R/weights_cc.R`) computes the weights q0 / (n1/n) for cases
+and (1 − q0) / (n0/n) for controls, which reweight the sample's outcome margin to
+the source population so the weighted empirical distribution mimics the cohort;
+`fit_ccw()` (`R/ccw.R`) then fits a weighted g-computation via
+`causatr::causat(estimator = "gcomp")` and `contrast()` standardizes it to the
+marginal effect over the treat-all / treat-none static interventions by
+forwarding to `causatr::contrast()`. Point estimate and influence-function /
+sandwich variance are delegated to causatr; matchatr owns only the weighting
+layer. A non-binary exposure (`matchatr_bad_input`), a missing q0
+(`matchatr_missing_prevalence`), an off-scale contrast
+(`matchatr_unidentified_estimand`), and a bootstrap interval
+(`matchatr_unsupported_variance`) are each rejected.
+
+Validated in `test-ccw.R`: an **exact** pseudo-cohort oracle (the hand-weighted
+`causatr::causat()` + `contrast()` agrees to machine precision, confirming the
+weighting and intervention plumbing) and a **truth DGP** (a cohort with an
+analytical marginal RD / RR / mOR; the case-control-weighted g-formula recovers
+the marginal truth, which lands on a tolerance band disjoint from the conditional
+odds ratio a logistic fit reports — the non-collapsibility pin). `cc_weights()`
+is checked against its closed form (weighted case fraction == q0) in
+`test-weights_cc.R`.
+
+CCW-IPW / CCW-AIPW (Chunk 2), CCW-TMLE (Chunk 3, the one genuinely new targeting
+engine), and the estimated-q0 variance correction with matched / nested CC
+support and within-stratum bootstrap (Chunk 4) remain pending.
+
 ## 2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)
 
 New exported verb `excess_risk(fit, times)` for an `ipw_aalen` fit reports the

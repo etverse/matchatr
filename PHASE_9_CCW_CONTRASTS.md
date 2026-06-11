@@ -1,6 +1,10 @@
 # Phase 9 — Case-Control-Weighted Marginal Causal Contrasts
 
-> **Status: DESIGN**
+> **Status: IN PROGRESS — Chunk 1 (CCW-g-formula) complete.**
+> `matcha(estimator = "ccw_gformula")` reports the marginal RD / RR / marginal OR
+> from an unmatched case-control sample with a known q0, via `cc_weights()` +
+> `causatr` g-computation (`R/weights_cc.R`, `R/ccw.R`). Chunks 2–4 (CCW-IPW /
+> AIPW, CCW-TMLE, estimated-q0 variance + matched/nested CC + bootstrap) pending.
 > Methods: Rose & van der Laan (2008, 2009, 2011 *Targeted Learning*, 2014 double-robust
 > case-control). Implements Track 2 of `PHASE_8_CAUSAL_STRATEGY`.
 
@@ -52,7 +56,7 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 
 | Design | Estimator | Estimand | Variance | Status |
 |---|---|---|---|---|
-| unmatched CC | ccw_gformula | RD/RR/mOR | sandwich (causatr) / boot | needs-test |
+| unmatched CC | ccw_gformula | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 1) |
 | unmatched CC | ccw_ipw | RD/RR | sandwich / boot | needs-test |
 | unmatched CC | ccw_aipw | RD/RR | sandwich (DR) / boot | needs-test |
 | unmatched CC | ccw_tmle | RD/RR | EIF (new) / boot | needs-test |
@@ -97,8 +101,8 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 
 ## Chunk plan
 
-1. `cc_weights()` + CCW-g-formula via causatr + pseudo-cohort oracle + missing-q₀
-   rejection.
+1. ✅ `cc_weights()` + CCW-g-formula via causatr + pseudo-cohort oracle + missing-q₀
+   rejection. (`R/weights_cc.R`, `R/ccw.R`; `test-weights_cc.R`, `test-ccw.R`)
 2. CCW-IPW + CCW-AIPW via causatr + double-robustness tests.
 3. CCW-TMLE targeting step (new) + EIF variance + `tmle` oracle.
 4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap.

@@ -464,7 +464,33 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 
-_Pending implementation._
+**Chunk 1 implemented — CCW-g-formula.** `matcha(estimator = "ccw_gformula")`
+on an unmatched case-control sample carrying a known prevalence `q0`
+(`unmatched_cc(prevalence = q0)`) computes Rose & van der Laan case-control
+weights (`cc_weights()`, `R/weights_cc.R`) that reweight the sample to the source
+population, fits a weighted g-computation via `causatr::causat(estimator =
+"gcomp")` (`fit_ccw()`, `R/ccw.R`), and `contrast()` reports the **marginal**
+effect — risk difference (`type = "difference"`, the default), risk ratio
+(`type = "ratio"`), or marginal odds ratio (`type = "or"`) — by forwarding to
+`causatr::contrast()` over the treat-all / treat-none static interventions.
+Point estimate and variance are delegated to causatr; matchatr owns only the
+weighting layer. The remaining `ccw_*` estimators (IPW / AIPW / TMLE) and
+matched / nested CC support are pending later chunks.
+
+| Design | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|---|
+| unmatched CC + q0 | binary | ccw_gformula | marginal RD | difference | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula | marginal RR | ratio | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula | marginal OR | or | sandwich (causatr) | ✅ truth DGP (≠ conditional OR) + exact pseudo-cohort oracle | `test-ccw.R` |
+| Rose & van der Laan weights `cc_weights()` | — | — | — | — | — | ✅ weighted case-fraction == q0 closed form | `test-weights_cc.R` |
+| any | non-binary | ccw_gformula | — | — | — | ⛔ `matchatr_bad_input` (binary ATE only) | `test-ccw.R` |
+| any (no q0) | — | ccw_gformula | — | — | — | ⛔ `matchatr_missing_prevalence` | `test-ccw.R`, `test-matcha.R` |
+| unmatched CC + q0 | binary | ccw_gformula | — | hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula | RD/RR/OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-ccw.R` |
+
+CCW-IPW / CCW-AIPW (Chunk 2), CCW-TMLE (Chunk 3, the one new targeting engine),
+and estimated-q0 variance + matched/nested CC + within-stratum bootstrap
+(Chunk 4) stay pending.
 
 ## Design-weighted causal survival (PHASE_10)
 
@@ -502,6 +528,7 @@ Quarto, `lumen` theme).
 | `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 | `case-cohort.qmd` | Prentice / SelfPrentice / LinYing / Borgan I/II HRs, stratified subcohort, `absolute_risk()` IPW Breslow F_x(t), design rejections |
 | `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `ipw_aft` time ratio (Weibull / exponential / lognormal / loglogistic baselines) + `ipw_aalen` excess hazard, `absolute_risk()` IPW Breslow (Cox) and parametric AFT F_x(t) + cumulative-incidence plot, `excess_risk()` time-varying cumulative excess hazard B_j(t), classical vs IPW comparison, rejection paths |
+| `ccw-marginal.qmd` | `ccw_gformula` case-control-weighted marginal RD / RR / marginal OR, why the marginal effect differs from the conditional OR (non-collapsibility), `cc_weights()` / `unmatched_cc(prevalence = q0)`, the `causatr` g-computation delegation, rejection paths |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

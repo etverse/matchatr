@@ -1,6 +1,11 @@
 # Phase 8 — Causal Estimation Strategy for Case-Control Designs
 
-> **Status: DESIGN (strategy / decision doc)**
+> **Status: DELIVERED (strategy / decision doc — ships no estimator code).**
+> The strategy, the q0 / weight contract, and the build-vs-reuse map below are in
+> place: `unmatched_cc(prevalence = q0)` + `check_prevalence()`, the `ccw_*`
+> dispatch family valid on any design, the `matchatr_missing_prevalence` guard,
+> and `causatr` / `survatr` as Imports. Track 2 (case-control weighting) is
+> implemented in Phase 9; Track 3 (design-weighted survival) in Phase 10.
 > Book chapters: 6 (Causal Inference framing), 12 (two-phase view); methods literature:
 > Rose & van der Laan (2008, 2009, 2011, 2014) case-control-weighted estimation.
 

@@ -544,6 +544,62 @@ make_stratified_case_cohort_data <- function(
   cohort
 }
 
+# Truth-based DGP for case-control-weighted MARGINAL causal effects. A cohort is
+# drawn from a logistic outcome model with a binary exposure `x` confounded by a
+# continuous `w` (x depends on w), so the conditional and marginal effects differ
+# (non-collapsibility) and confounding must be adjusted. The g-formula truth is
+# computed analytically on the FULL cohort using the true coefficients:
+# m1 = E_w[expit(alpha + beta_x + gamma_w w)], m0 = E_w[expit(alpha + gamma_w w)],
+# giving the marginal risk difference m1 - m0, risk ratio m1/m0, and marginal odds
+# ratio (m1/(1-m1)) / (m0/(1-m0)). The CONDITIONAL odds ratio is exp(beta_x), which
+# differs from the marginal OR. An unmatched case-control sample (every case + a
+# `ratio`:1 random control sample) is returned; case-control sampling shifts only
+# the intercept (Prentice & Pyke 1979), so case-control weighting back to the
+# source prevalence q0 = P(Y=1) recovers the marginal truth. The "truth" attribute
+# carries c(rd, rr, mor, cond_or); the "q0" attribute the source prevalence.
+make_cohort_ccw <- function(
+  n = 2e5,
+  alpha = -3,
+  beta_x = log(2.5),
+  gamma_w = 1.0,
+  ratio = 5L,
+  seed = 13L
+) {
+  withr::with_seed(seed, {
+    w <- stats::rnorm(n)
+    # Exposure confounded by w, so adjustment is required and the marginal effect
+    # is not the conditional one.
+    x <- stats::rbinom(n, 1L, stats::plogis(0.2 * w))
+    # Counterfactual risks under treat-all / treat-none, for the g-formula truth.
+    p1 <- stats::plogis(alpha + beta_x + gamma_w * w)
+    p0 <- stats::plogis(alpha + gamma_w * w)
+    y <- stats::rbinom(n, 1L, stats::plogis(alpha + beta_x * x + gamma_w * w))
+    m1 <- mean(p1)
+    m0 <- mean(p0)
+    truth <- c(
+      rd = m1 - m0,
+      rr = m1 / m0,
+      mor = (m1 / (1 - m1)) / (m0 / (1 - m0)),
+      cond_or = exp(beta_x)
+    )
+    q0 <- mean(y)
+    coh <- data.frame(case = y, x = x, w = w)
+    cases <- coh[coh$case == 1L, , drop = FALSE]
+    controls_all <- coh[coh$case == 0L, , drop = FALSE]
+    n_ctrl <- min(nrow(cases) * ratio, nrow(controls_all))
+    controls <- controls_all[
+      sample.int(nrow(controls_all), n_ctrl),
+      ,
+      drop = FALSE
+    ]
+    samp <- rbind(cases, controls)
+    rownames(samp) <- NULL
+    attr(samp, "truth") <- truth
+    attr(samp, "q0") <- q0
+    samp
+  })
+}
+
 # Counter-matched NCC sampler used as a deterministic test fixture.
 # Delegates to the exported sample_ncc_counter_matched() under a fixed seed.
 # When cohort is NULL, builds from make_ncc_cohort() and attaches z_bin = x as
