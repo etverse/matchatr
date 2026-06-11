@@ -102,9 +102,29 @@ Project-specific rules that override / extend the etverse-wide rules at
   weights). `fit_ccw()` fits the outcome model with `family = "quasibinomial"`
   (the right family for fractional case-control weights — identical mean model
   and sandwich to binomial, but silent on the spurious `non-integer #successes`
-  warning a binomial fit raises), so do NOT switch it back to `"binomial"`. Do
-  NOT flag the `"model"` → `"sandwich"` relabeling or the bootstrap rejection as
-  bugs.
+  warning a binomial fit raises), so do NOT switch it back to `"binomial"`. The
+  single `family` argument governs the weighted outcome / marginal-mean fit for
+  all three estimators (g-formula and AIPW outcome models, IPW's weighted marginal
+  mean); causatr auto-detects the propensity family from the binary treatment, so
+  passing it on the IPW path is correct, not a stray argument. `fit_ccw()` is
+  parameterized over `fit$estimator` (`ccw_gformula`/`ccw_ipw`/`ccw_aipw` →
+  `causat(estimator = "gcomp"/"ipw"/"aipw")`) and all three require `confounders`
+  (the outcome / propensity / both adjustment models). Do NOT flag the `"model"` →
+  `"sandwich"` relabeling, the bootstrap rejection, or the confounders requirement
+  as bugs.
+- **The CCW double-robustness test asserts recovery with `expect_lt(abs(est -
+  truth), BAND)`, NOT `expect_equal`.** The marginal risk difference is
+  small-magnitude (~0.05), below the level at which `all.equal()` / waldo switch
+  from a relative to an absolute tolerance, which makes `expect_equal(est, truth,
+  tolerance =)` behave unpredictably (a loose absolute band that a biased estimator
+  also passes, or a too-tight relative one the consistent estimator fails). The
+  absolute-error band `abs(est - truth) < BAND` IS a two-sided check against the
+  analytical oracle (the g-formula truth), and the DGP gives a clean ~10x gap
+  (consistent estimators within ~0.003, the misspecified one outside ~0.03), so
+  `BAND = 0.01` separates them robustly. This is the same idiom causatr's own DR
+  tests use (`expect_lt(abs(est - truth), tol)`). Do NOT flag this as a
+  forbidden `expect_lt`-on-a-point-estimate — the ban is on direction tests
+  (`expect_gt(est, 0)`), not on absolute-error bands around a known truth.
 - **Case-cohort pseudo-likelihood is NOT a true likelihood.** Prentice / Borgan
   estimators reuse controls across failure times, so the score factors are
   dependent: standard errors do NOT come from the information matrix and LR
