@@ -101,11 +101,32 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 
 ## Chunk plan
 
+The 2026-06-11 causatr-reuse audit confirmed Chunks 2 and 4 are **delegation-first**
+(causatr already provides the engines and the weight-aware machinery); only Chunk 3 is
+genuinely new code.
+
 1. ✅ `cc_weights()` + CCW-g-formula via causatr + pseudo-cohort oracle + missing-q₀
    rejection. (`R/weights_cc.R`, `R/ccw.R`; `test-weights_cc.R`, `test-ccw.R`)
-2. CCW-IPW + CCW-AIPW via causatr + double-robustness tests.
-3. CCW-TMLE targeting step (new) + EIF variance + `tmle` oracle.
+2. CCW-IPW + CCW-AIPW + double-robustness tests. **Delegation-first:** parameterize
+   `fit_ccw()` over `fit$estimator` → `causatr::causat(estimator = "ipw" | "aipw",
+   weights = cc_weights, …)` (both accept external `weights`); reuse `contrast_ccw()`
+   unchanged. AIPW gives the doubly-robust marginal estimator with no new variance engine;
+   the double-robustness tests use causatr's per-component `confounders_outcome` /
+   `confounders_treatment` to misspecify one model at a time.
+3. CCW-TMLE targeting step (**new code** — causatr has no targeted learning) + EIF
+   variance + `tmle` oracle.
 4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap.
+   **Delegation-first for the bootstrap:** causatr's `refit_gcomp` / `refit_ipw` /
+   `refit_aipw` already resample and re-apply external `weights`, so matchatr only adds the
+   within-case/control-strata resample + per-replicate q₀ reweighting, then drops the
+   current `ci_method = "bootstrap"` rejection in `contrast_ccw()`. Matched-CC marginal
+   standardization maps to causatr's `contrast(by = )` path, not new machinery.
+
+**Cross-phase note (PHASE_13):** `causatr::causat_mice()` is estimator-agnostic, so a CCW
+fit (any of the above) is automatically poolable over a `mice` mids object for
+missing-by-design covariates — PHASE_13 should delegate to it rather than build MI pooling.
+`causatr::diagnose()` (positivity / balance / weight ESS on the reweighted pseudo-cohort)
+is available on any CCW fit at zero cost.
 
 ## Deferred items
 
