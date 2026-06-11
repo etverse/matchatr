@@ -83,6 +83,26 @@ Project-specific rules that override / extend the etverse-wide rules at
   `weights` argument. CCW-**TMLE** (the targeting / fluctuation step) is genuinely
   NEW code that matchatr must implement itself — it is not a causatr reuse. Do not
   assume a TMLE entry point exists anywhere in the etverse.
+- **A CCW (`ccw_*`) fit's `model` is a `causatr_fit`, which has NO `coef()` /
+  `vcov()` method.** It reports a *marginal* effect whose scale is chosen at the
+  contrast step (RD / RR / marginal OR), not a single conditional coefficient
+  table, so `tidy.matchatr_fit` and `summary.matchatr_fit` deliberately branch on
+  `inherits(model, "causatr_fit")` and surface the marginal contrast (the risk
+  difference, the default ccw scale) instead of building an odds-ratio table via
+  `estimable_vcov()`. Do NOT route a ccw fit through the `coef()`/`vcov()` path,
+  and do NOT flag `tidy(fit)` returning the marginal contrast (rather than a
+  coefficient table) as inconsistent — it is the analogue of the conditional-OR
+  table the other engines report.
+- **A CCW marginal contrast records `ci_method = "sandwich"` regardless of the
+  requested label.** A marginal g-formula contrast has no information-matrix
+  variance distinct from causatr's influence-function / sandwich one, so
+  `ci_method = "model"` and `"sandwich"` both yield it and `contrast_ccw()`
+  records what causatr actually computed (`"sandwich"`). `"bootstrap"` is rejected
+  (it must resample within the case / control strata and recompute the q0
+  weights). The weighted binomial GLM's `non-integer #successes` warning (a
+  consequence of fractional case-control weights) is deliberately muffled in
+  `fit_ccw()`. Do NOT flag the `"model"` → `"sandwich"` relabeling, the muffled
+  warning, or the bootstrap rejection as bugs.
 - **Case-cohort pseudo-likelihood is NOT a true likelihood.** Prentice / Borgan
   estimators reuse controls across failure times, so the score factors are
   dependent: standard errors do NOT come from the information matrix and LR
