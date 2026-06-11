@@ -11,42 +11,31 @@
 #      recover the MARGINAL truth, which differs from the conditional odds ratio a
 #      logistic fit reports.
 
-# The weighted binomial GLM reports fractional "successes" — an expected
-# consequence of non-integer case-control weights. Muffle just that warning when
-# building the oracle by hand (matcha() muffles it internally).
-muffle_nonint <- function(expr) {
-  withCallingHandlers(
-    expr,
-    warning = function(w) {
-      if (grepl("non-integer #successes", conditionMessage(w), fixed = TRUE)) {
-        invokeRestart("muffleWarning")
-      }
-    }
-  )
-}
-
 test_that("ccw_gformula forwards exactly to a hand-weighted causatr g-formula", {
   skip_if_not_installed("causatr")
 
   cc <- make_cohort_ccw(n = 4000L, ratio = 4L, seed = 5L)
   q0 <- attr(cc, "q0")
 
-  # Hand-built oracle: the raw case-control weights, then causatr directly.
+  # Hand-built oracle: the raw case-control weights, then causatr directly. The
+  # `quasibinomial` family matches fit_ccw() (the right family for fractional
+  # weights; identical mean model to binomial, but silent on non-integer
+  # successes).
   y01 <- as.integer(cc$case)
   n1 <- sum(y01 == 1L)
   n0 <- sum(y01 == 0L)
   n <- n1 + n0
   wt <- ifelse(y01 == 1L, q0 / (n1 / n), (1 - q0) / (n0 / n))
-  oracle_fit <- muffle_nonint(causatr::causat(
+  oracle_fit <- causatr::causat(
     cc,
     outcome = "case",
     treatment = "x",
     confounders = ~w,
     estimator = "gcomp",
-    family = "binomial",
+    family = "quasibinomial",
     weights = as.numeric(wt),
     model_fn = stats::glm
-  ))
+  )
 
   fit <- matcha(
     cc,

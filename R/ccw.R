@@ -19,9 +19,12 @@
 #' The outcome and exposure are coerced to 0/1 so the marginal contrast's
 #' interventions (treat-all versus treat-none) align with the fitted treatment
 #' coding; a non-binary exposure is rejected (this chunk supports the binary
-#' average treatment effect only). The weighted binomial GLM reports fractional
-#' "successes" — an expected consequence of non-integer weights — so its
-#' `non-integer #successes` warning is muffled here.
+#' average treatment effect only). The outcome model is fitted with
+#' `family = "quasibinomial"`: the fractional case-control weights make the
+#' Bernoulli "successes" non-integer, and quasibinomial fits the same mean model
+#' as binomial without the spurious `non-integer #successes` warning. The mean
+#' structure — and hence the marginal contrast and causatr's sandwich variance,
+#' which does not use the dispersion — is identical to the binomial fit.
 #'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"ccw_gformula"`,
 #'   carrying the case-control `data`, the `outcome` / `exposure` / `confounders`
@@ -54,8 +57,8 @@ fit_ccw <- function(fit) {
     )
   }
 
-  # Coerce both roles to 0/1: the outcome so the weighted binomial GLM reads a
-  # proper response, the exposure so the marginal contrast's static(1)/static(0)
+  # Coerce both roles to 0/1: the outcome so the weighted GLM reads a proper
+  # 0/1 response, the exposure so the marginal contrast's static(1)/static(0)
   # interventions match the treatment coding. A non-binary exposure has no
   # binary average-treatment-effect contrast and is rejected here.
   y01 <- resolve_binary_outcome(fit$data, fit$outcome)
@@ -79,24 +82,20 @@ fit_ccw <- function(fit) {
     model_fn <- stats::glm
   }
 
-  # Fractional case-control weights make the binomial "successes" non-integer;
-  # the resulting GLM warning is expected and benign, so muffle just that one.
-  withCallingHandlers(
-    causatr::causat(
-      dt,
-      outcome = fit$outcome,
-      treatment = fit$exposure,
-      confounders = fit$confounders,
-      estimator = "gcomp",
-      family = "binomial",
-      weights = as.numeric(weights),
-      model_fn = model_fn
-    ),
-    warning = function(w) {
-      if (grepl("non-integer #successes", conditionMessage(w), fixed = TRUE)) {
-        invokeRestart("muffleWarning")
-      }
-    }
+  # Fractional case-control weights make the outcome's "successes" non-integer,
+  # which a binomial GLM warns about; quasibinomial is the family for fractional
+  # / weighted Bernoulli responses, so it fits the same mean model silently. The
+  # mean structure (and hence the marginal contrast and causatr's sandwich, which
+  # does not use the dispersion) is identical to binomial.
+  causatr::causat(
+    dt,
+    outcome = fit$outcome,
+    treatment = fit$exposure,
+    confounders = fit$confounders,
+    estimator = "gcomp",
+    family = "quasibinomial",
+    weights = as.numeric(weights),
+    model_fn = model_fn
   )
 }
 

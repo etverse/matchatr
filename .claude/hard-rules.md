@@ -99,10 +99,12 @@ Project-specific rules that override / extend the etverse-wide rules at
   `ci_method = "model"` and `"sandwich"` both yield it and `contrast_ccw()`
   records what causatr actually computed (`"sandwich"`). `"bootstrap"` is rejected
   (it must resample within the case / control strata and recompute the q0
-  weights). The weighted binomial GLM's `non-integer #successes` warning (a
-  consequence of fractional case-control weights) is deliberately muffled in
-  `fit_ccw()`. Do NOT flag the `"model"` → `"sandwich"` relabeling, the muffled
-  warning, or the bootstrap rejection as bugs.
+  weights). `fit_ccw()` fits the outcome model with `family = "quasibinomial"`
+  (the right family for fractional case-control weights — identical mean model
+  and sandwich to binomial, but silent on the spurious `non-integer #successes`
+  warning a binomial fit raises), so do NOT switch it back to `"binomial"`. Do
+  NOT flag the `"model"` → `"sandwich"` relabeling or the bootstrap rejection as
+  bugs.
 - **Case-cohort pseudo-likelihood is NOT a true likelihood.** Prentice / Borgan
   estimators reuse controls across failure times, so the score factors are
   dependent: standard errors do NOT come from the information matrix and LR
