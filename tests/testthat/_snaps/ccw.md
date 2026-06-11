@@ -15,7 +15,7 @@
         cc, "q0")), estimator = "ccw_gformula")
     Condition
       Error in `fit_ccw()`:
-      ! The CCW g-formula requires `confounders` to standardize over.
+      ! The case-control-weighted estimators require `confounders` for the adjustment model(s).
       i Supply an adjustment set, e.g. `confounders = ~ age + smoke`, on `matcha()`.
 
 # ccw_gformula rejects bootstrap variance and off-scale contrasts
@@ -24,7 +24,7 @@
       contrast(fit, type = "difference", ci_method = "bootstrap")
     Condition
       Error in `contrast()`:
-      ! `ci_method = "bootstrap"` is not available for the CCW g-formula.
+      ! `ci_method = "bootstrap"` is not available for the case-control-weighted estimators.
       i Use `ci_method = "model"` or `ci_method = "sandwich"` (causatr's influence-function variance on the weighted fit).
 
 ---
@@ -33,6 +33,6 @@
       contrast(fit, type = "hr")
     Condition
       Error in `contrast()`:
-      ! The CCW g-formula reports a marginal effect, not `type = "hr"`.
+      ! A case-control-weighted estimator reports a marginal effect, not `type = "hr"`.
       i Use `type = "difference"` (risk difference), `"ratio"` (risk ratio), or `"or"` (marginal odds ratio).
 

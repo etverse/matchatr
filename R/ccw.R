@@ -1,37 +1,44 @@
-#' Fit a case-control-weighted g-computation model
+#' Fit a case-control-weighted causal model (g-formula / IPW / AIPW)
 #'
-#' Implements the Rose & van der Laan case-control-weighted (CCW) g-formula:
-#' the case-control sample is reweighted to the source population with the
-#' marginal-prevalence weights from `cc_weights()`, a weighted outcome model is
-#' fitted, and the contrast step standardizes it to a **marginal** causal effect
-#' (risk difference, risk ratio, or marginal odds ratio). Point estimation and
-#' variance are delegated to [causatr::causat()] with the case-control weights
-#' passed as observation weights; matchatr owns only the weighting layer.
+#' Implements the Rose & van der Laan case-control-weighted (CCW) family: the
+#' case-control sample is reweighted to the source population with the
+#' marginal-prevalence weights from `cc_weights()`, a cohort causal estimator is
+#' fitted on the weighted sample, and the contrast step standardizes it to a
+#' **marginal** causal effect (risk difference, risk ratio, or marginal odds
+#' ratio). The estimator is chosen by `fit$estimator`: `"ccw_gformula"` fits a
+#' weighted outcome model (g-computation), `"ccw_ipw"` a weighted propensity
+#' (inverse-probability) model, and `"ccw_aipw"` the doubly-robust augmented IPW
+#' (consistent if **either** the outcome or the propensity model is correct).
+#' Point estimation and variance are delegated to [causatr::causat()] with the
+#' case-control weights passed as observation weights; matchatr owns only the
+#' weighting layer.
 #'
 #' @details
 #' Under separate case / control sampling the marginal outcome frequency is
 #' fixed by design, so a case-control fit identifies only the conditional odds
 #' ratio. The case-control weights (Rose & van der Laan 2008) restore the source
 #' population's outcome margin q0, so the weighted empirical distribution mimics
-#' the cohort and a cohort g-computation on it targets the marginal estimand
-#' (Rose & van der Laan 2008, *Int. J. Biostat.* 4(1)).
+#' the cohort and a cohort estimator on it targets the marginal estimand
+#' (Rose & van der Laan 2008, *Int. J. Biostat.* 4(1); the doubly-robust CCW-AIPW
+#' is Rose & van der Laan 2014, *Biometrics* 70(1)).
 #'
 #' The outcome and exposure are coerced to 0/1 so the marginal contrast's
 #' interventions (treat-all versus treat-none) align with the fitted treatment
-#' coding; a non-binary exposure is rejected (this chunk supports the binary
-#' average treatment effect only). The outcome model is fitted with
-#' `family = "quasibinomial"`: the fractional case-control weights make the
-#' Bernoulli "successes" non-integer, and quasibinomial fits the same mean model
-#' as binomial without the spurious `non-integer #successes` warning. The mean
-#' structure — and hence the marginal contrast and causatr's sandwich variance,
-#' which does not use the dispersion — is identical to the binomial fit.
+#' coding; a non-binary exposure is rejected (the binary average treatment effect
+#' only). The model is fitted with `family = "quasibinomial"`: the fractional
+#' case-control weights make the Bernoulli "successes" non-integer, and
+#' quasibinomial fits the same mean model as binomial without the spurious
+#' `non-integer #successes` warning — and the dispersion it adds is unused by the
+#' marginal contrast and causatr's sandwich. The IPW and AIPW estimators also fit
+#' a propensity model, whose fitter (`propensity_model_fn`) is named explicitly so
+#' causatr does not warn about defaulting it.
 #'
-#' @param fit A `matchatr_fit` whose `engine` resolved to `"ccw_gformula"`,
-#'   carrying the case-control `data`, the `outcome` / `exposure` / `confounders`
-#'   roles, and a `design` whose `prevalence` (q0) is set. The
-#'   `matchatr_missing_prevalence` guard in [matcha()] ensures q0 is present
-#'   before this runs.
-#' @returns A `causatr_fit` object (the weighted g-computation fit) stored in the
+#' @param fit A `matchatr_fit` whose `engine` is one of `"ccw_gformula"` /
+#'   `"ccw_ipw"` / `"ccw_aipw"`, carrying the case-control `data`, the `outcome` /
+#'   `exposure` / `confounders` roles, and a `design` whose `prevalence` (q0) is
+#'   set. The `matchatr_missing_prevalence` guard in [matcha()] ensures q0 is
+#'   present before this runs.
+#' @returns A `causatr_fit` object (the weighted causal fit) stored in the
 #'   `matchatr_fit`'s `model` slot; [contrast()] turns it into the marginal
 #'   effect.
 #' @family estimators
@@ -39,15 +46,16 @@
 #' @noRd
 fit_ccw <- function(fit) {
   prevalence <- fit$design$prevalence
+  causat_estimator <- ccw_causat_estimator(fit$estimator)
 
-  # The g-formula standardizes a confounder-adjusted outcome model; with no
-  # confounders there is nothing to standardize over (and causatr's g-computation
-  # requires an outcome-model adjustment set). Reject early with a matchatr error
-  # rather than leaking causatr's.
+  # Every CCW estimator needs an adjustment set: g-formula standardizes a
+  # confounder-adjusted outcome model, IPW needs a propensity model, AIPW both.
+  # With no confounders there is nothing to adjust for, and causatr's engines
+  # require it; reject with a matchatr error rather than leaking causatr's.
   if (is.null(fit$confounders)) {
     rlang::abort(
       c(
-        "The CCW g-formula requires `confounders` to standardize over.",
+        "The case-control-weighted estimators require `confounders` for the adjustment model(s).",
         i = paste0(
           "Supply an adjustment set, e.g. `confounders = ~ age + smoke`, on ",
           "`matcha()`."
@@ -65,7 +73,7 @@ fit_ccw <- function(fit) {
   x01 <- resolve_binary_exposure(
     fit$data,
     fit$exposure,
-    estimator_label = "CCW g-formula",
+    estimator_label = ccw_estimator_label(fit$estimator),
     alternative = "a conditional estimator (e.g. estimator = \"logistic\")"
   )
 
@@ -82,20 +90,62 @@ fit_ccw <- function(fit) {
     model_fn <- stats::glm
   }
 
-  # Fractional case-control weights make the outcome's "successes" non-integer,
-  # which a binomial GLM warns about; quasibinomial is the family for fractional
-  # / weighted Bernoulli responses, so it fits the same mean model silently. The
-  # mean structure (and hence the marginal contrast and causatr's sandwich, which
-  # does not use the dispersion) is identical to binomial.
-  causatr::causat(
-    dt,
+  # quasibinomial fits the same mean model as binomial but is silent on the
+  # fractional "successes" the case-control weights produce.
+  args <- list(
+    data = dt,
     outcome = fit$outcome,
     treatment = fit$exposure,
     confounders = fit$confounders,
-    estimator = "gcomp",
+    estimator = causat_estimator,
     family = "quasibinomial",
     weights = as.numeric(weights),
     model_fn = model_fn
+  )
+  # IPW / AIPW fit a propensity model; name its fitter so causatr does not warn
+  # about defaulting it (the outcome `model_fn` is unused by the pure IPW path).
+  if (causat_estimator %in% c("ipw", "aipw")) {
+    args$propensity_model_fn <- stats::glm
+  }
+  do.call(causatr::causat, args)
+}
+
+#' Map a CCW estimator name to its causatr engine
+#'
+#' @param estimator Character scalar matchatr CCW estimator (`"ccw_gformula"`,
+#'   `"ccw_ipw"`, `"ccw_aipw"`).
+#' @param call Caller environment surfaced in the defensive error.
+#' @returns The causatr `estimator` string (`"gcomp"`, `"ipw"`, `"aipw"`).
+#' @family estimators
+#' @noRd
+ccw_causat_estimator <- function(estimator, call = rlang::caller_env()) {
+  switch(
+    estimator,
+    ccw_gformula = "gcomp",
+    ccw_ipw = "ipw",
+    ccw_aipw = "aipw",
+    # Defensive: the dispatch table only routes the three names above here.
+    rlang::abort(
+      paste0("Unknown case-control-weighted estimator `", estimator, "`."),
+      class = c("matchatr_bad_estimator", "matchatr_error"),
+      call = call
+    )
+  )
+}
+
+#' Human-readable label for a CCW estimator
+#'
+#' @param estimator Character scalar matchatr CCW estimator name.
+#' @returns A short label used in error messages (e.g. `"CCW AIPW"`).
+#' @family estimators
+#' @noRd
+ccw_estimator_label <- function(estimator) {
+  switch(
+    estimator,
+    ccw_gformula = "CCW g-formula",
+    ccw_ipw = "CCW IPW",
+    ccw_aipw = "CCW AIPW",
+    "case-control-weighted"
   )
 }
 
@@ -151,7 +201,7 @@ contrast_ccw <- function(
     rlang::abort(
       c(
         paste0(
-          "The CCW g-formula reports a marginal effect, not `type = \"",
+          "A case-control-weighted estimator reports a marginal effect, not `type = \"",
           type,
           "\"`."
         ),
@@ -167,7 +217,7 @@ contrast_ccw <- function(
   if (identical(ci_method, "bootstrap")) {
     rlang::abort(
       c(
-        '`ci_method = "bootstrap"` is not available for the CCW g-formula.',
+        '`ci_method = "bootstrap"` is not available for the case-control-weighted estimators.',
         i = paste0(
           'Use `ci_method = "model"` or `ci_method = "sandwich"` (causatr\'s ',
           "influence-function variance on the weighted fit)."

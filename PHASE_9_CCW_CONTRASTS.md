@@ -1,10 +1,11 @@
 # Phase 9 — Case-Control-Weighted Marginal Causal Contrasts
 
-> **Status: IN PROGRESS — Chunk 1 (CCW-g-formula) complete.**
-> `matcha(estimator = "ccw_gformula")` reports the marginal RD / RR / marginal OR
-> from an unmatched case-control sample with a known q0, via `cc_weights()` +
-> `causatr` g-computation (`R/weights_cc.R`, `R/ccw.R`). Chunks 2–4 (CCW-IPW /
-> AIPW, CCW-TMLE, estimated-q0 variance + matched/nested CC + bootstrap) pending.
+> **Status: IN PROGRESS — Chunks 1–2 (CCW g-formula / IPW / AIPW) complete.**
+> `matcha(estimator = "ccw_gformula" | "ccw_ipw" | "ccw_aipw")` reports the marginal
+> RD / RR / marginal OR from an unmatched case-control sample with a known q0, via
+> `cc_weights()` + `causatr` g-computation / IPW / AIPW (`R/weights_cc.R`,
+> `R/ccw.R`); CCW-AIPW is doubly robust. Chunks 3–4 (CCW-TMLE, estimated-q0
+> variance + matched/nested CC + bootstrap) pending.
 > Methods: Rose & van der Laan (2008, 2009, 2011 *Targeted Learning*, 2014 double-robust
 > case-control). Implements Track 2 of `PHASE_8_CAUSAL_STRATEGY`.
 
@@ -57,8 +58,8 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 | Design | Estimator | Estimand | Variance | Status |
 |---|---|---|---|---|
 | unmatched CC | ccw_gformula | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 1) |
-| unmatched CC | ccw_ipw | RD/RR | sandwich / boot | needs-test |
-| unmatched CC | ccw_aipw | RD/RR | sandwich (DR) / boot | needs-test |
+| unmatched CC | ccw_ipw | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 2) |
+| unmatched CC | ccw_aipw | RD/RR/mOR | sandwich (DR, causatr) | ✅ done (Chunk 2) |
 | unmatched CC | ccw_tmle | RD/RR | EIF (new) / boot | needs-test |
 | matched CC | ccw_gformula/aipw | RD/RR | boot (+IF) | needs-test |
 | nested CC | ccw_* | RD/RR | boot | needs-test |
@@ -107,12 +108,15 @@ genuinely new code.
 
 1. ✅ `cc_weights()` + CCW-g-formula via causatr + pseudo-cohort oracle + missing-q₀
    rejection. (`R/weights_cc.R`, `R/ccw.R`; `test-weights_cc.R`, `test-ccw.R`)
-2. CCW-IPW + CCW-AIPW + double-robustness tests. **Delegation-first:** parameterize
-   `fit_ccw()` over `fit$estimator` → `causatr::causat(estimator = "ipw" | "aipw",
-   weights = cc_weights, …)` (both accept external `weights`); reuse `contrast_ccw()`
-   unchanged. AIPW gives the doubly-robust marginal estimator with no new variance engine;
-   the double-robustness tests use causatr's per-component `confounders_outcome` /
-   `confounders_treatment` to misspecify one model at a time.
+2. ✅ CCW-IPW + CCW-AIPW + double-robustness tests. **Delegation-first:** `fit_ccw()`
+   is parameterized over `fit$estimator` → `causatr::causat(estimator = "ipw" |
+   "aipw", weights = cc_weights, …)` (both accept external `weights`); `contrast_ccw()`
+   is reused unchanged. AIPW gives the doubly-robust marginal estimator with no new
+   variance engine. The double-robustness test uses a functional-form misspecification
+   (a `~ w`-linear working model that omits a quadratic term) so exactly one of the
+   outcome / propensity models is wrong through matchatr's single `confounders`
+   argument; CCW-AIPW recovers the marginal truth either way. (`R/ccw.R`; `test-ccw.R`,
+   `helper-dgp.R::make_dr_cohort_ccw()`.)
 3. CCW-TMLE targeting step (**new code** — causatr has no targeted learning) + EIF
    variance + `tmle` oracle.
 4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap.

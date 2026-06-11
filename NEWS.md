@@ -1,5 +1,33 @@
 # matchatr (development version)
 
+## 2026-06-11 — CCW-IPW and doubly-robust CCW-AIPW (PHASE_9 Chunk 2)
+
+Two more case-control-weighted marginal estimators: `matcha(estimator =
+"ccw_ipw")` (inverse-probability weighting) and `matcha(estimator = "ccw_aipw")`
+(augmented IPW). Both report the same marginal risk difference / risk ratio /
+marginal odds ratio as `ccw_gformula`, on a case-control sample with a known
+prevalence q0. **CCW-AIPW is doubly robust** — consistent for the marginal effect
+if **either** the outcome model or the propensity model is correctly specified
+(Rose & van der Laan 2014, *Biometrics* 70(1)).
+
+The implementation is delegation-first: `fit_ccw()` (`R/ccw.R`) is parameterized
+over the estimator, mapping `ccw_gformula` / `ccw_ipw` / `ccw_aipw` to
+`causatr::causat(estimator = "gcomp" / "ipw" / "aipw", weights = cc_weights)` —
+the case-control weights enter as causatr's observation weights — and reuses the
+same `contrast_ccw()` standardization unchanged. The IPW / AIPW propensity fitter
+is named explicitly (`propensity_model_fn = stats::glm`) so causatr does not warn
+about defaulting it. Point estimate and influence-function/sandwich variance are
+causatr's; matchatr owns only the weighting. The missing-q0 / non-binary-exposure
+/ missing-confounders / off-scale / bootstrap rejections are shared across the CCW
+family.
+
+Validated in `test-ccw.R`: the exact pseudo-cohort `causatr` oracle and the
+marginal-truth recovery now cover all three estimators, plus a **double-robustness**
+test — a cohort where exactly one of the `~ w`-linear working models is correct
+(the other omits a quadratic term); CCW-AIPW recovers the analytical marginal
+risk difference whether the outcome or the propensity model is the misspecified
+one, while the corresponding singly-robust estimator (g-formula or IPW) is biased.
+
 ## 2026-06-11 — Case-control-weighted marginal causal contrasts (PHASE_9 Chunk 1)
 
 First **marginal** causal effect from a case-control sample. `matcha(estimator =

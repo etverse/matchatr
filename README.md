@@ -30,10 +30,11 @@ person-period data).
 > (`PHASE_6`), and the **Samuelsen IPW** weighted Cox / AFT /
 > additive-hazards analyses of NCC data with absolute and excess risk
 > (`PHASE_7`). The **causal layer** is now opening:
-> `estimator = "ccw_gformula"` reports a **marginal** risk difference,
-> risk ratio, or marginal odds ratio from a case-control sample with a
-> known prevalence q₀, via Rose & van der Laan case-control weighting
-> delegated to `causatr` g-computation (`PHASE_9` Chunk 1). See the
+> `estimator = "ccw_gformula"` / `"ccw_ipw"` / `"ccw_aipw"` report a
+> **marginal** risk difference, risk ratio, or marginal odds ratio from
+> a case-control sample with a known prevalence q₀, via Rose & van der
+> Laan case-control weighting delegated to `causatr` g-computation / IPW
+> / (doubly-robust) AIPW (`PHASE_9` Chunks 1–2). See the
 > [articles](https://etverse.github.io/matchatr/) for worked examples.
 > The remaining case-control-weighting estimators (IPW / AIPW / TMLE),
 > the design-weighted causal survival layer, and the efficiency phases

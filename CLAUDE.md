@@ -174,26 +174,35 @@ on person-period data) wherever possible.
 > / decision doc that ships no estimator code — its q₀/weight contract already
 > exists: `unmatched_cc(prevalence)`, the `ccw_*` dispatch family, the
 > `matchatr_missing_prevalence` guard, `causatr`/`survatr` Imports). **PHASE_9
-> Chunk 1 is complete**: `matcha(design = unmatched_cc(prevalence = q0), estimator
-> = "ccw_gformula")` reports the **marginal** risk difference (`contrast(type =
-> "difference")`, the default), risk ratio (`"ratio"`), or marginal odds ratio
-> (`"or"`) from a case-control sample via the Rose & van der Laan case-control
-> weights. `cc_weights()` (`R/weights_cc.R`) computes the weights q₀/(n₁/n) for
-> cases and (1−q₀)/(n₀/n) for controls — reweighting the sample's outcome margin
-> to the source population so the weighted distribution mimics the cohort — and
-> `fit_ccw()` (`R/ccw.R`) fits a weighted g-computation via
-> `causatr::causat(estimator = "gcomp")`, with `contrast_ccw()` forwarding to
-> `causatr::contrast()` over the treat-all / treat-none static interventions; the
-> point estimate and influence-function/sandwich variance are delegated to causatr
-> (matchatr owns only the weighting layer). A non-binary exposure
-> (`matchatr_bad_input`), a missing q₀ (`matchatr_missing_prevalence`), an
-> off-scale contrast (`matchatr_unidentified_estimand`), and a bootstrap interval
+> Chunks 1–2 are complete**: `matcha(design = unmatched_cc(prevalence = q0),
+> estimator = "ccw_gformula" | "ccw_ipw" | "ccw_aipw")` reports the **marginal**
+> risk difference (`contrast(type = "difference")`, the default), risk ratio
+> (`"ratio"`), or marginal odds ratio (`"or"`) from a case-control sample via the
+> Rose & van der Laan case-control weights. `cc_weights()` (`R/weights_cc.R`)
+> computes the weights q₀/(n₁/n) for cases and (1−q₀)/(n₀/n) for controls —
+> reweighting the sample's outcome margin to the source population so the weighted
+> distribution mimics the cohort — and `fit_ccw()` (`R/ccw.R`), parameterized over
+> the estimator, fits a weighted causatr model
+> (`causat(estimator = "gcomp" | "ipw" | "aipw", weights = cc_weights)`), with
+> `contrast_ccw()` forwarding to `causatr::contrast()` over the treat-all /
+> treat-none static interventions; the point estimate and influence-function/
+> sandwich variance are delegated to causatr (matchatr owns only the weighting
+> layer). **CCW-AIPW is doubly robust** (consistent if either the outcome or the
+> propensity model is correct; Rose & van der Laan 2014). The outcome model uses
+> `family = "quasibinomial"` (the right family for the fractional case-control
+> weights, silent on the non-integer "successes" a binomial fit warns about);
+> `tidy()` / `summary()` on a ccw fit surface the marginal contrast (the model is
+> a `causatr_fit` with no conditional coefficient table). A non-binary exposure or
+> absent confounders (`matchatr_bad_input`), a missing q₀
+> (`matchatr_missing_prevalence`), an off-scale contrast
+> (`matchatr_unidentified_estimand`), and a bootstrap interval
 > (`matchatr_unsupported_variance`) are each rejected. Oracles: an exact
-> pseudo-cohort (`causatr` on the hand-weighted sample, machine precision) and a
-> truth DGP whose marginal RD/RR/mOR the estimator recovers on a tolerance band
-> disjoint from the conditional OR (non-collapsibility). PHASE_9 Chunks 2–4
-> (CCW-IPW/AIPW, CCW-TMLE, estimated-q₀ variance + matched/nested CC + bootstrap)
-> and PHASE_10+ remain `Status: DESIGN`.
+> pseudo-cohort (`causatr` on the hand-weighted sample, machine precision), a truth
+> DGP whose marginal RD/RR/mOR the estimators recover (RD ≠ the conditional OR,
+> non-collapsibility), and a double-robustness DGP (CCW-AIPW recovers the marginal
+> truth under outcome- or propensity-model misspecification). PHASE_9 Chunks 3–4
+> (CCW-TMLE, estimated-q₀ variance + matched/nested CC + bootstrap) and PHASE_10+
+> remain `Status: DESIGN`.
 
 ## Guide files
 
@@ -314,13 +323,15 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `absolute_risk_aft.R` (PHASE_7 follow-up — `absolute_risk_aft()`: parametric
   Weibull `F̂_x(t)` from the IPW AFT fit with a delta-method log-log CI over
   (β, log σ)).
-- **Causal layer:** `ccw.R` (PHASE_9 Chunk 1 — `fit_ccw()` / `contrast_ccw()`:
-  case-control-weighted g-computation; `fit_ccw()` builds the `cc_weights()` and
-  delegates the marginal estimate to `causatr::causat(estimator = "gcomp")`,
-  `contrast_ccw()` forwards to `causatr::contrast()` over the treat-all /
-  treat-none static interventions and assembles the marginal RD / RR / marginal-OR
-  `matchatr_result`). Still to come: `tmle_ccw.R` (the NEW CCW-TMLE targeting step
-  — causatr has no TL), `causal_survival_sampled.R` (design-weighted survatr).
+- **Causal layer:** `ccw.R` (PHASE_9 Chunks 1–2 — `fit_ccw()` / `contrast_ccw()` /
+  `ccw_causat_estimator()` / `ccw_estimator_label()`: the case-control-weighted
+  g-computation / IPW / AIPW family; `fit_ccw()` builds the `cc_weights()` and,
+  parameterized over `fit$estimator`, delegates the marginal estimate to
+  `causatr::causat(estimator = "gcomp" | "ipw" | "aipw")`, `contrast_ccw()` forwards
+  to `causatr::contrast()` over the treat-all / treat-none static interventions and
+  assembles the marginal RD / RR / marginal-OR `matchatr_result`; CCW-AIPW is doubly
+  robust). Still to come: `tmle_ccw.R` (the NEW CCW-TMLE targeting step — causatr has
+  no TL), `causal_survival_sampled.R` (design-weighted survatr).
 - **Inference:** lean on causatr/survatr variance engines; matchatr adds only the
   sampling-variance corrections (`variance_self_prentice.R`, `variance_samuelsen.R`,
   `variance_ccw.R`).

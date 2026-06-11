@@ -464,33 +464,38 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 
-**Chunk 1 implemented — CCW-g-formula.** `matcha(estimator = "ccw_gformula")`
-on an unmatched case-control sample carrying a known prevalence `q0`
-(`unmatched_cc(prevalence = q0)`) computes Rose & van der Laan case-control
-weights (`cc_weights()`, `R/weights_cc.R`) that reweight the sample to the source
-population, fits a weighted g-computation via `causatr::causat(estimator =
-"gcomp")` (`fit_ccw()`, `R/ccw.R`), and `contrast()` reports the **marginal**
-effect — risk difference (`type = "difference"`, the default), risk ratio
-(`type = "ratio"`), or marginal odds ratio (`type = "or"`) — by forwarding to
-`causatr::contrast()` over the treat-all / treat-none static interventions.
-Point estimate and variance are delegated to causatr; matchatr owns only the
-weighting layer. The remaining `ccw_*` estimators (IPW / AIPW / TMLE) and
-matched / nested CC support are pending later chunks.
+**Chunks 1–2 implemented — CCW g-formula / IPW / AIPW.** On an unmatched
+case-control sample carrying a known prevalence `q0` (`unmatched_cc(prevalence =
+q0)`), `matcha()` computes Rose & van der Laan case-control weights (`cc_weights()`,
+`R/weights_cc.R`) that reweight the sample to the source population and fits a
+cohort causal estimator via causatr on the weighted sample: `estimator =
+"ccw_gformula"` → `causat(estimator = "gcomp")`, `"ccw_ipw"` → `"ipw"`, `"ccw_aipw"`
+→ `"aipw"` (all through the same `fit_ccw()`, `R/ccw.R`). `contrast()` reports the
+**marginal** effect — risk difference (`type = "difference"`, the default), risk
+ratio (`type = "ratio"`), or marginal odds ratio (`type = "or"`) — by forwarding to
+`causatr::contrast()` over the treat-all / treat-none static interventions. Point
+estimate and influence-function/sandwich variance are delegated to causatr;
+matchatr owns only the weighting layer. CCW-AIPW is **doubly robust** (consistent
+if either the outcome or the propensity model is correct). CCW-TMLE and matched /
+nested CC support are pending later chunks.
 
 | Design | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|---|
-| unmatched CC + q0 | binary | ccw_gformula | marginal RD | difference | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
-| unmatched CC + q0 | binary | ccw_gformula | marginal RR | ratio | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
-| unmatched CC + q0 | binary | ccw_gformula | marginal OR | or | sandwich (causatr) | ✅ truth DGP (≠ conditional OR) + exact pseudo-cohort oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula | marginal RD / RR / OR | difference / ratio / or | sandwich (causatr) | ✅ truth DGP (RD≠conditional OR) + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_ipw | marginal RD / RR / OR | difference / ratio / or | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_aipw | marginal RD / RR / OR (doubly robust) | difference / ratio / or | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort oracle + **double-robustness** (recovers truth under outcome- or propensity-misspecification) | `test-ccw.R` |
 | Rose & van der Laan weights `cc_weights()` | — | — | — | — | — | ✅ weighted case-fraction == q0 closed form | `test-weights_cc.R` |
-| any | non-binary | ccw_gformula | — | — | — | ⛔ `matchatr_bad_input` (binary ATE only) | `test-ccw.R` |
-| any (no q0) | — | ccw_gformula | — | — | — | ⛔ `matchatr_missing_prevalence` | `test-ccw.R`, `test-matcha.R` |
-| unmatched CC + q0 | binary | ccw_gformula | — | hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-ccw.R` |
-| unmatched CC + q0 | binary | ccw_gformula | RD/RR/OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-ccw.R` |
+| any | non-binary | ccw_gformula / ipw / aipw | — | — | — | ⛔ `matchatr_bad_input` (binary ATE only) | `test-ccw.R` |
+| any (no confounders) | binary | ccw_gformula / ipw / aipw | — | — | — | ⛔ `matchatr_bad_input` (adjustment model needs confounders) | `test-ccw.R` |
+| any (no q0) | — | ccw_gformula / ipw / aipw | — | — | — | ⛔ `matchatr_missing_prevalence` | `test-ccw.R`, `test-matcha.R` |
+| unmatched CC + q0 | binary | ccw_gformula / ipw / aipw | — | hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula / ipw / aipw | RD/RR/OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-ccw.R` |
 
-CCW-IPW / CCW-AIPW (Chunk 2), CCW-TMLE (Chunk 3, the one new targeting engine),
-and estimated-q0 variance + matched/nested CC + within-stratum bootstrap
-(Chunk 4) stay pending.
+CCW-TMLE (Chunk 3, the one new targeting engine) and estimated-q0 variance +
+matched/nested CC + within-stratum bootstrap (Chunk 4) stay pending. The Python
+`delicatessen` cross-language oracle for the CCW estimands is deferred: the exact
+pseudo-cohort `causatr` oracle already pins each estimand to machine precision and
+causatr itself carries the delicatessen comparison for g-comp / IPW / AIPW.
 
 ## Design-weighted causal survival (PHASE_10)
 

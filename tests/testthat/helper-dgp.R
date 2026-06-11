@@ -600,6 +600,68 @@ make_cohort_ccw <- function(
   })
 }
 
+# Truth-based DGP for the DOUBLE-ROBUSTNESS of CCW-AIPW. Two cohorts, each with a
+# single confounder `w` and a constant conditional treatment effect (0.7 on the
+# logit), drawn so that exactly ONE of the two `~ w`-linear working models is
+# correctly specified — the misspecification is a missing quadratic term:
+#
+#   kind = "out_wrong":  propensity is linear in w (a ~ expit(0.9 w)), so a `~ w`
+#     propensity model is CORRECT; the outcome is nonlinear in w (a w^2 term), so
+#     a `~ w` outcome model is WRONG. CCW-IPW (correct propensity) and CCW-AIPW
+#     (doubly robust) recover the truth; CCW-g-formula (wrong outcome) is biased.
+#   kind = "prop_wrong": the outcome is linear in w, so a `~ w` outcome model is
+#     CORRECT; the propensity is nonlinear in w (a w^2 term), so a `~ w`
+#     propensity model is WRONG. CCW-g-formula (correct outcome) and CCW-AIPW
+#     recover the truth; CCW-IPW (wrong propensity) is biased.
+#
+# Both pass `confounders = ~ w` to matcha(), so the misspecification is a
+# functional-form one (the working models cannot see w^2). The marginal
+# risk-difference truth is the g-formula on the full cohort under the TRUE
+# outcome model, m1 - m0 with m_a = E_w[expit(lp_a)], which does not depend on
+# the propensity. An unmatched case-control sample (every case + a `ratio`:1
+# control sample) is returned with the "truth" (marginal RD) and "q0" attributes.
+make_dr_cohort_ccw <- function(
+  kind = c("out_wrong", "prop_wrong"),
+  n = 1.5e5,
+  ratio = 5L,
+  seed = 20L
+) {
+  kind <- match.arg(kind)
+  withr::with_seed(seed, {
+    w <- stats::rnorm(n)
+    b0 <- -2.3
+    if (kind == "out_wrong") {
+      # Strong selection on w (so the treated / control w-distributions differ
+      # sharply) plus a strong w^2 outcome term: the `~ w` outcome model's failure
+      # to capture the curvature then biases the standardized risk difference
+      # clearly (a marginal RD is otherwise fairly robust to mild outcome
+      # misspecification because the curvature averages out).
+      a <- stats::rbinom(n, 1L, stats::plogis(2.0 * w)) # linear propensity: correct
+      lp <- function(av) b0 + 0.7 * av + 2.0 * w - 2.5 * w^2 # nonlinear outcome: wrong
+    } else {
+      a <- stats::rbinom(n, 1L, stats::plogis(-0.6 + 0.7 * w + 1.4 * w^2)) # nonlinear propensity: wrong
+      lp <- function(av) b0 + 0.7 * av + 1.0 * w # linear outcome: correct
+    }
+    y <- stats::rbinom(n, 1L, stats::plogis(lp(a)))
+    truth_rd <- mean(stats::plogis(lp(1)) - stats::plogis(lp(0)))
+    q0 <- mean(y)
+    coh <- data.frame(case = y, x = a, w = w)
+    cases <- coh[coh$case == 1L, , drop = FALSE]
+    controls_all <- coh[coh$case == 0L, , drop = FALSE]
+    n_ctrl <- min(nrow(cases) * ratio, nrow(controls_all))
+    controls <- controls_all[
+      sample.int(nrow(controls_all), n_ctrl),
+      ,
+      drop = FALSE
+    ]
+    samp <- rbind(cases, controls)
+    rownames(samp) <- NULL
+    attr(samp, "truth") <- truth_rd
+    attr(samp, "q0") <- q0
+    samp
+  })
+}
+
 # Counter-matched NCC sampler used as a deterministic test fixture.
 # Delegates to the exported sample_ncc_counter_matched() under a fixed seed.
 # When cohort is NULL, builds from make_ncc_cohort() and attaches z_bin = x as
