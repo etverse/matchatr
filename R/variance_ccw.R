@@ -34,6 +34,12 @@ ccw_bootstrap_ci <- function(fit, type, conf_level, n_boot) {
   n_case <- length(case_idx)
   n_ctrl <- length(ctrl_idx)
 
+  # When q0 is estimated from a cohort of `prevalence_n` members, redraw q0* ~
+  # Binomial(N, q0) / N each replicate so the bootstrap captures q̂0's sampling
+  # uncertainty on top of the case-control resampling; a known q0 stays fixed.
+  q0 <- fit$design$prevalence
+  n_cohort <- fit$design$prevalence_n
+
   ests <- withCallingHandlers(
     vapply(
       seq_len(n_boot),
@@ -44,6 +50,10 @@ ccw_bootstrap_ci <- function(fit, type, conf_level, n_boot) {
         )
         boot_fit <- fit
         boot_fit$data <- fit$data[rows, , drop = FALSE]
+        if (!is.null(n_cohort)) {
+          boot_fit$design$prevalence <- stats::rbinom(1L, n_cohort, q0) /
+            n_cohort
+        }
         ccw_boot_point(boot_fit, type)
       },
       numeric(1)
@@ -75,6 +85,11 @@ ccw_bootstrap_ci <- function(fit, type, conf_level, n_boot) {
 #' @seealso `ccw_bootstrap_ci()`
 #' @noRd
 ccw_boot_point <- function(fit, type) {
+  # Strip `prevalence_n` so the contrast computes the plain point estimate and
+  # does NOT re-enter the estimated-q0 / bootstrap variance paths (which both call
+  # back here — leaving it set would recurse). The point depends only on q0 (the
+  # weights), not on whether q0 is known or estimated.
+  fit$design$prevalence_n <- NULL
   fit$model <- tryCatch(run_engine(fit), error = function(e) NULL)
   if (is.null(fit$model)) {
     return(NA_real_)
@@ -88,4 +103,76 @@ ccw_boot_point <- function(fit, type) {
     error = function(e) NULL
   )
   if (is.null(res)) NA_real_ else res$contrasts$estimate
+}
+
+#' Estimated-q0 variance contribution for a CCW marginal contrast
+#'
+#' When q0 is estimated from a cohort of `prevalence_n` members rather than known,
+#' the marginal estimate ψ̂ inherits q̂0's sampling uncertainty through the
+#' case-control weights, which the analytic (sandwich / EIF) interval must add.
+#'
+#' @details
+#' By the delta method the extra variance is (∂ψ/∂q0)² Var(q̂0), with
+#' Var(q̂0) = q0 (1 − q0) / N for q̂0 = mean(Y) over the N cohort members. The
+#' derivative is a central finite difference — ψ̂ refitted at q0 ± h — on the
+#' reported scale (the contrast for the risk difference, its log for the risk /
+#' odds ratio, matching the scale the analytic SE is formed on).
+#'
+#' @param fit A `matchatr_fit` whose `design` carries an estimated q0
+#'   (`prevalence_n` set).
+#' @param type Character contrast scale.
+#' @param log_scale Logical; `TRUE` for the ratio / odds-ratio scales, whose SE
+#'   lives on the log scale.
+#' @returns A numeric scalar — the variance to add to the (log-)scale SE².
+#' @family variance
+#' @seealso `ccw_bootstrap_ci()`
+#' @noRd
+ccw_estimated_q0_term <- function(fit, type, log_scale) {
+  q0 <- fit$design$prevalence
+  n_cohort <- fit$design$prevalence_n
+  h <- min(q0, 1 - q0) * 1e-3
+  point_at <- function(q) {
+    f <- fit
+    f$design$prevalence <- q
+    p <- ccw_boot_point(f, type)
+    if (log_scale) log(p) else p
+  }
+  d_dq0 <- (point_at(q0 + h) - point_at(q0 - h)) / (2 * h)
+  var_q0 <- q0 * (1 - q0) / n_cohort
+  d_dq0^2 * var_q0
+}
+
+#' Widen an analytic CCW interval for an estimated q0
+#'
+#' Adds the estimated-q0 variance term (`ccw_estimated_q0_term()`) to the known-q0
+#' (sandwich / EIF) standard error and reforms the Wald interval on the reported
+#' scale (linear for the risk difference, log for the risk / odds ratio).
+#'
+#' @param fit A `matchatr_fit` whose `design` carries an estimated q0.
+#' @param type Character contrast scale.
+#' @param conf_level Numeric confidence level in (0, 1).
+#' @param est Numeric point estimate of the contrast.
+#' @param lower,upper Numeric known-q0 interval bounds (used to recover the
+#'   known-q0 SE on the reported scale).
+#' @returns A list with the widened `se`, `lower`, and `upper`.
+#' @family variance
+#' @seealso `ccw_estimated_q0_term()`
+#' @noRd
+ccw_apply_estimated_q0 <- function(fit, type, conf_level, est, lower, upper) {
+  z <- stats::qnorm(1 - (1 - conf_level) / 2)
+  log_scale <- type %in% c("ratio", "or")
+  term <- ccw_estimated_q0_term(fit, type, log_scale)
+  if (log_scale) {
+    se_log_known <- (log(upper) - log(lower)) / (2 * z)
+    se_log_total <- sqrt(se_log_known^2 + term)
+    list(
+      se = est * se_log_total,
+      lower = exp(log(est) - z * se_log_total),
+      upper = exp(log(est) + z * se_log_total)
+    )
+  } else {
+    se_known <- (upper - lower) / (2 * z)
+    se_total <- sqrt(se_known^2 + term)
+    list(se = se_total, lower = est - z * se_total, upper = est + z * se_total)
+  }
 }

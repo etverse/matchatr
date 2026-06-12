@@ -117,6 +117,20 @@ Project-specific rules that override / extend the etverse-wide rules at
   `causat(estimator = "gcomp"/"ipw"/"aipw")`) and all three require `confounders`
   (the outcome / propensity / both adjustment models). Do NOT flag the `"model"` →
   `"sandwich"` relabeling or the confounders requirement as bugs.
+- **An estimated q0 (`unmatched_cc(prevalence = q0, prevalence_n = N)`) widens the
+  CCW interval; the point estimate is unchanged.** q0 estimated from N cohort
+  members carries sampling uncertainty Var(q̂0) = q0(1−q0)/N into ψ̂ through the
+  weights. The analytic (sandwich / EIF) path adds the delta-method term
+  (∂ψ/∂q0)²·Var(q̂0) — `ccw_estimated_q0_term()` computes ∂ψ/∂q0 by a central
+  finite difference (refit at q0±h) on the reported scale (linear for RD, log for
+  RR/OR) via `ccw_apply_estimated_q0()`; the bootstrap path redraws
+  q0* ~ Binomial(N, q0)/N per replicate. The two agree and both collapse onto the
+  known-q0 interval as N → ∞. **Critical invariant:** `ccw_boot_point()` (the
+  per-replicate / finite-difference point) MUST strip `prevalence_n` before
+  computing the contrast, because the estimated-q0 and bootstrap variance branches
+  both call back into it — leaving `prevalence_n` set causes runaway recursion. Do
+  NOT remove that `fit$design$prevalence_n <- NULL`, and do NOT compute the
+  estimated-q0 term for a known q0.
 - **The whole CCW family complete-cases missing data once, in `ccw_prepare()`.**
   Rows with a missing outcome, exposure, or confounder are dropped (listwise
   deletion) with a classed `matchatr_dropped_rows` warning, and `cc_weights()` is

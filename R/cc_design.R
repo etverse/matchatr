@@ -13,6 +13,11 @@
 #'   (`"ccw_*"`) estimators, which reweight the sample back to the population;
 #'   optional for the conditional / classical odds-ratio estimators, which do
 #'   not need it.
+#' @param prevalence_n `NULL` (default; q0 is treated as known) or a whole number
+#'   giving the cohort size q0 was estimated from. When supplied, the
+#'   case-control-weighted variance gains a term for q̂0's sampling uncertainty
+#'   (Var(q̂0) = q0 (1 − q0) / prevalence_n), and a fit records
+#'   `prevalence_known = FALSE`.
 #' @param strata `NULL` or a non-empty character vector naming the column(s) to
 #'   stratify on for the Mantel-Haenszel estimator (`estimator = "mh"`), e.g.
 #'   `"agegrp"` or `c("agegrp", "sex")`. Several columns are crossed into a
@@ -33,13 +38,19 @@
 #' @examples
 #' unmatched_cc()
 #' unmatched_cc(prevalence = 0.02)
+#' unmatched_cc(prevalence = 0.02, prevalence_n = 50000) # q0 estimated from a cohort
 #' unmatched_cc(strata = "agegrp")
 #'
 #' @family design constructors
 #' @seealso [matched_cc()], [nested_cc()], [case_cohort()], [matcha()]
 #' @export
-unmatched_cc <- function(prevalence = NULL, strata = NULL) {
+unmatched_cc <- function(
+  prevalence = NULL,
+  prevalence_n = NULL,
+  strata = NULL
+) {
   check_prevalence(prevalence)
+  check_prevalence_n(prevalence_n, prevalence)
   if (!is.null(strata)) {
     check_character(strata, class = "matchatr_bad_strata")
   }
@@ -53,6 +64,7 @@ unmatched_cc <- function(prevalence = NULL, strata = NULL) {
     type = "unmatched_cc",
     strata = strata,
     prevalence = prevalence,
+    prevalence_n = prevalence_n,
     weight_spec = weight_spec,
     call = match.call()
   )
@@ -347,6 +359,9 @@ counter_matched <- function(strata, time, weights = NULL, ratio = NULL) {
 #' @param time Character scalar time column, or `NULL`.
 #' @param ratio Whole-number controls-per-case, or `NULL`.
 #' @param prevalence Marginal prevalence q0, or `NULL`.
+#' @param prevalence_n Whole number: the cohort size q0 was estimated from (so q0
+#'   is treated as estimated, not known, and the variance gains a term for its
+#'   sampling uncertainty), or `NULL` when q0 is known.
 #' @param subcohort Character scalar subcohort-membership column, or `NULL`.
 #' @param weights Character scalar log-weight column for counter-matched
 #'   designs, or `NULL`.
@@ -370,6 +385,7 @@ new_matchatr_design <- function(
   time = NULL,
   ratio = NULL,
   prevalence = NULL,
+  prevalence_n = NULL,
   subcohort = NULL,
   weights = NULL,
   method = NULL,
@@ -387,6 +403,7 @@ new_matchatr_design <- function(
       time = time,
       ratio = ratio,
       prevalence = prevalence,
+      prevalence_n = prevalence_n,
       subcohort = subcohort,
       weights = weights,
       method = method,

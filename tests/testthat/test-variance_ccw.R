@@ -65,3 +65,82 @@ test_that("the CCW bootstrap accepts a custom replicate count", {
   expect_lt(b1$contrasts$ci_lower, b1$contrasts$ci_upper)
   expect_equal(b1$contrasts$se, b2$contrasts$se, tolerance = 0.3)
 })
+
+# When q0 is estimated from a cohort of `prevalence_n` members (rather than
+# known), the marginal estimate inherits q-hat0's sampling uncertainty through the
+# weights. The analytic (delta-method) interval and the bootstrap (which redraws
+# q0* per replicate) implement that variance two different ways, so they are each
+# other's oracle; and as the cohort grows the extra term must vanish.
+
+test_that("an estimated q0 widens the interval, matching the bootstrap", {
+  skip_if_not_installed("causatr")
+  skip_if_not_installed("withr")
+
+  cc <- make_cohort_ccw(n = 3000L, ratio = 3L, seed = 7L)
+  q0 <- attr(cc, "q0")
+  se_of <- function(r) {
+    (r$contrasts$ci_upper - r$contrasts$ci_lower) / (2 * stats::qnorm(0.975))
+  }
+
+  for (est in c("ccw_gformula", "ccw_tmle")) {
+    # q0 estimated from a small cohort -> a visible extra term.
+    fit_est <- matcha(
+      cc,
+      outcome = "case",
+      exposure = "x",
+      design = unmatched_cc(prevalence = q0, prevalence_n = 1500L),
+      confounders = ~w,
+      estimator = est
+    )
+    expect_false(fit_est$details$prevalence_known)
+
+    se_analytic <- se_of(contrast(
+      fit_est,
+      "difference",
+      ci_method = "sandwich"
+    ))
+    se_boot <- se_of(withr::with_seed(
+      3L,
+      contrast(fit_est, "difference", ci_method = "bootstrap", n_boot = 400L)
+    ))
+    # The analytic delta-method term and the q0*-redraw bootstrap agree.
+    expect_equal(se_analytic, se_boot, tolerance = 0.15)
+
+    # As the cohort grows the q-hat0 term vanishes: the estimated-q0 interval
+    # collapses onto the known-q0 one.
+    fit_known <- matcha(
+      cc,
+      outcome = "case",
+      exposure = "x",
+      design = unmatched_cc(prevalence = q0),
+      confounders = ~w,
+      estimator = est
+    )
+    fit_huge <- matcha(
+      cc,
+      outcome = "case",
+      exposure = "x",
+      design = unmatched_cc(prevalence = q0, prevalence_n = 100000000L),
+      confounders = ~w,
+      estimator = est
+    )
+    se_known <- se_of(contrast(fit_known, "difference"))
+    se_huge <- se_of(contrast(fit_huge, "difference"))
+    expect_equal(se_huge, se_known, tolerance = 0.005)
+  }
+})
+
+test_that("prevalence_n is validated", {
+  expect_error(
+    unmatched_cc(prevalence_n = 1000L),
+    class = "matchatr_bad_prevalence" # no prevalence to attach to
+  )
+  expect_error(
+    unmatched_cc(prevalence = 0.1, prevalence_n = 1.5),
+    class = "matchatr_bad_prevalence" # not a whole number
+  )
+  expect_error(
+    unmatched_cc(prevalence = 0.1, prevalence_n = -10L),
+    class = "matchatr_bad_prevalence" # not positive
+  )
+})

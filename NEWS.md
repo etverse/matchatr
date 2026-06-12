@@ -1,5 +1,22 @@
 # matchatr (development version)
 
+## 2026-06-12 — Estimated-q₀ variance for the CCW family (PHASE_9 Chunk 4b)
+
+`unmatched_cc(prevalence = q0, prevalence_n = N)` declares that the source
+prevalence q₀ was **estimated** from a cohort of `N` members rather than known.
+The case-control-weighted estimators then widen the interval for q̂₀'s sampling
+uncertainty (Var(q̂₀) = q₀(1 − q₀)/N propagating through the weights): the analytic
+(sandwich / EIF) interval adds the delta-method term (∂ψ/∂q₀)²·Var(q̂₀) — with
+∂ψ/∂q₀ a central finite difference on the reported scale — and the bootstrap
+redraws q₀* ~ Binomial(N, q₀)/N each replicate. The point estimate is unchanged,
+and the fit records `details$prevalence_known = FALSE`. A `prevalence_n` without a
+`prevalence`, or a non-positive / non-integer `prevalence_n`, is rejected
+(`matchatr_bad_prevalence`).
+
+Validated in `test-variance_ccw.R`: the analytic and bootstrap estimated-q₀
+standard errors agree (they implement the same variance two ways), and both
+collapse onto the known-q₀ interval as the cohort grows (N → ∞).
+
 ## 2026-06-12 — Within-stratum bootstrap for the CCW family (PHASE_9 Chunk 4a)
 
 `contrast(fit, ci_method = "bootstrap")` is now available for every

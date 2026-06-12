@@ -100,7 +100,9 @@ contrast_ccw_tmle <- function(
 
   # The EIF plug-in variance is the influence-function / sandwich variance, the
   # same family the other CCW engines report; `"bootstrap"` overrides the interval
-  # with the within-stratum percentile bootstrap (the targeted point is kept).
+  # with the within-stratum percentile bootstrap (the targeted point is kept). An
+  # estimated q0 (`prevalence_n` set) widens the analytic interval by the
+  # delta-method q̂0 term.
   recorded_ci <- "sandwich"
   if (identical(ci_method, "bootstrap")) {
     boot <- ccw_bootstrap_ci(fit, type, conf_level, n_boot)
@@ -108,6 +110,11 @@ contrast_ccw_tmle <- function(
     lower <- boot$lower
     upper <- boot$upper
     recorded_ci <- "bootstrap"
+  } else if (!is.null(fit$design$prevalence_n)) {
+    adj <- ccw_apply_estimated_q0(fit, type, conf_level, est, lower, upper)
+    se <- adj$se
+    lower <- adj$lower
+    upper <- adj$upper
   }
 
   new_matchatr_result(

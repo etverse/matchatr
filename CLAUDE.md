@@ -208,7 +208,10 @@ on person-period data) wherever possible.
 > `contrast(ci_method = "bootstrap")` gives the design-preserving within-stratum
 > percentile interval (`ccw_bootstrap_ci()`, `R/variance_ccw.R`: resample cases /
 > controls separately so the q₀ weights stay fixed, refit, percentile CI; `n_boot`
-> via `...`). Missing data
+> via `...`). `unmatched_cc(prevalence = q0, prevalence_n = N)` declares q₀ estimated
+> from a cohort of N members; the variance then adds q̂₀'s sampling term (analytic
+> delta-method `ccw_estimated_q0_term()` for the sandwich/EIF, q₀* redraw for the
+> bootstrap), and the fit records `details$prevalence_known`. Missing data
 > is complete-cased once in `ccw_prepare()` (drop NA in outcome/exposure/confounders,
 > warn `matchatr_dropped_rows`, weights computed on the complete-case sample so the
 > weighted case fraction stays q0) — matchatr's convention; MI / IPCW-TMLE are the
@@ -357,10 +360,12 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   marginalization; doubly robust; oracle `tmle::tmle(obsWeights=)`) with its
   result assembly in `ccw_tmle_contrast.R` (`contrast_ccw_tmle()`: the
   case-control-weighted EIF variance, delta-method RR / OR),
-  `variance_ccw.R` (PHASE_9 Chunk 4 — `ccw_bootstrap_ci()` / `ccw_boot_point()`:
-  the design-preserving within-stratum percentile bootstrap shared by
-  `contrast_ccw()` / `contrast_ccw_tmle()`, resampling cases / controls separately
-  so the q₀ weights stay fixed). Still to come:
+  `variance_ccw.R` (PHASE_9 Chunk 4 — `ccw_bootstrap_ci()` / `ccw_boot_point()` /
+  `ccw_estimated_q0_term()` / `ccw_apply_estimated_q0()`: the design-preserving
+  within-stratum percentile bootstrap and the estimated-q₀ delta-method variance
+  term, shared by `contrast_ccw()` / `contrast_ccw_tmle()`; `ccw_boot_point()`
+  strips `prevalence_n` to avoid recursion through the variance branches). Still to
+  come:
   `causal_survival_sampled.R` (design-weighted survatr).
 - **Inference:** lean on causatr/survatr variance engines; matchatr adds only the
   sampling-variance corrections (`variance_self_prentice.R`, `variance_samuelsen.R`,

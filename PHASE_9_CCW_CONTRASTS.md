@@ -130,8 +130,11 @@ genuinely new code.
      matchatr owns the stratified loop (`ccw_bootstrap_ci()`, `R/variance_ccw.R`) —
      causatr's plain bootstrap mixes the strata and cannot preserve n1 / n0.
      (`test-variance_ccw.R`.)
-   - **4b estimated-q₀ variance.** Cohort-estimated q₀ adds an IF term; the fit
-     records `prevalence_known`.
+   - **4b ✅ estimated-q₀ variance.** `unmatched_cc(prevalence = q0, prevalence_n =
+     N)` declares q₀ estimated from N cohort members; the analytic interval adds the
+     delta-method term (∂ψ/∂q₀)²·q₀(1−q₀)/N (`ccw_estimated_q0_term()` /
+     `ccw_apply_estimated_q0()`, `R/variance_ccw.R`) and the bootstrap redraws q₀*
+     per replicate; the fit records `prevalence_known`. (`test-variance_ccw.R`.)
    - **4c matched / nested CC support.** Needs a `prevalence` arg on
      `matched_cc()` / `nested_cc()` and matching-aware standardization (the matching
      variable as a baseline covariate); Rose & van der Laan (2009) caution that

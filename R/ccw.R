@@ -177,6 +177,9 @@ contrast_ccw <- function(
   # `"sandwich"` both yield it; record causatr's `"sandwich"` rather than the
   # requested label. `"bootstrap"` overrides the interval with the within-stratum
   # percentile bootstrap (the point estimate stays the sandwich plug-in).
+  # An estimated q0 (the design's `prevalence_n` set) widens the interval: the
+  # bootstrap redraws q0* per replicate, the analytic path adds the delta-method
+  # term to the sandwich SE.
   recorded_ci <- res$ci_method
   if (identical(ci_method, "bootstrap")) {
     boot <- ccw_bootstrap_ci(fit, type, conf_level, n_boot)
@@ -184,6 +187,18 @@ contrast_ccw <- function(
     contrasts$ci_lower <- boot$lower
     contrasts$ci_upper <- boot$upper
     recorded_ci <- "bootstrap"
+  } else if (!is.null(fit$design$prevalence_n)) {
+    adj <- ccw_apply_estimated_q0(
+      fit,
+      type,
+      conf_level,
+      contrasts$estimate,
+      contrasts$ci_lower,
+      contrasts$ci_upper
+    )
+    contrasts$se <- adj$se
+    contrasts$ci_lower <- adj$lower
+    contrasts$ci_upper <- adj$upper
   }
 
   new_matchatr_result(

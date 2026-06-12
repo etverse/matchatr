@@ -347,6 +347,9 @@ matcha <- function(
       cc_weights = NULL,
       design_weights = NULL,
       variance_kind = NULL,
+      # For the case-control-weighted estimators: whether q0 is known (fixed) or
+      # estimated from a cohort of `prevalence_n` members (adds a variance term).
+      prevalence_known = is.null(design$prevalence_n),
       # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
       # engine; e.g. mgcv::gam for smooth confounder adjustment.
       model_fn = model_fn,
