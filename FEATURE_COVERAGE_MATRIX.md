@@ -492,7 +492,7 @@ nested CC support is pending Chunk 4.
 | any (no confounders) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_input` (adjustment model needs confounders) | `test-ccw.R` |
 | any (no q0) | — | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_missing_prevalence` | `test-ccw.R`, `test-matcha.R` |
 | unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | — | hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-ccw.R` |
-| unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | RD/RR/OR | — | bootstrap | ⛔ `matchatr_unsupported_variance` | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | within-stratum bootstrap | ✅ percentile CI; bootstrap SE recovers the sandwich / EIF SE | `test-variance_ccw.R` |
 
 Estimated-q0 variance + matched/nested CC + within-stratum bootstrap (Chunk 4) stay
 pending. The Python `delicatessen` cross-language oracle for the CCW estimands is

@@ -97,9 +97,15 @@ Project-specific rules that override / extend the etverse-wide rules at
   requested label.** A marginal g-formula contrast has no information-matrix
   variance distinct from causatr's influence-function / sandwich one, so
   `ci_method = "model"` and `"sandwich"` both yield it and `contrast_ccw()`
-  records what causatr actually computed (`"sandwich"`). `"bootstrap"` is rejected
-  (it must resample within the case / control strata and recompute the q0
-  weights). `fit_ccw()` fits the outcome model with `family = "quasibinomial"`
+  records what causatr actually computed (`"sandwich"`). `"bootstrap"` is the
+  within-stratum percentile bootstrap (`ccw_bootstrap_ci()`, `R/variance_ccw.R`):
+  it resamples cases and controls separately so the design (n1 / n0) is preserved,
+  which keeps the q0 weights constant across replicates (known q0 is fixed; its
+  sampling variability is a separate estimated-q0 IF term), refits the engine per
+  replicate, and reports the percentile interval while keeping the analytic point
+  estimate. Do NOT "fix" it to resample the whole sample (that mixes the strata
+  and breaks the design), and do NOT flag the constant per-replicate weights as a
+  missing reweighting. `fit_ccw()` fits the outcome model with `family = "quasibinomial"`
   (the right family for fractional case-control weights — identical mean model
   and sandwich to binomial, but silent on the spurious `non-integer #successes`
   warning a binomial fit raises), so do NOT switch it back to `"binomial"`. The
@@ -110,8 +116,7 @@ Project-specific rules that override / extend the etverse-wide rules at
   parameterized over `fit$estimator` (`ccw_gformula`/`ccw_ipw`/`ccw_aipw` →
   `causat(estimator = "gcomp"/"ipw"/"aipw")`) and all three require `confounders`
   (the outcome / propensity / both adjustment models). Do NOT flag the `"model"` →
-  `"sandwich"` relabeling, the bootstrap rejection, or the confounders requirement
-  as bugs.
+  `"sandwich"` relabeling or the confounders requirement as bugs.
 - **The whole CCW family complete-cases missing data once, in `ccw_prepare()`.**
   Rows with a missing outcome, exposure, or confounder are dropped (listwise
   deletion) with a classed `matchatr_dropped_rows` warning, and `cc_weights()` is

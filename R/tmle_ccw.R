@@ -70,10 +70,10 @@ fit_ccw_tmle <- function(fit) {
 #' @param weights Numeric case-control weights, one per row of `dt`.
 #' @param model_fn The nuisance-model fitter (e.g. `stats::glm`).
 #' @param gbound Numeric in (0, 0.5): the propensity is bounded to
-#'   `[gbound, 1 - gbound]` so the clever covariate cannot blow up under a
-#'   near-positivity violation (the `tmle` package default, 0.025).
-#' @param ybound Numeric: the outcome predictions are bounded to
-#'   `[ybound, 1 - ybound]` so `logit` is finite.
+#'   `[gbound, 1 - gbound]` so the clever covariate stays finite (the `tmle`
+#'   package default, 0.025).
+#' @param ybound Numeric: outcome predictions are bounded to `[ybound, 1 - ybound]`
+#'   so `logit` is finite.
 #' @returns A `matchatr_ccw_tmle` object (see `fit_ccw_tmle()`).
 #' @family estimators
 #' @seealso `fit_ccw_tmle()`
@@ -181,137 +181,5 @@ ccw_tmle_target <- function(
       eps = eps
     ),
     class = "matchatr_ccw_tmle"
-  )
-}
-
-#' Assemble the CCW-TMLE marginal contrast
-#'
-#' Turns a targeted CCW-TMLE fit into a `matchatr_result` reporting the marginal
-#' risk difference (`type = "difference"`), risk ratio (`type = "ratio"`), or
-#' marginal odds ratio (`type = "or"`) with the efficient-influence-function
-#' variance weighted by the case-control weights.
-#'
-#' @details
-#' With the case-control weights treated as fixed (known q0), the variance of a
-#' marginal mean is the weighted EIF variance Var(ψ̂) = Σ (wᵢ Dᵢ)² / n², where n
-#' is the sample size and Σ wᵢ = n. The risk difference uses D = D₁ − D₀; the
-#' risk ratio and odds ratio use the delta-method log-scale influence functions
-#' D₁/ψ₁ − D₀/ψ₀ and D₁/(ψ₁(1−ψ₁)) − D₀/(ψ₀(1−ψ₀)), with the interval formed on
-#' the log scale and exponentiated. A bootstrap interval (which must resample
-#' within the case / control strata and recompute the weights) is deferred.
-#'
-#' @param fit A `matchatr_fit` whose `model` is a `matchatr_ccw_tmle` object.
-#' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"or"`.
-#' @param ci_method Character variance source; `"model"` / `"sandwich"` both use
-#'   the EIF variance (recorded as `"sandwich"`); `"bootstrap"` is rejected.
-#' @param conf_level Numeric confidence level in (0, 1).
-#' @param call Caller environment surfaced in any error.
-#' @returns A `matchatr_result` carrying the targeted intervention means and the
-#'   marginal contrast with EIF variance.
-#' @family estimators
-#' @seealso [contrast()], `fit_ccw_tmle()`
-#' @noRd
-contrast_ccw_tmle <- function(
-  fit,
-  type,
-  ci_method,
-  conf_level,
-  call = rlang::caller_env()
-) {
-  if (!type %in% c("difference", "ratio", "or")) {
-    rlang::abort(
-      c(
-        paste0(
-          "A case-control-weighted estimator reports a marginal effect, not `type = \"",
-          type,
-          "\"`."
-        ),
-        i = paste0(
-          'Use `type = "difference"` (risk difference), `"ratio"` (risk ',
-          'ratio), or `"or"` (marginal odds ratio).'
-        )
-      ),
-      class = c("matchatr_unidentified_estimand", "matchatr_error"),
-      call = call
-    )
-  }
-  if (identical(ci_method, "bootstrap")) {
-    rlang::abort(
-      c(
-        '`ci_method = "bootstrap"` is not available for the case-control-weighted estimators.',
-        i = paste0(
-          'Use `ci_method = "model"` or `ci_method = "sandwich"` (the efficient ',
-          "influence-function variance)."
-        )
-      ),
-      class = c("matchatr_unsupported_variance", "matchatr_error"),
-      call = call
-    )
-  }
-
-  m <- fit$model
-  z <- stats::qnorm(1 - (1 - conf_level) / 2)
-  ey1 <- m$EY1
-  ey0 <- m$EY0
-  # EIF SE of a weighted marginal mean (or any linear combination of the D's):
-  # sqrt(Σ (w D)²) / n, with Σ w = n (the case-control weights treated as fixed).
-  se_eif <- function(d) sqrt(sum((m$weights * d)^2)) / m$n
-
-  se_y1 <- se_eif(m$D1)
-  se_y0 <- se_eif(m$D0)
-  estimates <- data.table::data.table(
-    intervention = c("treated", "control"),
-    estimate = c(ey1, ey0),
-    se = c(se_y1, se_y0),
-    ci_lower = c(ey1 - z * se_y1, ey0 - z * se_y0),
-    ci_upper = c(ey1 + z * se_y1, ey0 + z * se_y0)
-  )
-
-  if (identical(type, "difference")) {
-    est <- ey1 - ey0
-    se <- se_eif(m$D1 - m$D0)
-    lower <- est - z * se
-    upper <- est + z * se
-    estimand <- "marginal risk difference"
-  } else if (identical(type, "ratio")) {
-    log_est <- log(ey1) - log(ey0)
-    se_log <- se_eif(m$D1 / ey1 - m$D0 / ey0)
-    est <- exp(log_est)
-    lower <- exp(log_est - z * se_log)
-    upper <- exp(log_est + z * se_log)
-    # OR/RR-scale `se` is the delta-method value (RR * SE(log RR)); the interval
-    # is the log-scale Wald exponentiated, so `se` does not reconstruct it.
-    se <- est * se_log
-    estimand <- "marginal risk ratio"
-  } else {
-    log_est <- stats::qlogis(ey1) - stats::qlogis(ey0)
-    se_log <- se_eif(m$D1 / (ey1 * (1 - ey1)) - m$D0 / (ey0 * (1 - ey0)))
-    est <- exp(log_est)
-    lower <- exp(log_est - z * se_log)
-    upper <- exp(log_est + z * se_log)
-    se <- est * se_log
-    estimand <- "marginal odds ratio"
-  }
-
-  new_matchatr_result(
-    estimates = estimates,
-    contrasts = data.table::data.table(
-      comparison = "treated vs control",
-      estimate = est,
-      se = se,
-      ci_lower = lower,
-      ci_upper = upper
-    ),
-    type = type,
-    estimand = estimand,
-    # The EIF plug-in variance is the influence-function / sandwich variance, the
-    # same family the other CCW engines report.
-    ci_method = "sandwich",
-    reference = "control",
-    n = m$n,
-    estimator = fit$estimator,
-    engine = fit$engine,
-    vcov = NULL,
-    call = call
   )
 }

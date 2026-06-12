@@ -203,9 +203,12 @@ on person-period data) wherever possible.
 > `causatr_fit` or a `matchatr_ccw_tmle`, neither with a conditional coefficient
 > table — they branch on `fit$engine %in% ccw_estimators()`). A non-binary exposure
 > or absent confounders (`matchatr_bad_input`), a missing q₀
-> (`matchatr_missing_prevalence`), an off-scale contrast
-> (`matchatr_unidentified_estimand`), and a bootstrap interval
-> (`matchatr_unsupported_variance`) are each rejected across the family. Missing data
+> (`matchatr_missing_prevalence`), and an off-scale contrast
+> (`matchatr_unidentified_estimand`) are each rejected across the family.
+> `contrast(ci_method = "bootstrap")` gives the design-preserving within-stratum
+> percentile interval (`ccw_bootstrap_ci()`, `R/variance_ccw.R`: resample cases /
+> controls separately so the q₀ weights stay fixed, refit, percentile CI; `n_boot`
+> via `...`). Missing data
 > is complete-cased once in `ccw_prepare()` (drop NA in outcome/exposure/confounders,
 > warn `matchatr_dropped_rows`, weights computed on the complete-case sample so the
 > weighted case fraction stays q0) — matchatr's convention; MI / IPCW-TMLE are the
@@ -337,20 +340,27 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `absolute_risk_aft.R` (PHASE_7 follow-up — `absolute_risk_aft()`: parametric
   Weibull `F̂_x(t)` from the IPW AFT fit with a delta-method log-log CI over
   (β, log σ)).
-- **Causal layer:** `ccw.R` (PHASE_9 Chunks 1–2 — `fit_ccw()` / `contrast_ccw()` /
-  `ccw_prepare()` / `ccw_causat_estimator()` / `ccw_estimator_label()`: the
-  case-control-weighted g-computation / IPW / AIPW family; `ccw_prepare()` (shared
-  with the TMLE engine) validates the adjustment set, recodes the outcome / exposure
-  to 0/1, and builds `cc_weights()`; `fit_ccw()`, parameterized over `fit$estimator`,
-  delegates the marginal estimate to `causatr::causat(estimator = "gcomp" | "ipw" |
+- **Causal layer:** `ccw_prepare.R` (PHASE_9 — `ccw_prepare()` /
+  `ccw_causat_estimator()` / `ccw_estimator_label()`: the shared CCW front end —
+  validates the adjustment set, recodes the outcome / exposure to 0/1,
+  complete-cases the sample with a `matchatr_dropped_rows` warning, and builds the
+  `cc_weights()` on the complete-case sample),
+  `ccw.R` (PHASE_9 Chunks 1–2 — `fit_ccw()` / `contrast_ccw()`: the
+  causatr-delegated g-computation / IPW / AIPW family; `fit_ccw()`, parameterized
+  over `fit$estimator`, delegates to `causatr::causat(estimator = "gcomp" | "ipw" |
   "aipw")`, `contrast_ccw()` forwards to `causatr::contrast()` over the treat-all /
   treat-none static interventions and assembles the marginal RD / RR / marginal-OR
   `matchatr_result`; CCW-AIPW is doubly robust),
-  `tmle_ccw.R` (PHASE_9 Chunk 3 — `fit_ccw_tmle()` / `ccw_tmle_target()` /
-  `contrast_ccw_tmle()`: the NEW CCW-TMLE targeting engine — initial weighted Q̄⁰,
-  bounded propensity g, clever covariate H = A/g − (1−A)/(1−g), weighted logistic
-  fluctuation, update, marginalization, and the case-control-weighted EIF variance;
-  doubly robust; oracle `tmle::tmle(obsWeights=)`). Still to come:
+  `tmle_ccw.R` (PHASE_9 Chunk 3 — `fit_ccw_tmle()` / `ccw_tmle_target()`: the NEW
+  CCW-TMLE targeting engine — initial weighted Q̄⁰, bounded propensity g, clever
+  covariate H = A/g − (1−A)/(1−g), weighted logistic fluctuation, update,
+  marginalization; doubly robust; oracle `tmle::tmle(obsWeights=)`) with its
+  result assembly in `ccw_tmle_contrast.R` (`contrast_ccw_tmle()`: the
+  case-control-weighted EIF variance, delta-method RR / OR),
+  `variance_ccw.R` (PHASE_9 Chunk 4 — `ccw_bootstrap_ci()` / `ccw_boot_point()`:
+  the design-preserving within-stratum percentile bootstrap shared by
+  `contrast_ccw()` / `contrast_ccw_tmle()`, resampling cases / controls separately
+  so the q₀ weights stay fixed). Still to come:
   `causal_survival_sampled.R` (design-weighted survatr).
 - **Inference:** lean on causatr/survatr variance engines; matchatr adds only the
   sampling-variance corrections (`variance_self_prentice.R`, `variance_samuelsen.R`,

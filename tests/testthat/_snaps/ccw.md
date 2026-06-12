@@ -18,16 +18,7 @@
       ! The case-control-weighted estimators require `confounders` for the adjustment model(s).
       i Supply an adjustment set, e.g. `confounders = ~ age + smoke`, on `matcha()`.
 
-# ccw_gformula rejects bootstrap variance and off-scale contrasts
-
-    Code
-      contrast(fit, type = "difference", ci_method = "bootstrap")
-    Condition
-      Error in `contrast()`:
-      ! `ci_method = "bootstrap"` is not available for the case-control-weighted estimators.
-      i Use `ci_method = "model"` or `ci_method = "sandwich"` (causatr's influence-function variance on the weighted fit).
-
----
+# ccw_gformula rejects an off-scale contrast
 
     Code
       contrast(fit, type = "hr")

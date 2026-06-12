@@ -122,12 +122,21 @@ genuinely new code.
    builds the weighted sample; `fit_ccw_tmle()` runs the clever-covariate logistic
    fluctuation and the EIF variance; `contrast_ccw_tmle()` reports RD / RR / OR.
    (`R/tmle_ccw.R`; `test-tmle_ccw.R`, `helper-tmle-oracle.R`.)
-4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap.
-   **Delegation-first for the bootstrap:** causatr's `refit_gcomp` / `refit_ipw` /
-   `refit_aipw` already resample and re-apply external `weights`, so matchatr only adds the
-   within-case/control-strata resample + per-replicate q₀ reweighting, then drops the
-   current `ci_method = "bootstrap"` rejection in `contrast_ccw()`. Matched-CC marginal
-   standardization maps to causatr's `contrast(by = )` path, not new machinery.
+4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap, split
+   into sub-chunks:
+   - **4a ✅ within-stratum bootstrap.** `ci_method = "bootstrap"` for all four CCW
+     engines: resample cases / controls separately (design-preserving, so the q₀
+     weights stay fixed), refit, percentile interval; drops the bootstrap rejection.
+     matchatr owns the stratified loop (`ccw_bootstrap_ci()`, `R/variance_ccw.R`) —
+     causatr's plain bootstrap mixes the strata and cannot preserve n1 / n0.
+     (`test-variance_ccw.R`.)
+   - **4b estimated-q₀ variance.** Cohort-estimated q₀ adds an IF term; the fit
+     records `prevalence_known`.
+   - **4c matched / nested CC support.** Needs a `prevalence` arg on
+     `matched_cc()` / `nested_cc()` and matching-aware standardization (the matching
+     variable as a baseline covariate); Rose & van der Laan (2009) caution that
+     matching can reduce CCW efficiency, so this sub-chunk carries a documented
+     caveat.
 
 **Cross-phase note (PHASE_13):** `causatr::causat_mice()` is estimator-agnostic, so a CCW
 fit (any of the above) is automatically poolable over a `mice` mids object for

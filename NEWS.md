@@ -1,5 +1,23 @@
 # matchatr (development version)
 
+## 2026-06-12 — Within-stratum bootstrap for the CCW family (PHASE_9 Chunk 4a)
+
+`contrast(fit, ci_method = "bootstrap")` is now available for every
+case-control-weighted estimator (`ccw_gformula` / `ccw_ipw` / `ccw_aipw` /
+`ccw_tmle`), replacing the previous `matchatr_unsupported_variance` rejection. It
+is the **design-preserving** bootstrap (`ccw_bootstrap_ci()`, `R/variance_ccw.R`):
+each replicate resamples the cases and the controls separately, so the case /
+control counts — and hence the Rose & van der Laan q0 weights — are held fixed
+(the known q0 is treated as fixed; its sampling variability is a separate
+influence-function term), the engine is refitted, and the percentile interval is
+reported while the analytic plug-in point estimate is kept. The replicate count is
+`n_boot` (default 1000), threaded through `contrast()`'s `...`.
+
+Validated in `test-variance_ccw.R`: the stratified-bootstrap standard error
+recovers the analytic sandwich (g-formula / IPW / AIPW) or efficient-influence-
+function (TMLE) standard error for all four engines, and the point estimate is
+unchanged.
+
 ## 2026-06-12 — CCW-TMLE: case-control-weighted targeted learning (PHASE_9 Chunk 3)
 
 `matcha(estimator = "ccw_tmle")` adds targeted maximum likelihood estimation to

@@ -334,7 +334,7 @@ test_that("ccw_gformula rejects a missing prevalence q0", {
   )
 })
 
-test_that("ccw_gformula rejects bootstrap variance and off-scale contrasts", {
+test_that("ccw_gformula rejects an off-scale contrast", {
   skip_if_not_installed("causatr")
 
   cc <- make_cohort_ccw(n = 2000L, ratio = 3L, seed = 3L)
@@ -345,10 +345,6 @@ test_that("ccw_gformula rejects bootstrap variance and off-scale contrasts", {
     design = unmatched_cc(prevalence = attr(cc, "q0")),
     confounders = ~w,
     estimator = "ccw_gformula"
-  )
-  expect_snapshot(
-    error = TRUE,
-    contrast(fit, type = "difference", ci_method = "bootstrap")
   )
   expect_snapshot(error = TRUE, contrast(fit, type = "hr"))
 })
@@ -389,10 +385,6 @@ test_that("the CCW rejections fire for ipw, aipw, and tmle too", {
       unmatched_cc(prevalence = q0),
       confounders = ~w,
       estimator = est
-    )
-    expect_error(
-      contrast(fit, ci_method = "bootstrap"),
-      class = "matchatr_unsupported_variance"
     )
     expect_error(
       contrast(fit, type = "hr"),

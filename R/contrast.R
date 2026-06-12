@@ -41,7 +41,10 @@
 #'   or `"bootstrap"`.
 #' @param conf_level Numeric confidence level for the interval, a single number
 #'   strictly in (0, 1). Defaults to 0.95.
-#' @param ... Reserved for estimator-specific contrast arguments.
+#' @param ... Reserved for estimator-specific contrast arguments. The
+#'   case-control-weighted estimators accept `n_boot` (integer, default 1000), the
+#'   number of within-stratum bootstrap replicates used when
+#'   `ci_method = "bootstrap"`.
 #'
 #' @returns A `matchatr_result` object carrying the estimates, the contrasts,
 #'   and their variance-covariance matrix.
@@ -178,33 +181,38 @@ contrast <- function(
       conf_level = conf_level,
       call = call
     ),
+    # `...` forwards the case-control-weighted bootstrap's `n_boot` argument.
     ccw_gformula = contrast_ccw(
       fit,
       type = type,
       ci_method = ci_method,
       conf_level = conf_level,
-      call = call
+      call = call,
+      ...
     ),
     ccw_ipw = contrast_ccw(
       fit,
       type = type,
       ci_method = ci_method,
       conf_level = conf_level,
-      call = call
+      call = call,
+      ...
     ),
     ccw_aipw = contrast_ccw(
       fit,
       type = type,
       ci_method = ci_method,
       conf_level = conf_level,
-      call = call
+      call = call,
+      ...
     ),
     ccw_tmle = contrast_ccw_tmle(
       fit,
       type = type,
       ci_method = ci_method,
       conf_level = conf_level,
-      call = call
+      call = call,
+      ...
     ),
     # Defensive: a fitted model whose engine has no contrast assembly wired.
     rlang::abort(
