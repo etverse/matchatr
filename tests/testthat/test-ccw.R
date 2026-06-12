@@ -443,3 +443,54 @@ test_that("the CCW family complete-cases rows with missing data", {
     expect_equal(rd(cc_na, est), rd(cc_pre, est))
   }
 })
+
+test_that("matched-CC CCW recovers the marginal truth (matching variable adjusted)", {
+  skip_if_not_installed("causatr")
+
+  # Frequency-matched data: the controls are sampled within M-strata, so they are
+  # not a representative population control sample. The marginal CCW estimators
+  # recover the marginal risk difference when the matching variable M is in the
+  # confounders (adjusting for it, not conditioning on the matched sets; Rose &
+  # van der Laan 2009). q0 is the cohort prevalence.
+  mcc <- make_matched_cohort_ccw()
+  truth <- attr(mcc, "truth")
+  q0 <- attr(mcc, "q0")
+
+  for (est in c("ccw_gformula", "ccw_aipw", "ccw_tmle")) {
+    rd <- contrast(
+      matcha(
+        mcc,
+        outcome = "case",
+        exposure = "x",
+        design = matched_cc(strata = "set", prevalence = q0),
+        confounders = ~M,
+        estimator = est
+      ),
+      type = "difference"
+    )$contrasts$estimate
+    expect_equal(rd, truth, tolerance = 0.02)
+  }
+})
+
+test_that("CCW is rejected on a nested case-control (risk-set) design", {
+  skip_if_not_installed("causatr")
+
+  # A nested CC is risk-set (incidence-density) sampled, so its controls are not a
+  # case-control sample and the q0 binary reweighting does not identify a marginal
+  # effect; the inclusion-weighted ipw_cox hazard ratio is the right tool.
+  cc <- make_cohort_ccw(n = 2000L, ratio = 3L, seed = 3L)
+  cc$set <- rep(seq_len(nrow(cc) / 2L), length.out = nrow(cc))
+  for (est in c("ccw_gformula", "ccw_ipw", "ccw_aipw", "ccw_tmle")) {
+    expect_error(
+      matcha(
+        cc,
+        outcome = "case",
+        exposure = "x",
+        design = nested_cc(strata = "set", time = "set", ratio = 1L),
+        confounders = ~w,
+        estimator = est
+      ),
+      class = "matchatr_bad_estimator"
+    )
+  }
+})

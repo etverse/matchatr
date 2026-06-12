@@ -220,9 +220,18 @@ on person-period data) wherever possible.
 > g-comp/IPW/AIPW, `tmle::tmle(obsWeights=)` for TMLE (RD exact, RR/OR ~1%), a truth
 > DGP whose marginal RD/RR/mOR the estimators recover (RD ≠ the conditional OR,
 > non-collapsibility), and a double-robustness DGP (CCW-AIPW / CCW-TMLE recover the
-> marginal truth under outcome- or propensity-model misspecification). PHASE_9
-> Chunk 4 (estimated-q₀ variance + matched/nested CC + bootstrap) and PHASE_10+
-> remain `Status: DESIGN`.
+> marginal truth under outcome- or propensity-model misspecification). **PHASE_9 is
+> complete with Chunk 4c**: `matched_cc(strata, prevalence = q0)` now also feeds the
+> CCW estimators, with the matching variable treated as a **baseline covariate** (it
+> must be in `confounders` — the marginal effect is standardized over its
+> distribution, the matched sets are ignored; Rose & van der Laan 2009 caution
+> matching can reduce CCW efficiency); a frequency-matched truth DGP
+> (`make_matched_cohort_ccw()`) confirms recovery of the marginal RD. A **nested**
+> (risk-set / incidence-density) CC design is rejected — `matcha(design =
+> nested_cc(...), estimator = "ccw_*")` aborts `matchatr_bad_estimator` toward
+> `ipw_cox`, since risk-set sampling is not case-control sampling and the binary q₀
+> reweighting does not identify a marginal estimand. PHASE_10+ remain
+> `Status: DESIGN`.
 
 ## Guide files
 

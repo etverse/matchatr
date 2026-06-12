@@ -464,8 +464,9 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 
-**Chunks 1–3 implemented — CCW g-formula / IPW / AIPW / TMLE.** On an unmatched
-case-control sample carrying a known prevalence `q0` (`unmatched_cc(prevalence =
+**Phase 9 complete (Chunks 1–4) — CCW g-formula / IPW / AIPW / TMLE.** On an
+unmatched **or matched** case-control sample carrying a known (or cohort-estimated)
+prevalence `q0` (`unmatched_cc(prevalence = q0)` / `matched_cc(strata, prevalence =
 q0)`), `matcha()` computes Rose & van der Laan case-control weights (`cc_weights()`,
 `R/weights_cc.R`) via the shared `ccw_prepare()` (`R/ccw.R`) and fits a cohort
 causal estimator on the weighted sample: `estimator = "ccw_gformula"` →
@@ -477,8 +478,12 @@ ratio (`type = "ratio"`), or marginal odds ratio (`type = "or"`). Point estimate
 and influence-function/sandwich variance are delegated to causatr (g-comp/IPW/AIPW)
 or computed from the efficient influence function (TMLE); matchatr owns the
 weighting layer and the TMLE targeting. CCW-AIPW and CCW-TMLE are **doubly robust**
-(consistent if either the outcome or the propensity model is correct). Matched /
-nested CC support is pending Chunk 4.
+(consistent if either the outcome or the propensity model is correct). On a
+**matched** CC sample the matching variable is a baseline covariate (it must be in
+`confounders`; the matched sets are ignored, Rose & van der Laan 2009); a **nested**
+(risk-set) CC design is rejected toward `ipw_cox`. The interval may be widened for an
+estimated q0 (`prevalence_n`, Chunk 4b) or replaced by the design-preserving
+within-stratum bootstrap (`ci_method = "bootstrap"`, Chunk 4a).
 
 | Design | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|---|
@@ -495,9 +500,10 @@ nested CC support is pending Chunk 4.
 | unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | within-stratum bootstrap | ✅ percentile CI; bootstrap SE recovers the sandwich / EIF SE | `test-variance_ccw.R` |
 | unmatched CC + estimated q0 (`prevalence_n`) | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | sandwich/EIF + q̂0 term, or bootstrap (q0* redraw) | ✅ analytic ≈ bootstrap; collapses to known-q0 as N→∞; `prevalence_known` recorded | `test-variance_ccw.R` |
 | `prevalence_n` without `prevalence` / non-integer / non-positive | — | — | — | — | — | ⛔ `matchatr_bad_prevalence` | `test-variance_ccw.R` |
+| matched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR (matching var as baseline covariate) | difference / ratio / or | sandwich/EIF + boot | ✅ frequency-matched truth DGP — recovers marginal RD with the matching variable adjusted | `test-ccw.R` |
+| nested CC (risk-set) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_estimator` → `ipw_cox` (risk-set sampling ≠ case-control) | `test-ccw.R` |
 
-Estimated-q0 variance + matched/nested CC + within-stratum bootstrap (Chunk 4) stay
-pending. The Python `delicatessen` cross-language oracle for the CCW estimands is
+The Python `delicatessen` cross-language oracle for the CCW estimands is
 deferred: the exact pseudo-cohort `causatr` oracle (g-comp/IPW/AIPW) and the
 `tmle::tmle()` oracle (TMLE) already pin each estimand, and causatr itself carries
 the delicatessen comparison upstream.

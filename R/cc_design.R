@@ -87,27 +87,51 @@ unmatched_cc <- function(
 #' @param ratio `NULL` or a single whole number >= 1. The number of controls
 #'   matched per case (m:1). Optional metadata; the conditional likelihood does
 #'   not require a fixed ratio.
+#' @param prevalence `NULL` or a single number in (0, 1): the source-population
+#'   prevalence q0, required for the case-control-weighted (`"ccw_*"`) marginal
+#'   estimators. Optional for the (default) conditional logistic OR. For a
+#'   case-control-weighted **marginal** effect on matched data the matching
+#'   variable(s) must be included in `confounders` (the matched controls are not a
+#'   representative population control sample, so the marginal estimator adjusts
+#'   for the matching variable rather than conditioning on the matched sets; Rose &
+#'   van der Laan 2009 — matching may cost efficiency relative to an unmatched CCW
+#'   analysis).
+#' @param prevalence_n `NULL` or a whole number giving the cohort size q0 was
+#'   estimated from (makes q0 estimated, adding a variance term).
 #'
 #' @returns A `matchatr_design` object of `type` `"matched_cc"` carrying the
-#'   strata and ratio.
+#'   strata, ratio, and (optionally) the prevalence.
 #'
 #' @examples
 #' matched_cc(strata = "set")
 #' matched_cc(strata = c("age_grp", "sex"), ratio = 2)
+#' matched_cc(strata = "set", prevalence = 0.02) # for a marginal CCW contrast
 #'
 #' @family design constructors
 #' @seealso [unmatched_cc()], [nested_cc()], [matcha()]
 #' @export
-matched_cc <- function(strata, ratio = NULL) {
+matched_cc <- function(
+  strata,
+  ratio = NULL,
+  prevalence = NULL,
+  prevalence_n = NULL
+) {
   check_character(strata, class = "matchatr_bad_strata")
   check_ratio(ratio)
+  check_prevalence(prevalence)
+  check_prevalence_n(prevalence_n, prevalence)
   new_matchatr_design(
     type = "matched_cc",
     strata = strata,
     ratio = ratio,
-    # Matched CC is fit by conditional likelihood, so no observation weights
-    # enter the engine.
-    weight_spec = list(kind = "none"),
+    prevalence = prevalence,
+    prevalence_n = prevalence_n,
+    # The default conditional-likelihood analysis uses no weights; a supplied q0
+    # enables the case-control-weighted marginal estimators (which reweight rather
+    # than condition on the matched sets).
+    weight_spec = list(
+      kind = if (is.null(prevalence)) "none" else "case_control"
+    ),
     call = match.call()
   )
 }

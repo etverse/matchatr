@@ -1,13 +1,16 @@
 # Phase 9 — Case-Control-Weighted Marginal Causal Contrasts
 
-> **Status: IN PROGRESS — Chunks 1–3 (CCW g-formula / IPW / AIPW / TMLE) complete.**
+> **Status: COMPLETE — Chunks 1–4 done.**
 > `matcha(estimator = "ccw_gformula" | "ccw_ipw" | "ccw_aipw" | "ccw_tmle")` reports
-> the marginal RD / RR / marginal OR from an unmatched case-control sample with a
-> known q0, via `cc_weights()` + `causatr` g-computation / IPW / AIPW (`R/ccw.R`) or
-> matchatr's own targeting engine (`R/tmle_ccw.R`); CCW-AIPW and CCW-TMLE are doubly
-> robust. Chunk 4 (estimated-q0 variance + matched/nested CC + bootstrap) pending.
-> Methods: Rose & van der Laan (2008, 2009, 2011 *Targeted Learning*, 2014 double-robust
-> case-control). Implements Track 2 of `PHASE_8_CAUSAL_STRATEGY`.
+> the marginal RD / RR / marginal OR from an unmatched **or matched** case-control
+> sample with a known (or cohort-estimated) q0, via `cc_weights()` + `causatr`
+> g-computation / IPW / AIPW (`R/ccw.R`) or matchatr's own targeting engine
+> (`R/tmle_ccw.R`); CCW-AIPW and CCW-TMLE are doubly robust. Variance is the causatr
+> sandwich / TMLE EIF, optionally widened for an estimated q0 (Chunk 4b) or replaced
+> by the design-preserving within-stratum bootstrap (Chunk 4a). A nested (risk-set)
+> CC design is rejected toward `ipw_cox`. Methods: Rose & van der Laan (2008, 2009,
+> 2011 *Targeted Learning*, 2014 double-robust case-control). Implements Track 2 of
+> `PHASE_8_CAUSAL_STRATEGY`.
 
 ## Scope
 
@@ -61,10 +64,10 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 | unmatched CC | ccw_ipw | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 2) |
 | unmatched CC | ccw_aipw | RD/RR/mOR | sandwich (DR, causatr) | ✅ done (Chunk 2) |
 | unmatched CC | ccw_tmle | RD/RR/mOR | EIF (DR, new) | ✅ done (Chunk 3) |
-| matched CC | ccw_gformula/aipw | RD/RR | boot (+IF) | needs-test |
-| nested CC | ccw_* | RD/RR | boot | needs-test |
+| matched CC | ccw_gformula/ipw/aipw/tmle | RD/RR/mOR | sandwich/EIF + boot | ✅ done (Chunk 4c) |
+| nested CC | ccw_* | — | — | ⛔ `matchatr_bad_estimator` → `ipw_cox` (Chunk 4c) |
 | any ccw_* | — (no prevalence) | — | — | ⛔ `matchatr_missing_prevalence` |
-| q₀ estimated | ccw_* | RD/RR | IF with extra term | needs-test |
+| q₀ estimated | ccw_* | RD/RR/mOR | IF with extra term | ✅ done (Chunk 4b) |
 
 ## Implementation plan
 
@@ -135,11 +138,15 @@ genuinely new code.
      delta-method term (∂ψ/∂q₀)²·q₀(1−q₀)/N (`ccw_estimated_q0_term()` /
      `ccw_apply_estimated_q0()`, `R/variance_ccw.R`) and the bootstrap redraws q₀*
      per replicate; the fit records `prevalence_known`. (`test-variance_ccw.R`.)
-   - **4c matched / nested CC support.** Needs a `prevalence` arg on
-     `matched_cc()` / `nested_cc()` and matching-aware standardization (the matching
-     variable as a baseline covariate); Rose & van der Laan (2009) caution that
-     matching can reduce CCW efficiency, so this sub-chunk carries a documented
-     caveat.
+   - **4c ✅ matched / nested CC support.** `matched_cc()` gains `prevalence`
+     (`prevalence_n`), so the CCW estimators run on a matched case-control sample;
+     the matching variable is a baseline covariate (it must be in `confounders`, so
+     the effect is standardized over its distribution rather than conditioned on the
+     matched sets), with the documented Rose & van der Laan (2009) efficiency
+     caveat. A **nested** CC is risk-set sampled, so binary q₀ reweighting does not
+     identify a marginal effect: `matcha(design = nested_cc(...), estimator =
+     "ccw_*")` is rejected (`matchatr_bad_estimator`) toward `ipw_cox`. (`R/cc_design.R`,
+     `R/matcha.R`; `test-ccw.R`, `helper-dgp.R::make_matched_cohort_ccw()`.)
 
 **Cross-phase note (PHASE_13):** `causatr::causat_mice()` is estimator-agnostic, so a CCW
 fit (any of the above) is automatically poolable over a `mice` mids object for

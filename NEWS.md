@@ -1,5 +1,26 @@
 # matchatr (development version)
 
+## 2026-06-12 — Matched case-control support for the CCW family (PHASE_9 Chunk 4c)
+
+`matched_cc()` now accepts `prevalence` (and `prevalence_n`), so the
+case-control-weighted estimators (`ccw_gformula` / `ccw_ipw` / `ccw_aipw` /
+`ccw_tmle`) run on a matched case-control sample. The matching variable is handled
+as a **baseline covariate**: it must appear in `confounders`, so the marginal
+effect is standardized over its distribution rather than conditioned on the matched
+sets (Rose & van der Laan 2009 — matching is for control selection, not part of the
+estimand; it can reduce CCW efficiency). The matched conditional odds ratio
+(`estimator = "clogit"`) is unchanged.
+
+A **nested** case-control design is risk-set (incidence-density) sampled, so its
+controls are *not* a case-control sample and the binary q₀ reweighting does not
+identify a marginal effect; `matcha(design = nested_cc(...), estimator = "ccw_*")`
+is rejected (`matchatr_bad_estimator`) pointing to `estimator = "ipw_cox"`
+(Samuelsen inclusion-weighted hazard ratio).
+
+Validated in `test-ccw.R` against a frequency-matched truth DGP
+(`make_matched_cohort_ccw()`): the three matched-CC CCW estimators recover the
+analytical marginal risk difference with the matching variable adjusted.
+
 ## 2026-06-12 — Estimated-q₀ variance for the CCW family (PHASE_9 Chunk 4b)
 
 `unmatched_cc(prevalence = q0, prevalence_n = N)` declares that the source

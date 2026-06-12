@@ -131,6 +131,18 @@ Project-specific rules that override / extend the etverse-wide rules at
   both call back into it — leaving `prevalence_n` set causes runaway recursion. Do
   NOT remove that `fit$design$prevalence_n <- NULL`, and do NOT compute the
   estimated-q0 term for a known q0.
+- **The CCW estimators run on `unmatched_cc` and `matched_cc`, never on
+  `nested_cc`.** Case-control weighting maps a case-control sample to the source
+  cohort via the q0 case/control reweighting; a matched CC is still a case-control
+  sample (the matching variable is a baseline covariate, NOT a conditioning
+  stratum — it must be in `confounders` so the marginal effect is standardized over
+  its distribution; matched sets are ignored, Rose & van der Laan 2009). A **nested**
+  CC is risk-set / incidence-density sampled, so its controls are not a case-control
+  sample and binary q0 reweighting does not identify a marginal estimand —
+  `matcha(design = nested_cc(...), estimator = "ccw_*")` aborts `matchatr_bad_estimator`
+  toward `ipw_cox`, and this guard fires in `matcha()` BEFORE the missing-prevalence
+  check. Do NOT add a `prevalence` arg to `nested_cc()`, and do NOT condition a CCW
+  fit on the matched `set` column.
 - **The whole CCW family complete-cases missing data once, in `ccw_prepare()`.**
   Rows with a missing outcome, exposure, or confounder are dropped (listwise
   deletion) with a classed `matchatr_dropped_rows` warning, and `cc_weights()` is

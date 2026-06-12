@@ -715,3 +715,56 @@ sample_ncc_counter_matched_fixture <- function(
   rownames(out) <- NULL
   out
 }
+
+# Truth-based DGP for case-control-weighted MARGINAL effects on MATCHED data. A
+# cohort has a matching variable M, an exposure x confounded by M, and an outcome
+# depending on x and M; the marginal risk-difference truth is the g-formula over
+# the cohort under the true model. A FREQUENCY-matched case-control sample is then
+# drawn: M is binned into `n_bins` strata and, within each stratum, every case is
+# kept and `ratio` controls are sampled from the same stratum, so the controls'
+# M-distribution mirrors the cases'. The controls are therefore NOT a representative
+# population control sample, so a marginal CCW analysis must include M in the
+# confounders (it adjusts for the matching variable rather than conditioning on the
+# matched sets; Rose & van der Laan 2009). The returned sample carries a `set` =
+# M-stratum column, the "truth" (marginal RD) attribute, and the "q0" attribute.
+make_matched_cohort_ccw <- function(
+  n = 1e5,
+  a0 = -3,
+  beta_x = 0.9,
+  gamma_m = 1.0,
+  n_bins = 20L,
+  ratio = 3L,
+  seed = 101L
+) {
+  withr::with_seed(seed, {
+    m <- stats::rnorm(n)
+    x <- stats::rbinom(n, 1L, stats::plogis(0.8 * m)) # x confounded by M
+    y <- stats::rbinom(n, 1L, stats::plogis(a0 + beta_x * x + gamma_m * m))
+    truth_rd <- mean(
+      stats::plogis(a0 + beta_x + gamma_m * m) - stats::plogis(a0 + gamma_m * m)
+    )
+    q0 <- mean(y)
+    mbin <- cut(
+      m,
+      breaks = stats::quantile(m, probs = seq(0, 1, length.out = n_bins + 1L)),
+      include.lowest = TRUE,
+      labels = FALSE
+    )
+    coh <- data.frame(case = y, x = x, M = m, set = mbin)
+    parts <- lapply(split(seq_len(n), mbin), function(idx) {
+      s <- coh[idx, , drop = FALSE]
+      ca <- s[s$case == 1L, , drop = FALSE]
+      co <- s[s$case == 0L, , drop = FALSE]
+      if (nrow(ca) == 0L) {
+        return(NULL)
+      }
+      n_ctrl <- min(ratio * nrow(ca), nrow(co))
+      rbind(ca, co[sample.int(nrow(co), n_ctrl), , drop = FALSE])
+    })
+    samp <- do.call(rbind, parts)
+    rownames(samp) <- NULL
+    attr(samp, "truth") <- truth_rd
+    attr(samp, "q0") <- q0
+    samp
+  })
+}
