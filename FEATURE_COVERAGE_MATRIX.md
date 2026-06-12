@@ -502,11 +502,13 @@ within-stratum bootstrap (`ci_method = "bootstrap"`, Chunk 4a).
 | `prevalence_n` without `prevalence` / non-integer / non-positive | — | — | — | — | — | ⛔ `matchatr_bad_prevalence` | `test-variance_ccw.R` |
 | matched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR (matching var as baseline covariate) | difference / ratio / or | sandwich/EIF + boot | ✅ frequency-matched truth DGP — recovers marginal RD with the matching variable adjusted | `test-ccw.R` |
 | nested CC (risk-set) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_estimator` → `ipw_cox` (risk-set sampling ≠ case-control) | `test-ccw.R` |
+| unmatched CC + q0 (cross-language) | binary | ccw_gformula / ipw / aipw | marginal RD/RR/mOR | difference / ratio / or | sandwich | ✅ Python `delicatessen` M-estimation oracle — gformula/aipw exact (≤1e-5 on estimate AND sandwich SE), ipw ~1e-3 | `test-python-oracle.R`, `fixtures/python/ccw_marginal.*` |
 
-The Python `delicatessen` cross-language oracle for the CCW estimands is
-deferred: the exact pseudo-cohort `causatr` oracle (g-comp/IPW/AIPW) and the
-`tmle::tmle()` oracle (TMLE) already pin each estimand, and causatr itself carries
-the delicatessen comparison upstream.
+Cross-language validation: the `delicatessen` (Python M-estimation + sandwich)
+oracle pins the CCW g-formula / IPW / AIPW marginal RD/RR/mOR — point estimate AND
+sandwich SE — independently of the R engine (`fixtures/python/ccw_marginal.py`).
+`ccw_tmle` targets the same estimand by a finite-sample-distinct fluctuation step,
+so it is cross-checked against `tmle::tmle(obsWeights=)` rather than delicatessen.
 
 ## Design-weighted causal survival (PHASE_10)
 
