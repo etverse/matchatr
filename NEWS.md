@@ -30,6 +30,21 @@ double-robustness DGP confirms CCW-TMLE recovers the marginal truth whether the
 outcome or the propensity working model is misspecified. `tmle` is added to
 `Suggests`.
 
+**Unified missing-data handling for the CCW family.** `ccw_prepare()` now
+complete-cases the analysis sample for every CCW engine — rows with a missing
+outcome, exposure, or confounder are dropped with a classed `matchatr_dropped_rows`
+warning, and the case-control weights are computed on the complete-case sample so
+the weighted case fraction still equals q0. This is the matchatr-wide convention
+(it matches the classical engines and causatr's default `na.action`), and it
+unifies what was inconsistent behaviour: CCW-g-formula silently complete-cased,
+CCW-IPW / CCW-AIPW errored on a confounder NA, and CCW-TMLE crashed (its
+hand-rolled prediction / clever-covariate vectors misaligned against the
+full-length data). Multiple imputation (the recommended approach for missing
+confounders; Dashti et al. 2024) and an outcome-missingness / IPCW extended-TMLE
+(for missing outcomes) are the deferred principled alternatives (PHASE_13). A
+non-converging TMLE fluctuation now warns (`matchatr_tmle_convergence`) and falls
+back to the untargeted initial fit rather than propagating `NaN`.
+
 ## 2026-06-11 — CCW-IPW and doubly-robust CCW-AIPW (PHASE_9 Chunk 2)
 
 Two more case-control-weighted marginal estimators: `matcha(estimator =

@@ -142,6 +142,16 @@ ccw_tmle_target <- function(
   )
   eps <- unname(stats::coef(flucfit))
   if (!is.finite(eps)) {
+    # A non-finite tilt means the fluctuation did not converge (e.g. a degenerate
+    # clever covariate); fall back to the untargeted initial fit rather than
+    # propagate NaN, and surface it so the estimate is not silently un-targeted.
+    rlang::warn(
+      c(
+        "The CCW-TMLE fluctuation did not converge; using the untargeted initial fit.",
+        i = "The estimate reverts to the initial outcome model (no targeting step)."
+      ),
+      class = c("matchatr_tmle_convergence", "matchatr_warning")
+    )
     eps <- 0
   }
 

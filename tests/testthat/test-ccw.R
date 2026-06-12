@@ -400,3 +400,54 @@ test_that("the CCW rejections fire for ipw, aipw, and tmle too", {
     )
   }
 })
+
+test_that("the CCW family complete-cases rows with missing data", {
+  skip_if_not_installed("causatr")
+
+  # The CCW family is hand-rolled (TMLE) or delegated (causatr), neither of which
+  # tolerates NA the same way, so ccw_prepare() complete-cases the whole family up
+  # front. A row with a missing confounder is dropped with a matchatr_dropped_rows
+  # warning, and the estimate equals the fit on the same data with that row
+  # pre-dropped -- the weights are recomputed on the analysed (complete-case)
+  # sample, so the answer is exactly listwise deletion.
+  cc <- make_cohort_ccw(n = 3000L, ratio = 3L, seed = 7L)
+  q0 <- attr(cc, "q0")
+  cc_na <- cc
+  cc_na$w[c(3L, 17L, 42L, 88L, 150L)] <- NA
+  cc_pre <- cc[!is.na(cc_na$w), ]
+  rownames(cc_pre) <- NULL
+
+  # Muffle ONLY the expected matchatr_dropped_rows warning (asserted separately),
+  # by class -- not a blanket suppression.
+  rd <- function(d, est) {
+    withCallingHandlers(
+      contrast(
+        matcha(
+          d,
+          outcome = "case",
+          exposure = "x",
+          design = unmatched_cc(prevalence = q0),
+          confounders = ~w,
+          estimator = est
+        ),
+        type = "difference"
+      )$contrasts$estimate,
+      matchatr_dropped_rows = function(w) invokeRestart("muffleWarning")
+    )
+  }
+
+  for (est in c("ccw_gformula", "ccw_ipw", "ccw_aipw", "ccw_tmle")) {
+    expect_warning(
+      matcha(
+        cc_na,
+        outcome = "case",
+        exposure = "x",
+        design = unmatched_cc(prevalence = q0),
+        confounders = ~w,
+        estimator = est
+      ),
+      class = "matchatr_dropped_rows"
+    )
+    expect_equal(rd(cc_na, est), rd(cc_pre, est))
+  }
+})

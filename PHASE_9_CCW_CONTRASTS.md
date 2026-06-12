@@ -139,3 +139,10 @@ is available on any CCW fit at zero cost.
 
 Time-to-event marginal estimands (Phase 10), calibrated weights (Phase 12), secondary /
 continuous outcomes (Phase 18), transportability (would compose with causatr transport).
+
+**Missing data.** The CCW family complete-cases (listwise deletion in `ccw_prepare()`,
+with a `matchatr_dropped_rows` warning) as the shipped interim policy. The principled
+alternatives — multiple imputation with interactions for missing confounders, and an
+outcome-missingness / IPCW extended-TMLE for missing outcomes (Dashti et al. 2024) —
+are owned by **PHASE_13** (see its §(3); the CCW marginal estimators reuse
+`causatr::causat_mice` directly, no congeniality construction needed).

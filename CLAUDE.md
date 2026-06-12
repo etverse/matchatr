@@ -205,7 +205,11 @@ on person-period data) wherever possible.
 > or absent confounders (`matchatr_bad_input`), a missing q₀
 > (`matchatr_missing_prevalence`), an off-scale contrast
 > (`matchatr_unidentified_estimand`), and a bootstrap interval
-> (`matchatr_unsupported_variance`) are each rejected across the family. Oracles: an
+> (`matchatr_unsupported_variance`) are each rejected across the family. Missing data
+> is complete-cased once in `ccw_prepare()` (drop NA in outcome/exposure/confounders,
+> warn `matchatr_dropped_rows`, weights computed on the complete-case sample so the
+> weighted case fraction stays q0) — matchatr's convention; MI / IPCW-TMLE are the
+> deferred principled alternatives (PHASE_13). Oracles: an
 > exact pseudo-cohort (`causatr` on the hand-weighted sample, machine precision) for
 > g-comp/IPW/AIPW, `tmle::tmle(obsWeights=)` for TMLE (RD exact, RR/OR ~1%), a truth
 > DGP whose marginal RD/RR/mOR the estimators recover (RD ≠ the conditional OR,

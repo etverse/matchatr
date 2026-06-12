@@ -487,6 +487,7 @@ nested CC support is pending Chunk 4.
 | unmatched CC + q0 | binary | ccw_aipw | marginal RD / RR / OR (doubly robust) | difference / ratio / or | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort oracle + **double-robustness** | `test-ccw.R` |
 | unmatched CC + q0 | binary | ccw_tmle | marginal RD / RR / OR (doubly robust) | difference / ratio / or | EIF (efficient influence function) | ✅ truth DGP + `tmle::tmle(obsWeights=)` oracle (RD exact, RR/OR ~1%) + **double-robustness** | `test-tmle_ccw.R` |
 | Rose & van der Laan weights `cc_weights()` | — | — | — | — | — | ✅ weighted case-fraction == q0 closed form | `test-weights_cc.R` |
+| NA in outcome / exposure / confounder | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ✅ complete-case in `ccw_prepare()` + `matchatr_dropped_rows` warning; estimate == fit on pre-dropped data (weights recomputed on complete cases) | `test-ccw.R` |
 | any | non-binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_input` (binary ATE only) | `test-ccw.R` |
 | any (no confounders) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_input` (adjustment model needs confounders) | `test-ccw.R` |
 | any (no q0) | — | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_missing_prevalence` | `test-ccw.R`, `test-matcha.R` |

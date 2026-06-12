@@ -112,6 +112,21 @@ Project-specific rules that override / extend the etverse-wide rules at
   (the outcome / propensity / both adjustment models). Do NOT flag the `"model"` →
   `"sandwich"` relabeling, the bootstrap rejection, or the confounders requirement
   as bugs.
+- **The whole CCW family complete-cases missing data once, in `ccw_prepare()`.**
+  Rows with a missing outcome, exposure, or confounder are dropped (listwise
+  deletion) with a classed `matchatr_dropped_rows` warning, and `cc_weights()` is
+  computed on the complete-case sample so the weighted case fraction still equals
+  q0 (do NOT compute the weights on the full sample then drop — that breaks the
+  Rose–van der Laan mapping). This is deliberate and matches matchatr's classical
+  engines and causatr's default `na.action`: it unifies what was inconsistent
+  (CCW-g-formula complete-cased via causatr, CCW-IPW/AIPW errored on a confounder
+  NA, the hand-rolled CCW-TMLE crashed on misaligned vectors). Do NOT move the
+  complete-casing into each engine, do NOT switch CCW to a reject-on-NA error, and
+  do NOT flag the listwise deletion as a bug. Multiple imputation (missing
+  confounders) and an outcome-missingness / IPCW extended-TMLE (missing outcomes)
+  are the deferred principled alternatives — PHASE_13, not this layer. A
+  non-converging CCW-TMLE fluctuation warns `matchatr_tmle_convergence` and reverts
+  to the untargeted initial fit (a defensive NaN guard, not a bug).
 - **The CCW double-robustness test asserts recovery with `expect_lt(abs(est -
   truth), BAND)`, NOT `expect_equal`.** The marginal risk difference is
   small-magnitude (~0.05), below the level at which `all.equal()` / waldo switch
