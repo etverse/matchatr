@@ -17,31 +17,32 @@ delegating estimation to [`causatr`](https://github.com/etverse/causatr)
 [`survatr`](https://github.com/etverse/survatr) (causal survival on
 person-period data).
 
-> **Status: classical engines complete; first marginal causal contrast
-> landed.** The design taxonomy, the two-step `matcha()` / `contrast()`
-> API, and the `(design, estimator)` dispatch (`PHASE_1`) are in place,
-> and the classical engines run end to end: the **unmatched**
-> case-control logistic and Mantel-Haenszel ORs (`PHASE_2`), the
-> **matched** case-control conditional-logistic and McNemar ORs with
-> stratum-specific effect modification (`PHASE_3`), the **polytomous**
-> subtype ORs with `test_homogeneity()` (`PHASE_4`), the **nested
-> case-control** risk-set hazard ratio (`PHASE_5`), the **case-cohort**
-> Prentice / Self-Prentice / Borgan hazard ratios and absolute risk
-> (`PHASE_6`), and the **Samuelsen IPW** weighted Cox / AFT /
-> additive-hazards analyses of NCC data with absolute and excess risk
-> (`PHASE_7`). The **causal layer** is now opening:
+> **Status: classical engines complete; the case-control-weighting
+> causal layer complete.** The design taxonomy, the two-step `matcha()`
+> / `contrast()` API, and the `(design, estimator)` dispatch (`PHASE_1`)
+> are in place, and the classical engines run end to end: the
+> **unmatched** case-control logistic and Mantel-Haenszel ORs
+> (`PHASE_2`), the **matched** case-control conditional-logistic and
+> McNemar ORs with stratum-specific effect modification (`PHASE_3`), the
+> **polytomous** subtype ORs with `test_homogeneity()` (`PHASE_4`), the
+> **nested case-control** risk-set hazard ratio (`PHASE_5`), the
+> **case-cohort** Prentice / Self-Prentice / Borgan hazard ratios and
+> absolute risk (`PHASE_6`), and the **Samuelsen IPW** weighted Cox /
+> AFT / additive-hazards analyses of NCC data with absolute and excess
+> risk (`PHASE_7`). The **causal layer** is complete (`PHASE_9`):
 > `estimator = "ccw_gformula"` / `"ccw_ipw"` / `"ccw_aipw"` /
 > `"ccw_tmle"` report a **marginal** risk difference, risk ratio, or
-> marginal odds ratio from a case-control sample with a known prevalence
-> q₀, via Rose & van der Laan case-control weighting — g-computation /
-> IPW / (doubly-robust) AIPW delegated to `causatr`, and a doubly-robust
-> targeted maximum likelihood (TMLE) engine matchatr builds itself
-> (`PHASE_9` Chunks 1–3). See the
+> marginal odds ratio from an unmatched **or matched** case-control
+> sample with a known (or cohort-estimated) prevalence q₀, via Rose &
+> van der Laan case-control weighting — g-computation / IPW /
+> (doubly-robust) AIPW delegated to `causatr`, and a doubly-robust
+> targeted maximum likelihood (TMLE) engine matchatr builds itself.
+> Variance is the `causatr` sandwich / TMLE efficient influence
+> function, optionally widened for an estimated q₀ or replaced by a
+> design-preserving within-stratum bootstrap. See the
 > [articles](https://etverse.github.io/matchatr/) for worked examples.
-> The remaining case-control-weighting estimators (IPW / AIPW / TMLE),
-> the design-weighted causal survival layer, and the efficiency phases
-> (`PHASE_9` Chunks 2–4, `PHASE_10`–`PHASE_20`) remain at the design
-> stage.
+> The design-weighted causal survival layer and the efficiency phases
+> (`PHASE_10`–`PHASE_20`) remain at the design stage.
 
 ## What it does
 
