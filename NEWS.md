@@ -166,9 +166,10 @@ odds ratio a logistic fit reports — the non-collapsibility pin). `cc_weights()
 is checked against its closed form (weighted case fraction == q0) in
 `test-weights_cc.R`.
 
-CCW-IPW / CCW-AIPW (Chunk 2), CCW-TMLE (Chunk 3, the one genuinely new targeting
-engine), and the estimated-q0 variance correction with matched / nested CC
-support and within-stratum bootstrap (Chunk 4) remain pending.
+This is the first chunk of the CCW family; CCW-IPW / CCW-AIPW (Chunk 2), CCW-TMLE
+(Chunk 3, the one genuinely new targeting engine), and the estimated-q0 variance
+correction with matched / nested CC support and within-stratum bootstrap (Chunk 4)
+land in the entries above.
 
 ## 2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)
 
