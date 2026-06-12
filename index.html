@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6a358ec7f71e7b72aeeebd1cb1aadac4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -249,12 +249,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
- <span class="menu-text">Reference</span></a>
+ <span class="menu-text">Marginal causal contrasts</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/ccw-marginal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Marginal effects from a case-control sample</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./man/absolute_risk.html" class="sidebar-item-text sidebar-link">
@@ -471,7 +488,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><a href="https://github.com/etverse/matchatr/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/etverse/matchatr/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <!-- badges: end --></p>
 <p><strong>matchatr</strong> provides causal inference for <strong>(matched) case-control, nested case-control (NCC), and case-cohort</strong> study designs. It pairs design-faithful classical estimators with marginal causal effects, and integrates with the <a href="https://github.com/etverse">etverse</a> ecosystem — delegating estimation to <a href="https://github.com/etverse/causatr"><code>causatr</code></a> (g-computation / IPW / AIPW with sandwich and bootstrap variance) and <a href="https://github.com/etverse/survatr"><code>survatr</code></a> (causal survival on person-period data).</p>
 <blockquote class="blockquote">
-<p><strong>Status: classical odds-ratio engines landing.</strong> The design taxonomy, the two-step <code>matcha()</code> / <code>contrast()</code> API, and the <code>(design, estimator)</code> dispatch (<code>PHASE_1</code>) are in place, and the classical odds-ratio engines now run end to end: the <strong>unmatched</strong> case-control logistic and Mantel-Haenszel ORs (<code>PHASE_2</code>), the <strong>matched</strong> case-control conditional-logistic and McNemar ORs with stratum-specific effect modification (<code>PHASE_3</code>), and the <strong>polytomous</strong> subtype ORs for multi-group outcomes, with a <code>test_homogeneity()</code> Wald test of whether the exposure OR is constant across subtypes plus the pooled common OR (<code>PHASE_4</code>). See the <a href="https://etverse.github.io/matchatr/">articles</a> for worked examples. The time-to-event sampling designs and the marginal causal-weighting / survival layer (<code>PHASE_5</code>–<code>PHASE_20</code>) remain at the design stage.</p>
+<p><strong>Status: classical engines complete; the case-control-weighting causal layer complete.</strong> The design taxonomy, the two-step <code>matcha()</code> / <code>contrast()</code> API, and the <code>(design, estimator)</code> dispatch (<code>PHASE_1</code>) are in place, and the classical engines run end to end: the <strong>unmatched</strong> case-control logistic and Mantel-Haenszel ORs (<code>PHASE_2</code>), the <strong>matched</strong> case-control conditional-logistic and McNemar ORs with stratum-specific effect modification (<code>PHASE_3</code>), the <strong>polytomous</strong> subtype ORs with <code>test_homogeneity()</code> (<code>PHASE_4</code>), the <strong>nested case-control</strong> risk-set hazard ratio (<code>PHASE_5</code>), the <strong>case-cohort</strong> Prentice / Self-Prentice / Borgan hazard ratios and absolute risk (<code>PHASE_6</code>), and the <strong>Samuelsen IPW</strong> weighted Cox / AFT / additive-hazards analyses of NCC data with absolute and excess risk (<code>PHASE_7</code>). The <strong>causal layer</strong> is complete (<code>PHASE_9</code>): <code>estimator = "ccw_gformula"</code> / <code>"ccw_ipw"</code> / <code>"ccw_aipw"</code> / <code>"ccw_tmle"</code> report a <strong>marginal</strong> risk difference, risk ratio, or marginal odds ratio from an unmatched <strong>or matched</strong> case-control sample with a known (or cohort-estimated) prevalence q₀, via Rose &amp; van der Laan case-control weighting — g-computation / IPW / (doubly-robust) AIPW delegated to <code>causatr</code>, and a doubly-robust targeted maximum likelihood (TMLE) engine matchatr builds itself. Variance is the <code>causatr</code> sandwich / TMLE efficient influence function, optionally widened for an estimated q₀ or replaced by a design-preserving within-stratum bootstrap. See the <a href="https://etverse.github.io/matchatr/">articles</a> for worked examples. The design-weighted causal survival layer and the efficiency phases (<code>PHASE_10</code>–<code>PHASE_20</code>) remain at the design stage.</p>
 </blockquote>
 <section id="what-it-does" class="level2">
 <h2 class="anchored" data-anchor-id="what-it-does">What it does</h2>

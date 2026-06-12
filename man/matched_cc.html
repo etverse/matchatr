@@ -77,7 +77,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-98130f95a46b67a4a867697a2c34a567.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-6a358ec7f71e7b72aeeebd1cb1aadac4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -248,13 +248,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Reference</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Marginal causal contrasts</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/ccw-marginal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Marginal effects from a case-control sample</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../man/absolute_risk.html" class="sidebar-item-text sidebar-link">
@@ -473,7 +490,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<pre><code class="language-R">matched_cc(strata, ratio = NULL)
+<pre><code class="language-R">matched_cc(strata, ratio = NULL, prevalence = NULL, prevalence_n = NULL)
 </code></pre>
 </section>
 <section id="arguments" class="level3">
@@ -495,11 +512,27 @@ A non-empty character vector naming the column(s) that identify the matched sets
 <code>NULL</code> or a single whole number &gt;= 1. The number of controls matched per case (m:1). Optional metadata; the conditional likelihood does not require a fixed ratio.
 </td>
 </tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="prevalence">prevalence</code>
+</td>
+<td>
+<code>NULL</code> or a single number in (0, 1): the source-population prevalence q0, required for the case-control-weighted (<code>“ccw_*“</code>) marginal estimators. Optional for the (default) conditional logistic OR. For a case-control-weighted <strong>marginal</strong> effect on matched data the matching variable(s) must be included in <code>confounders</code> (the matched controls are not a representative population control sample, so the marginal estimator adjusts for the matching variable rather than conditioning on the matched sets; Rose &amp; van der Laan 2009 — matching may cost efficiency relative to an unmatched CCW analysis).
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="prevalence_n">prevalence_n</code>
+</td>
+<td>
+<code>NULL</code> or a whole number giving the cohort size q0 was estimated from (makes q0 estimated, adding a variance term).
+</td>
+</tr>
 </tbody></table>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A <code>matchatr_design</code> object of <code>type</code> <code>“matched_cc”</code> carrying the strata and ratio.</p>
+<p>A <code>matchatr_design</code> object of <code>type</code> <code>“matched_cc”</code> carrying the strata, ratio, and (optionally) the prevalence.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>
@@ -525,6 +558,14 @@ A non-empty character vector naming the column(s) that identify the matched sets
  Strata:     age_grp, sex
  Ratio:      2:1
  Weights:    none</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>, <span class="at">prevalence =</span> <span class="fl">0.02</span>) <span class="co"># for a marginal CCW contrast</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matchatr_design&gt;
+ Type:       Matched case-control
+ Strata:     set
+ Prevalence: 0.02 (q0)
+ Weights:    case-control (q0)</code></pre>
 </div>
 </div>
 
