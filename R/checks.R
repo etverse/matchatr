@@ -178,6 +178,53 @@ check_prevalence <- function(prevalence, call = rlang::caller_env()) {
   invisible(NULL)
 }
 
+#' Validate a prevalence cohort-size (prevalence_n) argument
+#'
+#' `prevalence_n` is the cohort size q0 was estimated from. When supplied it makes
+#' q0 estimated rather than known, so it requires a `prevalence` to attach to and
+#' must be a positive whole number.
+#'
+#' @param prevalence_n `NULL` or a single positive whole number.
+#' @param prevalence The `prevalence` (q0) it qualifies; must be non-`NULL` when
+#'   `prevalence_n` is supplied.
+#' @param call Caller environment surfaced in the error.
+#' @returns `NULL` invisibly; aborts with class `matchatr_bad_prevalence` on an
+#'   invalid value or a `prevalence_n` supplied without a `prevalence`.
+#' @family validators
+#' @noRd
+check_prevalence_n <- function(
+  prevalence_n,
+  prevalence,
+  call = rlang::caller_env()
+) {
+  if (is.null(prevalence_n)) {
+    return(invisible(NULL))
+  }
+  if (is.null(prevalence)) {
+    rlang::abort(
+      c(
+        "`prevalence_n` was supplied without a `prevalence` (q0).",
+        i = "`prevalence_n` is the cohort size q0 was estimated from; supply `prevalence` too."
+      ),
+      class = c("matchatr_bad_prevalence", "matchatr_error"),
+      call = call
+    )
+  }
+  ok <- (rlang::is_scalar_double(prevalence_n) ||
+    rlang::is_scalar_integer(prevalence_n)) &&
+    !is.na(prevalence_n) &&
+    prevalence_n > 0 &&
+    prevalence_n == round(prevalence_n)
+  if (!ok) {
+    rlang::abort(
+      "`prevalence_n` (the cohort size q0 was estimated from) must be a single positive whole number.",
+      class = c("matchatr_bad_prevalence", "matchatr_error"),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
 #' Validate a confidence-level argument
 #'
 #' A confidence level must be a single probability strictly inside (0, 1): a

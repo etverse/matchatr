@@ -4,6 +4,28 @@
 # validate and route. Later phases replace / extend this with a cohort DGP that
 # has known causal truth and samples designs from it.
 
+# A matchatr_fit whose engine has no wired estimator, so its `model` is NULL --
+# the fixture for testing the generic "not estimated" contract (contrast() /
+# test_homogeneity() / summary() aborting with matchatr_not_estimated). It uses
+# the two-phase `survey` engine, which stays unwired until its own phase lands;
+# unlike a ccw_* estimator, that keeps the fixture stable as the causal engines
+# are wired one by one. The fit's `engine` is "survey_twophase".
+make_unestimated_fit <- function() {
+  df <- data.frame(
+    case = rep(c(1L, 0L), each = 10L),
+    x = rep(0:1, 10L),
+    s = rep(1:2, each = 10L),
+    ph = rep(c(1L, 0L), 10L)
+  )
+  matcha(
+    df,
+    outcome = "case",
+    exposure = "x",
+    design = two_phase(phase1 = "s", phase2 = "ph"),
+    estimator = "survey"
+  )
+}
+
 # A matched case-control / NCC sample: `n_sets` matched sets, each with exactly
 # one case and `ratio` controls, so every set is informative for the
 # conditional likelihood. Columns: case (0/1), x (binary exposure), age, smoke,
@@ -544,6 +566,124 @@ make_stratified_case_cohort_data <- function(
   cohort
 }
 
+# Truth-based DGP for case-control-weighted MARGINAL causal effects. A cohort is
+# drawn from a logistic outcome model with a binary exposure `x` confounded by a
+# continuous `w` (x depends on w), so the conditional and marginal effects differ
+# (non-collapsibility) and confounding must be adjusted. The g-formula truth is
+# computed analytically on the FULL cohort using the true coefficients:
+# m1 = E_w[expit(alpha + beta_x + gamma_w w)], m0 = E_w[expit(alpha + gamma_w w)],
+# giving the marginal risk difference m1 - m0, risk ratio m1/m0, and marginal odds
+# ratio (m1/(1-m1)) / (m0/(1-m0)). The CONDITIONAL odds ratio is exp(beta_x), which
+# differs from the marginal OR. An unmatched case-control sample (every case + a
+# `ratio`:1 random control sample) is returned; case-control sampling shifts only
+# the intercept (Prentice & Pyke 1979), so case-control weighting back to the
+# source prevalence q0 = P(Y=1) recovers the marginal truth. The "truth" attribute
+# carries c(rd, rr, mor, cond_or); the "q0" attribute the source prevalence.
+make_cohort_ccw <- function(
+  n = 2e5,
+  alpha = -3,
+  beta_x = log(2.5),
+  gamma_w = 1.0,
+  ratio = 5L,
+  seed = 13L
+) {
+  withr::with_seed(seed, {
+    w <- stats::rnorm(n)
+    # Exposure confounded by w, so adjustment is required and the marginal effect
+    # is not the conditional one.
+    x <- stats::rbinom(n, 1L, stats::plogis(0.2 * w))
+    # Counterfactual risks under treat-all / treat-none, for the g-formula truth.
+    p1 <- stats::plogis(alpha + beta_x + gamma_w * w)
+    p0 <- stats::plogis(alpha + gamma_w * w)
+    y <- stats::rbinom(n, 1L, stats::plogis(alpha + beta_x * x + gamma_w * w))
+    m1 <- mean(p1)
+    m0 <- mean(p0)
+    truth <- c(
+      rd = m1 - m0,
+      rr = m1 / m0,
+      mor = (m1 / (1 - m1)) / (m0 / (1 - m0)),
+      cond_or = exp(beta_x)
+    )
+    q0 <- mean(y)
+    coh <- data.frame(case = y, x = x, w = w)
+    cases <- coh[coh$case == 1L, , drop = FALSE]
+    controls_all <- coh[coh$case == 0L, , drop = FALSE]
+    n_ctrl <- min(nrow(cases) * ratio, nrow(controls_all))
+    controls <- controls_all[
+      sample.int(nrow(controls_all), n_ctrl),
+      ,
+      drop = FALSE
+    ]
+    samp <- rbind(cases, controls)
+    rownames(samp) <- NULL
+    attr(samp, "truth") <- truth
+    attr(samp, "q0") <- q0
+    samp
+  })
+}
+
+# Truth-based DGP for the DOUBLE-ROBUSTNESS of CCW-AIPW. Two cohorts, each with a
+# single confounder `w` and a constant conditional treatment effect (0.7 on the
+# logit), drawn so that exactly ONE of the two `~ w`-linear working models is
+# correctly specified — the misspecification is a missing quadratic term:
+#
+#   kind = "out_wrong":  propensity is linear in w (a ~ expit(0.9 w)), so a `~ w`
+#     propensity model is CORRECT; the outcome is nonlinear in w (a w^2 term), so
+#     a `~ w` outcome model is WRONG. CCW-IPW (correct propensity) and CCW-AIPW
+#     (doubly robust) recover the truth; CCW-g-formula (wrong outcome) is biased.
+#   kind = "prop_wrong": the outcome is linear in w, so a `~ w` outcome model is
+#     CORRECT; the propensity is nonlinear in w (a w^2 term), so a `~ w`
+#     propensity model is WRONG. CCW-g-formula (correct outcome) and CCW-AIPW
+#     recover the truth; CCW-IPW (wrong propensity) is biased.
+#
+# Both pass `confounders = ~ w` to matcha(), so the misspecification is a
+# functional-form one (the working models cannot see w^2). The marginal
+# risk-difference truth is the g-formula on the full cohort under the TRUE
+# outcome model, m1 - m0 with m_a = E_w[expit(lp_a)], which does not depend on
+# the propensity. An unmatched case-control sample (every case + a `ratio`:1
+# control sample) is returned with the "truth" (marginal RD) and "q0" attributes.
+make_dr_cohort_ccw <- function(
+  kind = c("out_wrong", "prop_wrong"),
+  n = 1.5e5,
+  ratio = 5L,
+  seed = 20L
+) {
+  kind <- match.arg(kind)
+  withr::with_seed(seed, {
+    w <- stats::rnorm(n)
+    b0 <- -2.3
+    if (kind == "out_wrong") {
+      # Strong selection on w (so the treated / control w-distributions differ
+      # sharply) plus a strong w^2 outcome term: the `~ w` outcome model's failure
+      # to capture the curvature then biases the standardized risk difference
+      # clearly (a marginal RD is otherwise fairly robust to mild outcome
+      # misspecification because the curvature averages out).
+      a <- stats::rbinom(n, 1L, stats::plogis(2.0 * w)) # linear propensity: correct
+      lp <- function(av) b0 + 0.7 * av + 2.0 * w - 2.5 * w^2 # nonlinear outcome: wrong
+    } else {
+      a <- stats::rbinom(n, 1L, stats::plogis(-0.6 + 0.7 * w + 1.4 * w^2)) # nonlinear propensity: wrong
+      lp <- function(av) b0 + 0.7 * av + 1.0 * w # linear outcome: correct
+    }
+    y <- stats::rbinom(n, 1L, stats::plogis(lp(a)))
+    truth_rd <- mean(stats::plogis(lp(1)) - stats::plogis(lp(0)))
+    q0 <- mean(y)
+    coh <- data.frame(case = y, x = a, w = w)
+    cases <- coh[coh$case == 1L, , drop = FALSE]
+    controls_all <- coh[coh$case == 0L, , drop = FALSE]
+    n_ctrl <- min(nrow(cases) * ratio, nrow(controls_all))
+    controls <- controls_all[
+      sample.int(nrow(controls_all), n_ctrl),
+      ,
+      drop = FALSE
+    ]
+    samp <- rbind(cases, controls)
+    rownames(samp) <- NULL
+    attr(samp, "truth") <- truth_rd
+    attr(samp, "q0") <- q0
+    samp
+  })
+}
+
 # Counter-matched NCC sampler used as a deterministic test fixture.
 # Delegates to the exported sample_ncc_counter_matched() under a fixed seed.
 # When cohort is NULL, builds from make_ncc_cohort() and attaches z_bin = x as
@@ -574,4 +714,57 @@ sample_ncc_counter_matched_fixture <- function(
   out <- out[, c(setdiff(names(out), added), added), drop = FALSE]
   rownames(out) <- NULL
   out
+}
+
+# Truth-based DGP for case-control-weighted MARGINAL effects on MATCHED data. A
+# cohort has a matching variable M, an exposure x confounded by M, and an outcome
+# depending on x and M; the marginal risk-difference truth is the g-formula over
+# the cohort under the true model. A FREQUENCY-matched case-control sample is then
+# drawn: M is binned into `n_bins` strata and, within each stratum, every case is
+# kept and `ratio` controls are sampled from the same stratum, so the controls'
+# M-distribution mirrors the cases'. The controls are therefore NOT a representative
+# population control sample, so a marginal CCW analysis must include M in the
+# confounders (it adjusts for the matching variable rather than conditioning on the
+# matched sets; Rose & van der Laan 2009). The returned sample carries a `set` =
+# M-stratum column, the "truth" (marginal RD) attribute, and the "q0" attribute.
+make_matched_cohort_ccw <- function(
+  n = 1e5,
+  a0 = -3,
+  beta_x = 0.9,
+  gamma_m = 1.0,
+  n_bins = 20L,
+  ratio = 3L,
+  seed = 101L
+) {
+  withr::with_seed(seed, {
+    m <- stats::rnorm(n)
+    x <- stats::rbinom(n, 1L, stats::plogis(0.8 * m)) # x confounded by M
+    y <- stats::rbinom(n, 1L, stats::plogis(a0 + beta_x * x + gamma_m * m))
+    truth_rd <- mean(
+      stats::plogis(a0 + beta_x + gamma_m * m) - stats::plogis(a0 + gamma_m * m)
+    )
+    q0 <- mean(y)
+    mbin <- cut(
+      m,
+      breaks = stats::quantile(m, probs = seq(0, 1, length.out = n_bins + 1L)),
+      include.lowest = TRUE,
+      labels = FALSE
+    )
+    coh <- data.frame(case = y, x = x, M = m, set = mbin)
+    parts <- lapply(split(seq_len(n), mbin), function(idx) {
+      s <- coh[idx, , drop = FALSE]
+      ca <- s[s$case == 1L, , drop = FALSE]
+      co <- s[s$case == 0L, , drop = FALSE]
+      if (nrow(ca) == 0L) {
+        return(NULL)
+      }
+      n_ctrl <- min(ratio * nrow(ca), nrow(co))
+      rbind(ca, co[sample.int(nrow(co), n_ctrl), , drop = FALSE])
+    })
+    samp <- do.call(rbind, parts)
+    rownames(samp) <- NULL
+    attr(samp, "truth") <- truth_rd
+    attr(samp, "q0") <- q0
+    samp
+  })
 }

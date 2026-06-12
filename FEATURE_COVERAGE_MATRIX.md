@@ -464,7 +464,51 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 
 ## Case-control-weighted causal contrasts (PHASE_9)
 
-_Pending implementation._
+**Phase 9 complete (Chunks 1–4) — CCW g-formula / IPW / AIPW / TMLE.** On an
+unmatched **or matched** case-control sample carrying a known (or cohort-estimated)
+prevalence `q0` (`unmatched_cc(prevalence = q0)` / `matched_cc(strata, prevalence =
+q0)`), `matcha()` computes Rose & van der Laan case-control weights (`cc_weights()`,
+`R/weights_cc.R`) via the shared `ccw_prepare()` (`R/ccw.R`) and fits a cohort
+causal estimator on the weighted sample: `estimator = "ccw_gformula"` →
+`causat(estimator = "gcomp")`, `"ccw_ipw"` → `"ipw"`, `"ccw_aipw"` → `"aipw"`
+(all delegated to causatr through `fit_ccw()`), and `"ccw_tmle"` → matchatr's own
+targeting engine (`fit_ccw_tmle()`, `R/tmle_ccw.R`). `contrast()` reports the
+**marginal** effect — risk difference (`type = "difference"`, the default), risk
+ratio (`type = "ratio"`), or marginal odds ratio (`type = "or"`). Point estimate
+and influence-function/sandwich variance are delegated to causatr (g-comp/IPW/AIPW)
+or computed from the efficient influence function (TMLE); matchatr owns the
+weighting layer and the TMLE targeting. CCW-AIPW and CCW-TMLE are **doubly robust**
+(consistent if either the outcome or the propensity model is correct). On a
+**matched** CC sample the matching variable is a baseline covariate (it must be in
+`confounders`; the matched sets are ignored, Rose & van der Laan 2009); a **nested**
+(risk-set) CC design is rejected toward `ipw_cox`. The interval may be widened for an
+estimated q0 (`prevalence_n`, Chunk 4b) or replaced by the design-preserving
+within-stratum bootstrap (`ci_method = "bootstrap"`, Chunk 4a).
+
+| Design | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|---|
+| unmatched CC + q0 | binary | ccw_gformula | marginal RD / RR / OR | difference / ratio / or | sandwich (causatr) | ✅ truth DGP (RD≠conditional OR) + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_ipw | marginal RD / RR / OR | difference / ratio / or | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort `causatr` oracle | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_aipw | marginal RD / RR / OR (doubly robust) | difference / ratio / or | sandwich (causatr) | ✅ truth DGP + exact pseudo-cohort oracle + **double-robustness** | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_tmle | marginal RD / RR / OR (doubly robust) | difference / ratio / or | EIF (efficient influence function) | ✅ truth DGP + `tmle::tmle(obsWeights=)` oracle (RD exact, RR/OR ~1%) + **double-robustness** | `test-tmle_ccw.R` |
+| Rose & van der Laan weights `cc_weights()` | — | — | — | — | — | ✅ weighted case-fraction == q0 closed form | `test-weights_cc.R` |
+| NA in outcome / exposure / confounder | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ✅ complete-case in `ccw_prepare()` + `matchatr_dropped_rows` warning; estimate == fit on pre-dropped data (weights recomputed on complete cases) | `test-ccw.R` |
+| any | non-binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_input` (binary ATE only) | `test-ccw.R` |
+| any (no confounders) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_input` (adjustment model needs confounders) | `test-ccw.R` |
+| any (no q0) | — | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_missing_prevalence` | `test-ccw.R`, `test-matcha.R` |
+| unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | — | hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-ccw.R` |
+| unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | within-stratum bootstrap | ✅ percentile CI; bootstrap SE recovers the sandwich / EIF SE | `test-variance_ccw.R` |
+| unmatched CC + estimated q0 (`prevalence_n`) | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | sandwich/EIF + q̂0 term, or bootstrap (q0* redraw) | ✅ analytic ≈ bootstrap; collapses to known-q0 as N→∞; `prevalence_known` recorded | `test-variance_ccw.R` |
+| `prevalence_n` without `prevalence` / non-integer / non-positive | — | — | — | — | — | ⛔ `matchatr_bad_prevalence` | `test-variance_ccw.R` |
+| matched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR (matching var as baseline covariate) | difference / ratio / or | sandwich/EIF + boot | ✅ frequency-matched truth DGP — recovers marginal RD with the matching variable adjusted | `test-ccw.R` |
+| nested CC (risk-set) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_estimator` → `ipw_cox` (risk-set sampling ≠ case-control) | `test-ccw.R` |
+| unmatched CC + q0 (cross-language) | binary | ccw_gformula / ipw / aipw | marginal RD/RR/mOR | difference / ratio / or | sandwich | ✅ Python `delicatessen` M-estimation oracle — gformula/aipw exact (≤1e-5 on estimate AND sandwich SE), ipw ~1e-3 | `test-python-oracle.R`, `fixtures/python/ccw_marginal.*` |
+
+Cross-language validation: the `delicatessen` (Python M-estimation + sandwich)
+oracle pins the CCW g-formula / IPW / AIPW marginal RD/RR/mOR — point estimate AND
+sandwich SE — independently of the R engine (`fixtures/python/ccw_marginal.py`).
+`ccw_tmle` targets the same estimand by a finite-sample-distinct fluctuation step,
+so it is cross-checked against `tmle::tmle(obsWeights=)` rather than delicatessen.
 
 ## Design-weighted causal survival (PHASE_10)
 
@@ -502,6 +546,7 @@ Quarto, `lumen` theme).
 | `nested-cc.qmd` | `clogit` risk-set hazard ratio (`type = "hr"`), OR = HR equivalence, `survival::clogit` / full-cohort `coxph` agreement |
 | `case-cohort.qmd` | Prentice / SelfPrentice / LinYing / Borgan I/II HRs, stratified subcohort, `absolute_risk()` IPW Breslow F_x(t), design rejections |
 | `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `ipw_aft` time ratio (Weibull / exponential / lognormal / loglogistic baselines) + `ipw_aalen` excess hazard, `absolute_risk()` IPW Breslow (Cox) and parametric AFT F_x(t) + cumulative-incidence plot, `excess_risk()` time-varying cumulative excess hazard B_j(t), classical vs IPW comparison, rejection paths |
+| `ccw-marginal.qmd` | `ccw_gformula` case-control-weighted marginal RD / RR / marginal OR, why the marginal effect differs from the conditional OR (non-collapsibility), `cc_weights()` / `unmatched_cc(prevalence = q0)`, the `causatr` g-computation delegation, rejection paths |
 
 Articles document only implemented features; the pending phases above are not
 yet covered.

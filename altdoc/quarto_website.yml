@@ -44,6 +44,12 @@ website:
             file: vignettes/nested-cc.qmd
           - text: "IPW analysis of NCC data"
             file: vignettes/ipw-ncc.qmd
+      # Single-item section: explicit text:/file: form (see note above) so the
+      # one-item sequence is not collapsed to a broken scalar.
+      - section: Marginal causal contrasts
+        contents:
+          - text: "Marginal effects from a case-control sample"
+            file: vignettes/ccw-marginal.qmd
       - section: $ALTDOC_MAN_BLOCK
       - text: News
         file: $ALTDOC_NEWS

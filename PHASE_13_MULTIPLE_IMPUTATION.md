@@ -16,6 +16,18 @@ matched/unmatched CC — congenial with **conditional** logistic regression for 
 (see the literature review below). Unmatched CC can lean on `causatr::causat_mice`; matched
 CC cannot (it is not clogit-congenial).
 
+**In (added 2026-06-12):** principled missing-data handling for the **case-control-weighted
+marginal family** (`ccw_gformula` / `ccw_ipw` / `ccw_aipw` / `ccw_tmle`, PHASE_9). The
+shipped interim policy is **complete-case** (listwise deletion in `ccw_prepare()` with a
+`matchatr_dropped_rows` warning); this phase replaces it with the recommended approaches.
+For missing **confounders**, parametric MI *with interactions* is the recommended method
+for the (doubly-robust / TMLE) marginal analysis — `causatr::causat_mice` is the reuse
+target since the CCW marginal estimators ARE a `causat()` fit with weights (no
+conditional-logistic congeniality issue, unlike matched CC). For missing **outcomes**, an
+outcome-missingness model — an extended (IPCW) TMLE that adds a P(Δ=1 | A, W) node, reusing
+causatr's optional `ipcw` / `censoring` machinery — is the principled route. See the
+literature review §(3).
+
 **Out:** calibration-via-MI (Phase 12).
 
 ## Key design decisions
@@ -144,6 +156,31 @@ unmatched) case-control.** This is the gap the current doc under-specified.
 - **Survival substantive model:** include the event indicator δ and the
   **Nelson-Aalen cumulative hazard** Λ̂(t) (not raw time) as imputation predictors
   (White & Royston 2009, *Statistics in Medicine* 28:1982–1998).
+
+**(3) Missing data for the case-control-weighted *marginal* family (g-formula /
+IPW / AIPW / TMLE; PHASE_9).** These estimators target a marginal causal effect on
+the case-control-weighted sample, so the analysis model is a marginal (not
+conditional-logistic) one, and the missing-data machinery is the general
+causal-inference one rather than the matched-CC-specific construction in §(2).
+- **Dashti, Lee, Simpson, White, Carlin & Moreno-Betancur (2024, *American Journal
+  of Epidemiology* 193(7):1019–1030)** — the definitive study of missing data with
+  TMLE. It compares complete-case analysis, extended-TMLE (an outcome-missingness
+  model), the missing-covariate-missing-indicator method, and several parametric /
+  machine-learning MI approaches. Headline: **parametric MI that includes
+  interactions and nonlinearities** generally performs best for missing
+  *confounders*; an **extended-TMLE (outcome-missingness model)** handles missing
+  *outcomes* well *when the outcome does not drive missingness in other variables*
+  (otherwise it is biased); the **missing-indicator method is biased** and not
+  recommended.
+- For matchatr the CCW marginal estimators are a `causat()` fit with case-control
+  weights, so missing-confounder MI reuses **`causatr::causat_mice`** directly
+  (Rubin / boot-MI pooling) — no bespoke congeniality construction is needed (the
+  matched-CC obstacle of §(2) does not apply to the marginal analysis).
+- Missing-outcome handling for CCW-TMLE is an **IPCW / extended-TMLE**: add a
+  weighted P(Δ=1 | A, W) missingness model and fold its inverse weights into the
+  clever covariate / loss, reusing causatr's optional `ipcw` / `censoring`
+  machinery. van der Laan & Rubin (2006) frame missing data and censoring as the
+  same TMLE problem.
 
 **Pitfalls / what NOT to do.** The **missing-indicator method is biased** for
 case-control associations and is not an MI substitute. Complete-case analysis is

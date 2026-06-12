@@ -123,6 +123,12 @@ default_contrast_type <- function(engine, design_type = NULL) {
     # hazard (a rate difference).
     ipw_aft = "af",
     ipw_aalen = "excess",
+    # Case-control weighting targets a marginal effect; the etverse convention is
+    # to default to the risk difference.
+    ccw_gformula = "difference",
+    ccw_ipw = "difference",
+    ccw_aipw = "difference",
+    ccw_tmle = "difference",
     "difference"
   )
 }
@@ -234,6 +240,14 @@ run_engine <- function(fit) {
     ipw_aft = fit_ipw_aft(fit),
     ipw_aalen = fit_ipw_aalen(fit),
     cch = fit_cch(fit),
+    # Case-control-weighted causal estimators: reweight to the source population
+    # and estimate the marginal effect on the weighted sample. g-computation /
+    # IPW / AIPW delegate to causatr through the same fit_ccw() (which reads
+    # fit$estimator); CCW-TMLE is matchatr's own targeting engine.
+    ccw_gformula = fit_ccw(fit),
+    ccw_ipw = fit_ccw(fit),
+    ccw_aipw = fit_ccw(fit),
+    ccw_tmle = fit_ccw_tmle(fit),
     NULL
   )
 }

@@ -1,5 +1,176 @@
 # matchatr (development version)
 
+## 2026-06-12 — Matched case-control support for the CCW family (PHASE_9 Chunk 4c)
+
+`matched_cc()` now accepts `prevalence` (and `prevalence_n`), so the
+case-control-weighted estimators (`ccw_gformula` / `ccw_ipw` / `ccw_aipw` /
+`ccw_tmle`) run on a matched case-control sample. The matching variable is handled
+as a **baseline covariate**: it must appear in `confounders`, so the marginal
+effect is standardized over its distribution rather than conditioned on the matched
+sets (Rose & van der Laan 2009 — matching is for control selection, not part of the
+estimand; it can reduce CCW efficiency). The matched conditional odds ratio
+(`estimator = "clogit"`) is unchanged.
+
+A **nested** case-control design is risk-set (incidence-density) sampled, so its
+controls are *not* a case-control sample and the binary q₀ reweighting does not
+identify a marginal effect; `matcha(design = nested_cc(...), estimator = "ccw_*")`
+is rejected (`matchatr_bad_estimator`) pointing to `estimator = "ipw_cox"`
+(Samuelsen inclusion-weighted hazard ratio).
+
+Validated in `test-ccw.R` against a frequency-matched truth DGP
+(`make_matched_cohort_ccw()`): the three matched-CC CCW estimators recover the
+analytical marginal risk difference with the matching variable adjusted.
+
+## 2026-06-12 — Estimated-q₀ variance for the CCW family (PHASE_9 Chunk 4b)
+
+`unmatched_cc(prevalence = q0, prevalence_n = N)` declares that the source
+prevalence q₀ was **estimated** from a cohort of `N` members rather than known.
+The case-control-weighted estimators then widen the interval for q̂₀'s sampling
+uncertainty (Var(q̂₀) = q₀(1 − q₀)/N propagating through the weights): the analytic
+(sandwich / EIF) interval adds the delta-method term (∂ψ/∂q₀)²·Var(q̂₀) — with
+∂ψ/∂q₀ a central finite difference on the reported scale — and the bootstrap
+redraws q₀* ~ Binomial(N, q₀)/N each replicate. The point estimate is unchanged,
+and the fit records `details$prevalence_known = FALSE`. A `prevalence_n` without a
+`prevalence`, or a non-positive / non-integer `prevalence_n`, is rejected
+(`matchatr_bad_prevalence`).
+
+Validated in `test-variance_ccw.R`: the analytic and bootstrap estimated-q₀
+standard errors agree (they implement the same variance two ways), and both
+collapse onto the known-q₀ interval as the cohort grows (N → ∞).
+
+## 2026-06-12 — Within-stratum bootstrap for the CCW family (PHASE_9 Chunk 4a)
+
+`contrast(fit, ci_method = "bootstrap")` is now available for every
+case-control-weighted estimator (`ccw_gformula` / `ccw_ipw` / `ccw_aipw` /
+`ccw_tmle`), replacing the previous `matchatr_unsupported_variance` rejection. It
+is the **design-preserving** bootstrap (`ccw_bootstrap_ci()`, `R/variance_ccw.R`):
+each replicate resamples the cases and the controls separately, so the case /
+control counts — and hence the Rose & van der Laan q0 weights — are held fixed
+(the known q0 is treated as fixed; its sampling variability is a separate
+influence-function term), the engine is refitted, and the percentile interval is
+reported while the analytic plug-in point estimate is kept. The replicate count is
+`n_boot` (default 1000), threaded through `contrast()`'s `...`.
+
+Validated in `test-variance_ccw.R`: the stratified-bootstrap standard error
+recovers the analytic sandwich (g-formula / IPW / AIPW) or efficient-influence-
+function (TMLE) standard error for all four engines, and the point estimate is
+unchanged.
+
+## 2026-06-12 — CCW-TMLE: case-control-weighted targeted learning (PHASE_9 Chunk 3)
+
+`matcha(estimator = "ccw_tmle")` adds targeted maximum likelihood estimation to
+the case-control-weighting family — the one genuinely new engine, since the
+etverse has no targeted-learning code to delegate to. It reports the same marginal
+risk difference / risk ratio / marginal odds ratio as the other CCW estimators,
+and like CCW-AIPW it is **doubly robust** (consistent if either the outcome or the
+propensity model is correct).
+
+The targeting step (`R/tmle_ccw.R`, van der Laan & Rubin 2006; van der Laan & Rose
+2011) runs entirely on the case-control-weighted sample: an initial weighted
+logistic outcome model Q̄⁰(A, W); a weighted propensity g(W) bounded away from
+0/1; the clever covariate H(A, W) = A/g(W) − (1 − A)/(1 − g(W)); a weighted
+logistic fluctuation of Y on H with offset logit Q̄⁰ giving the tilt ε; the update
+Q̄*(a, W) = expit(logit Q̄⁰(a, W) + ε H(a, W)); and the marginalized
+treatment-specific means. The variance is the efficient influence function
+weighted by the case-control weights (delta-method log-scale intervals for the RR
+and OR). The shared `ccw_prepare()` (factored out of `fit_ccw()`) builds the
+weights and 0/1-coded sample for every CCW engine, and `tidy()` / `summary()` now
+branch on the engine being a CCW estimator (CCW-TMLE's model is a
+`matchatr_ccw_tmle`, not a `causatr_fit`).
+
+Validated in `test-tmle_ccw.R` against `tmle::tmle(obsWeights = )` on the same
+case-control weights (plain-glm initial fit, matching gbound): the targeted risk
+difference and its SE agree essentially exactly, the risk / odds ratios within
+~1%. A truth DGP recovers the analytical marginal RD / RR / mOR, and a
+double-robustness DGP confirms CCW-TMLE recovers the marginal truth whether the
+outcome or the propensity working model is misspecified. `tmle` is added to
+`Suggests`.
+
+**Unified missing-data handling for the CCW family.** `ccw_prepare()` now
+complete-cases the analysis sample for every CCW engine — rows with a missing
+outcome, exposure, or confounder are dropped with a classed `matchatr_dropped_rows`
+warning, and the case-control weights are computed on the complete-case sample so
+the weighted case fraction still equals q0. This is the matchatr-wide convention
+(it matches the classical engines and causatr's default `na.action`), and it
+unifies what was inconsistent behaviour: CCW-g-formula silently complete-cased,
+CCW-IPW / CCW-AIPW errored on a confounder NA, and CCW-TMLE crashed (its
+hand-rolled prediction / clever-covariate vectors misaligned against the
+full-length data). Multiple imputation (the recommended approach for missing
+confounders; Dashti et al. 2024) and an outcome-missingness / IPCW extended-TMLE
+(for missing outcomes) are the deferred principled alternatives (PHASE_13). A
+non-converging TMLE fluctuation now warns (`matchatr_tmle_convergence`) and falls
+back to the untargeted initial fit rather than propagating `NaN`.
+
+## 2026-06-11 — CCW-IPW and doubly-robust CCW-AIPW (PHASE_9 Chunk 2)
+
+Two more case-control-weighted marginal estimators: `matcha(estimator =
+"ccw_ipw")` (inverse-probability weighting) and `matcha(estimator = "ccw_aipw")`
+(augmented IPW). Both report the same marginal risk difference / risk ratio /
+marginal odds ratio as `ccw_gformula`, on a case-control sample with a known
+prevalence q0. **CCW-AIPW is doubly robust** — consistent for the marginal effect
+if **either** the outcome model or the propensity model is correctly specified
+(Rose & van der Laan 2014, *Biometrics* 70(1)).
+
+The implementation is delegation-first: `fit_ccw()` (`R/ccw.R`) is parameterized
+over the estimator, mapping `ccw_gformula` / `ccw_ipw` / `ccw_aipw` to
+`causatr::causat(estimator = "gcomp" / "ipw" / "aipw", weights = cc_weights)` —
+the case-control weights enter as causatr's observation weights — and reuses the
+same `contrast_ccw()` standardization unchanged. The IPW / AIPW propensity fitter
+is named explicitly (`propensity_model_fn = stats::glm`) so causatr does not warn
+about defaulting it. Point estimate and influence-function/sandwich variance are
+causatr's; matchatr owns only the weighting. The missing-q0 / non-binary-exposure
+/ missing-confounders / off-scale / bootstrap rejections are shared across the CCW
+family.
+
+Validated in `test-ccw.R`: the exact pseudo-cohort `causatr` oracle and the
+marginal-truth recovery now cover all three estimators, plus a **double-robustness**
+test — a cohort where exactly one of the `~ w`-linear working models is correct
+(the other omits a quadratic term); CCW-AIPW recovers the analytical marginal
+risk difference whether the outcome or the propensity model is the misspecified
+one, while the corresponding singly-robust estimator (g-formula or IPW) is biased.
+
+## 2026-06-11 — Case-control-weighted marginal causal contrasts (PHASE_9 Chunk 1)
+
+First **marginal** causal effect from a case-control sample. `matcha(estimator =
+"ccw_gformula")` on an unmatched case-control design carrying a known source
+prevalence q0 (`unmatched_cc(prevalence = q0)`) reports the marginal risk
+difference (`contrast(type = "difference")`, the default), risk ratio
+(`type = "ratio"`), or marginal odds ratio (`type = "or"`) — the quantities a
+plain conditional odds ratio cannot deliver (non-collapsible, no baseline risk).
+
+The estimator is the Rose & van der Laan case-control-weighted g-formula: the
+new `cc_weights()` (`R/weights_cc.R`) computes the weights q0 / (n1/n) for cases
+and (1 − q0) / (n0/n) for controls, which reweight the sample's outcome margin to
+the source population so the weighted empirical distribution mimics the cohort;
+`fit_ccw()` (`R/ccw.R`) then fits a weighted g-computation via
+`causatr::causat(estimator = "gcomp")` and `contrast()` standardizes it to the
+marginal effect over the treat-all / treat-none static interventions by
+forwarding to `causatr::contrast()`. Point estimate and influence-function /
+sandwich variance are delegated to causatr; matchatr owns only the weighting
+layer. A non-binary exposure (`matchatr_bad_input`), a missing q0
+(`matchatr_missing_prevalence`), an off-scale contrast
+(`matchatr_unidentified_estimand`), and a bootstrap interval
+(`matchatr_unsupported_variance`) are each rejected. A marginal g-formula
+contrast has no information-matrix variance distinct from the influence-function
+one, so `ci_method = "model"` and `"sandwich"` both yield causatr's sandwich
+interval and the result records `"sandwich"`; `tidy()` and `summary()` on a ccw
+fit surface the marginal contrast (the fitted model is a `causatr_fit` with no
+conditional coefficient table).
+
+Validated in `test-ccw.R`: an **exact** pseudo-cohort oracle (the hand-weighted
+`causatr::causat()` + `contrast()` agrees to machine precision, confirming the
+weighting and intervention plumbing) and a **truth DGP** (a cohort with an
+analytical marginal RD / RR / mOR; the case-control-weighted g-formula recovers
+the marginal truth, which lands on a tolerance band disjoint from the conditional
+odds ratio a logistic fit reports — the non-collapsibility pin). `cc_weights()`
+is checked against its closed form (weighted case fraction == q0) in
+`test-weights_cc.R`.
+
+This is the first chunk of the CCW family; CCW-IPW / CCW-AIPW (Chunk 2), CCW-TMLE
+(Chunk 3, the one genuinely new targeting engine), and the estimated-q0 variance
+correction with matched / nested CC support and within-stratum bootstrap (Chunk 4)
+land in the entries above.
+
 ## 2026-06-10 — Time-varying additive excess risk for IPW NCC (PHASE_7 follow-up)
 
 New exported verb `excess_risk(fit, times)` for an `ipw_aalen` fit reports the

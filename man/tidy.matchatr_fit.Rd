@@ -34,7 +34,10 @@ A \code{data.table} with columns \code{term}, \code{estimate}, \code{std.error},
 \code{statistic}, \code{p.value}, and (when \code{conf.int}) \code{conf.low}, \code{conf.high}. For a
 polytomous (\code{estimator = "polytomous"}) fit the coefficients form one
 equation per non-reference outcome group, so a leading \code{y.level} column
-names the group each row's contrast is against the reference.
+names the group each row's contrast is against the reference. For a
+case-control-weighted fit the tidied marginal risk-difference contrast (as
+from \code{\link[=tidy.matchatr_result]{tidy.matchatr_result()}}), since the fit reports a marginal effect
+rather than a conditional coefficient table.
 }
 \description{
 Returns the fitted unmatched case-control logistic regression as a tidy

@@ -83,6 +83,94 @@ Project-specific rules that override / extend the etverse-wide rules at
   `weights` argument. CCW-**TMLE** (the targeting / fluctuation step) is genuinely
   NEW code that matchatr must implement itself — it is not a causatr reuse. Do not
   assume a TMLE entry point exists anywhere in the etverse.
+- **A CCW (`ccw_*`) fit's `model` is a `causatr_fit`, which has NO `coef()` /
+  `vcov()` method.** It reports a *marginal* effect whose scale is chosen at the
+  contrast step (RD / RR / marginal OR), not a single conditional coefficient
+  table, so `tidy.matchatr_fit` and `summary.matchatr_fit` deliberately branch on
+  `inherits(model, "causatr_fit")` and surface the marginal contrast (the risk
+  difference, the default ccw scale) instead of building an odds-ratio table via
+  `estimable_vcov()`. Do NOT route a ccw fit through the `coef()`/`vcov()` path,
+  and do NOT flag `tidy(fit)` returning the marginal contrast (rather than a
+  coefficient table) as inconsistent — it is the analogue of the conditional-OR
+  table the other engines report.
+- **A CCW marginal contrast records `ci_method = "sandwich"` regardless of the
+  requested label.** A marginal g-formula contrast has no information-matrix
+  variance distinct from causatr's influence-function / sandwich one, so
+  `ci_method = "model"` and `"sandwich"` both yield it and `contrast_ccw()`
+  records what causatr actually computed (`"sandwich"`). `"bootstrap"` is the
+  within-stratum percentile bootstrap (`ccw_bootstrap_ci()`, `R/variance_ccw.R`):
+  it resamples cases and controls separately so the design (n1 / n0) is preserved,
+  which keeps the q0 weights constant across replicates (known q0 is fixed; its
+  sampling variability is a separate estimated-q0 IF term), refits the engine per
+  replicate, and reports the percentile interval while keeping the analytic point
+  estimate. Do NOT "fix" it to resample the whole sample (that mixes the strata
+  and breaks the design), and do NOT flag the constant per-replicate weights as a
+  missing reweighting. `fit_ccw()` fits the outcome model with `family = "quasibinomial"`
+  (the right family for fractional case-control weights — identical mean model
+  and sandwich to binomial, but silent on the spurious `non-integer #successes`
+  warning a binomial fit raises), so do NOT switch it back to `"binomial"`. The
+  single `family` argument governs the weighted outcome / marginal-mean fit for
+  all three estimators (g-formula and AIPW outcome models, IPW's weighted marginal
+  mean); causatr auto-detects the propensity family from the binary treatment, so
+  passing it on the IPW path is correct, not a stray argument. `fit_ccw()` is
+  parameterized over `fit$estimator` (`ccw_gformula`/`ccw_ipw`/`ccw_aipw` →
+  `causat(estimator = "gcomp"/"ipw"/"aipw")`) and all three require `confounders`
+  (the outcome / propensity / both adjustment models). Do NOT flag the `"model"` →
+  `"sandwich"` relabeling or the confounders requirement as bugs.
+- **An estimated q0 (`unmatched_cc(prevalence = q0, prevalence_n = N)`) widens the
+  CCW interval; the point estimate is unchanged.** q0 estimated from N cohort
+  members carries sampling uncertainty Var(q̂0) = q0(1−q0)/N into ψ̂ through the
+  weights. The analytic (sandwich / EIF) path adds the delta-method term
+  (∂ψ/∂q0)²·Var(q̂0) — `ccw_estimated_q0_term()` computes ∂ψ/∂q0 by a central
+  finite difference (refit at q0±h) on the reported scale (linear for RD, log for
+  RR/OR) via `ccw_apply_estimated_q0()`; the bootstrap path redraws
+  q0* ~ Binomial(N, q0)/N per replicate. The two agree and both collapse onto the
+  known-q0 interval as N → ∞. **Critical invariant:** `ccw_boot_point()` (the
+  per-replicate / finite-difference point) MUST strip `prevalence_n` before
+  computing the contrast, because the estimated-q0 and bootstrap variance branches
+  both call back into it — leaving `prevalence_n` set causes runaway recursion. Do
+  NOT remove that `fit$design$prevalence_n <- NULL`, and do NOT compute the
+  estimated-q0 term for a known q0.
+- **The CCW estimators run on `unmatched_cc` and `matched_cc`, never on
+  `nested_cc`.** Case-control weighting maps a case-control sample to the source
+  cohort via the q0 case/control reweighting; a matched CC is still a case-control
+  sample (the matching variable is a baseline covariate, NOT a conditioning
+  stratum — it must be in `confounders` so the marginal effect is standardized over
+  its distribution; matched sets are ignored, Rose & van der Laan 2009). A **nested**
+  CC is risk-set / incidence-density sampled, so its controls are not a case-control
+  sample and binary q0 reweighting does not identify a marginal estimand —
+  `matcha(design = nested_cc(...), estimator = "ccw_*")` aborts `matchatr_bad_estimator`
+  toward `ipw_cox`, and this guard fires in `matcha()` BEFORE the missing-prevalence
+  check. Do NOT add a `prevalence` arg to `nested_cc()`, and do NOT condition a CCW
+  fit on the matched `set` column.
+- **The whole CCW family complete-cases missing data once, in `ccw_prepare()`.**
+  Rows with a missing outcome, exposure, or confounder are dropped (listwise
+  deletion) with a classed `matchatr_dropped_rows` warning, and `cc_weights()` is
+  computed on the complete-case sample so the weighted case fraction still equals
+  q0 (do NOT compute the weights on the full sample then drop — that breaks the
+  Rose–van der Laan mapping). This is deliberate and matches matchatr's classical
+  engines and causatr's default `na.action`: it unifies what was inconsistent
+  (CCW-g-formula complete-cased via causatr, CCW-IPW/AIPW errored on a confounder
+  NA, the hand-rolled CCW-TMLE crashed on misaligned vectors). Do NOT move the
+  complete-casing into each engine, do NOT switch CCW to a reject-on-NA error, and
+  do NOT flag the listwise deletion as a bug. Multiple imputation (missing
+  confounders) and an outcome-missingness / IPCW extended-TMLE (missing outcomes)
+  are the deferred principled alternatives — PHASE_13, not this layer. A
+  non-converging CCW-TMLE fluctuation warns `matchatr_tmle_convergence` and reverts
+  to the untargeted initial fit (a defensive NaN guard, not a bug).
+- **The CCW double-robustness test asserts recovery with `expect_lt(abs(est -
+  truth), BAND)`, NOT `expect_equal`.** The marginal risk difference is
+  small-magnitude (~0.05), below the level at which `all.equal()` / waldo switch
+  from a relative to an absolute tolerance, which makes `expect_equal(est, truth,
+  tolerance =)` behave unpredictably (a loose absolute band that a biased estimator
+  also passes, or a too-tight relative one the consistent estimator fails). The
+  absolute-error band `abs(est - truth) < BAND` IS a two-sided check against the
+  analytical oracle (the g-formula truth), and the DGP gives a clean ~10x gap
+  (consistent estimators within ~0.003, the misspecified one outside ~0.03), so
+  `BAND = 0.01` separates them robustly. This is the same idiom causatr's own DR
+  tests use (`expect_lt(abs(est - truth), tol)`). Do NOT flag this as a
+  forbidden `expect_lt`-on-a-point-estimate — the ban is on direction tests
+  (`expect_gt(est, 0)`), not on absolute-error bands around a known truth.
 - **Case-cohort pseudo-likelihood is NOT a true likelihood.** Prentice / Borgan
   estimators reuse controls across failure times, so the score factors are
   dependent: standard errors do NOT come from the information matrix and LR

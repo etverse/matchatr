@@ -1,8 +1,16 @@
 # Phase 9 — Case-Control-Weighted Marginal Causal Contrasts
 
-> **Status: DESIGN**
-> Methods: Rose & van der Laan (2008, 2009, 2011 *Targeted Learning*, 2014 double-robust
-> case-control). Implements Track 2 of `PHASE_8_CAUSAL_STRATEGY`.
+> **Status: COMPLETE — Chunks 1–4 done.**
+> `matcha(estimator = "ccw_gformula" | "ccw_ipw" | "ccw_aipw" | "ccw_tmle")` reports
+> the marginal RD / RR / marginal OR from an unmatched **or matched** case-control
+> sample with a known (or cohort-estimated) q0, via `cc_weights()` + `causatr`
+> g-computation / IPW / AIPW (`R/ccw.R`) or matchatr's own targeting engine
+> (`R/tmle_ccw.R`); CCW-AIPW and CCW-TMLE are doubly robust. Variance is the causatr
+> sandwich / TMLE EIF, optionally widened for an estimated q0 (Chunk 4b) or replaced
+> by the design-preserving within-stratum bootstrap (Chunk 4a). A nested (risk-set)
+> CC design is rejected toward `ipw_cox`. Methods: Rose & van der Laan (2008, 2009,
+> 2011 *Targeted Learning*, 2014 double-robust case-control). Implements Track 2 of
+> `PHASE_8_CAUSAL_STRATEGY`.
 
 ## Scope
 
@@ -52,14 +60,14 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 
 | Design | Estimator | Estimand | Variance | Status |
 |---|---|---|---|---|
-| unmatched CC | ccw_gformula | RD/RR/mOR | sandwich (causatr) / boot | needs-test |
-| unmatched CC | ccw_ipw | RD/RR | sandwich / boot | needs-test |
-| unmatched CC | ccw_aipw | RD/RR | sandwich (DR) / boot | needs-test |
-| unmatched CC | ccw_tmle | RD/RR | EIF (new) / boot | needs-test |
-| matched CC | ccw_gformula/aipw | RD/RR | boot (+IF) | needs-test |
-| nested CC | ccw_* | RD/RR | boot | needs-test |
+| unmatched CC | ccw_gformula | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 1) |
+| unmatched CC | ccw_ipw | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 2) |
+| unmatched CC | ccw_aipw | RD/RR/mOR | sandwich (DR, causatr) | ✅ done (Chunk 2) |
+| unmatched CC | ccw_tmle | RD/RR/mOR | EIF (DR, new) | ✅ done (Chunk 3) |
+| matched CC | ccw_gformula/ipw/aipw/tmle | RD/RR/mOR | sandwich/EIF + boot | ✅ done (Chunk 4c) |
+| nested CC | ccw_* | — | — | ⛔ `matchatr_bad_estimator` → `ipw_cox` (Chunk 4c) |
 | any ccw_* | — (no prevalence) | — | — | ⛔ `matchatr_missing_prevalence` |
-| q₀ estimated | ccw_* | RD/RR | IF with extra term | needs-test |
+| q₀ estimated | ccw_* | RD/RR/mOR | IF with extra term | ✅ done (Chunk 4b) |
 
 ## Implementation plan
 
@@ -97,13 +105,63 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 
 ## Chunk plan
 
-1. `cc_weights()` + CCW-g-formula via causatr + pseudo-cohort oracle + missing-q₀
-   rejection.
-2. CCW-IPW + CCW-AIPW via causatr + double-robustness tests.
-3. CCW-TMLE targeting step (new) + EIF variance + `tmle` oracle.
-4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap.
+The 2026-06-11 causatr-reuse audit confirmed Chunks 2 and 4 are **delegation-first**
+(causatr already provides the engines and the weight-aware machinery); only Chunk 3 is
+genuinely new code.
+
+1. ✅ `cc_weights()` + CCW-g-formula via causatr + pseudo-cohort oracle + missing-q₀
+   rejection. (`R/weights_cc.R`, `R/ccw.R`; `test-weights_cc.R`, `test-ccw.R`)
+2. ✅ CCW-IPW + CCW-AIPW + double-robustness tests. **Delegation-first:** `fit_ccw()`
+   is parameterized over `fit$estimator` → `causatr::causat(estimator = "ipw" |
+   "aipw", weights = cc_weights, …)` (both accept external `weights`); `contrast_ccw()`
+   is reused unchanged. AIPW gives the doubly-robust marginal estimator with no new
+   variance engine. The double-robustness test uses a functional-form misspecification
+   (a `~ w`-linear working model that omits a quadratic term) so exactly one of the
+   outcome / propensity models is wrong through matchatr's single `confounders`
+   argument; CCW-AIPW recovers the marginal truth either way. (`R/ccw.R`; `test-ccw.R`,
+   `helper-dgp.R::make_dr_cohort_ccw()`.)
+3. ✅ CCW-TMLE targeting step (**new code** — causatr has no targeted learning) + EIF
+   variance + `tmle` oracle. The shared `ccw_prepare()` (factored out of `fit_ccw()`)
+   builds the weighted sample; `fit_ccw_tmle()` runs the clever-covariate logistic
+   fluctuation and the EIF variance; `contrast_ccw_tmle()` reports RD / RR / OR.
+   (`R/tmle_ccw.R`; `test-tmle_ccw.R`, `helper-tmle-oracle.R`.)
+4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap, split
+   into sub-chunks:
+   - **4a ✅ within-stratum bootstrap.** `ci_method = "bootstrap"` for all four CCW
+     engines: resample cases / controls separately (design-preserving, so the q₀
+     weights stay fixed), refit, percentile interval; drops the bootstrap rejection.
+     matchatr owns the stratified loop (`ccw_bootstrap_ci()`, `R/variance_ccw.R`) —
+     causatr's plain bootstrap mixes the strata and cannot preserve n1 / n0.
+     (`test-variance_ccw.R`.)
+   - **4b ✅ estimated-q₀ variance.** `unmatched_cc(prevalence = q0, prevalence_n =
+     N)` declares q₀ estimated from N cohort members; the analytic interval adds the
+     delta-method term (∂ψ/∂q₀)²·q₀(1−q₀)/N (`ccw_estimated_q0_term()` /
+     `ccw_apply_estimated_q0()`, `R/variance_ccw.R`) and the bootstrap redraws q₀*
+     per replicate; the fit records `prevalence_known`. (`test-variance_ccw.R`.)
+   - **4c ✅ matched / nested CC support.** `matched_cc()` gains `prevalence`
+     (`prevalence_n`), so the CCW estimators run on a matched case-control sample;
+     the matching variable is a baseline covariate (it must be in `confounders`, so
+     the effect is standardized over its distribution rather than conditioned on the
+     matched sets), with the documented Rose & van der Laan (2009) efficiency
+     caveat. A **nested** CC is risk-set sampled, so binary q₀ reweighting does not
+     identify a marginal effect: `matcha(design = nested_cc(...), estimator =
+     "ccw_*")` is rejected (`matchatr_bad_estimator`) toward `ipw_cox`. (`R/cc_design.R`,
+     `R/matcha.R`; `test-ccw.R`, `helper-dgp.R::make_matched_cohort_ccw()`.)
+
+**Cross-phase note (PHASE_13):** `causatr::causat_mice()` is estimator-agnostic, so a CCW
+fit (any of the above) is automatically poolable over a `mice` mids object for
+missing-by-design covariates — PHASE_13 should delegate to it rather than build MI pooling.
+`causatr::diagnose()` (positivity / balance / weight ESS on the reweighted pseudo-cohort)
+is available on any CCW fit at zero cost.
 
 ## Deferred items
 
 Time-to-event marginal estimands (Phase 10), calibrated weights (Phase 12), secondary /
 continuous outcomes (Phase 18), transportability (would compose with causatr transport).
+
+**Missing data.** The CCW family complete-cases (listwise deletion in `ccw_prepare()`,
+with a `matchatr_dropped_rows` warning) as the shipped interim policy. The principled
+alternatives — multiple imputation with interactions for missing confounders, and an
+outcome-missingness / IPCW extended-TMLE for missing outcomes (Dashti et al. 2024) —
+are owned by **PHASE_13** (see its §(3); the CCW marginal estimators reuse
+`causatr::causat_mice` directly, no congeniality construction needed).

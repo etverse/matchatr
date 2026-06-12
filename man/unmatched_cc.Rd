@@ -4,7 +4,7 @@
 \alias{unmatched_cc}
 \title{Unmatched case-control design}
 \usage{
-unmatched_cc(prevalence = NULL, strata = NULL)
+unmatched_cc(prevalence = NULL, prevalence_n = NULL, strata = NULL)
 }
 \arguments{
 \item{prevalence}{\code{NULL} or a single number in (0, 1). The marginal outcome
@@ -12,6 +12,12 @@ prevalence q0 in the source population. Required for case-control-weighted
 (\code{"ccw_*"}) estimators, which reweight the sample back to the population;
 optional for the conditional / classical odds-ratio estimators, which do
 not need it.}
+
+\item{prevalence_n}{\code{NULL} (default; q0 is treated as known) or a whole number
+giving the cohort size q0 was estimated from. When supplied, the
+case-control-weighted variance gains a term for q̂0's sampling uncertainty
+(Var(q̂0) = q0 (1 − q0) / prevalence_n), and a fit records
+\code{prevalence_known = FALSE}.}
 
 \item{strata}{\code{NULL} or a non-empty character vector naming the column(s) to
 stratify on for the Mantel-Haenszel estimator (\code{estimator = "mh"}), e.g.
@@ -42,6 +48,7 @@ engine.
 \examples{
 unmatched_cc()
 unmatched_cc(prevalence = 0.02)
+unmatched_cc(prevalence = 0.02, prevalence_n = 50000) # q0 estimated from a cohort
 unmatched_cc(strata = "agegrp")
 
 }

@@ -203,3 +203,42 @@ test_that("the homogeneity Wald test + pooled OR match the statsmodels oracle", 
   expect_equal(hr$conf.low, py$pooled_or_low[1], tolerance = tol)
   expect_equal(hr$conf.high, py$pooled_or_high[1], tolerance = tol)
 })
+
+test_that("the case-control-weighted marginal contrasts match the delicatessen oracle", {
+  res_path <- test_path("fixtures", "python", "ccw_marginal_results.csv")
+  skip_if(!file.exists(res_path), "Python oracle fixture not generated")
+  skip_if_not_installed("causatr")
+  data <- read.csv(test_path("fixtures", "python", "ccw_marginal_data.csv"))
+  py <- read.csv(res_path)
+  q0 <- data$q0[1]
+
+  # delicatessen re-derives each CCW marginal contrast by M-estimation: it stacks
+  # the same working-model scores and treatment-specific means matchatr's engines
+  # solve, with the Rose & van der Laan case-control weights as fixed observation
+  # weights, and reports the sandwich SE. g-formula and AIPW use the identical
+  # canonical estimating equations matchatr delegates to causatr, so estimate AND
+  # sandwich SE agree to machine precision. IPW's mean has a propensity-weighting /
+  # normalisation degree of freedom that causatr resolves slightly differently, so
+  # it is cross-checked at a looser (still two-sided) sandwich tolerance.
+  tols <- c(ccw_gformula = 1e-5, ccw_aipw = 1e-5, ccw_ipw = 2e-2)
+
+  for (est in c("ccw_gformula", "ccw_ipw", "ccw_aipw")) {
+    fit <- matcha(
+      data,
+      outcome = "case",
+      exposure = "x",
+      design = unmatched_cc(prevalence = q0),
+      confounders = ~w,
+      estimator = est
+    )
+    tol <- tols[[est]]
+    for (sc in c("difference", "ratio", "or")) {
+      r <- contrast(fit, type = sc)$contrasts
+      pr <- py[py$estimator == est & py$scale == sc, ]
+      expect_equal(r$estimate, pr$estimate, tolerance = tol)
+      expect_equal(r$se, pr$se, tolerance = tol)
+      expect_equal(r$ci_lower, pr$ci_lower, tolerance = tol)
+      expect_equal(r$ci_upper, pr$ci_upper, tolerance = tol)
+    }
+  }
+})

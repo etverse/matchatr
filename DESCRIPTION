@@ -45,6 +45,7 @@ Suggests:
     survey,
     testthat (>= 3.0.0),
     timereg,
+    tmle,
     tinyplot,
     tinytable,
     WeightIt,

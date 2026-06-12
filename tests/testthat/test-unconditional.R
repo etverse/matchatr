@@ -17,15 +17,7 @@ test_that("matcha fits a binomial glm for the logistic engine", {
 })
 
 test_that("an engine with no wired estimator leaves model NULL", {
-  df <- make_cc_data()
-  # The causal CCW engines are not yet wired; their fit carries model = NULL.
-  fit <- matcha(
-    df,
-    "case",
-    "x",
-    unmatched_cc(prevalence = 0.05),
-    estimator = "ccw_gformula"
-  )
+  fit <- make_unestimated_fit()
   expect_null(fit$model)
 })
 

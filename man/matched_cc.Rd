@@ -4,7 +4,7 @@
 \alias{matched_cc}
 \title{Matched case-control design}
 \usage{
-matched_cc(strata, ratio = NULL)
+matched_cc(strata, ratio = NULL, prevalence = NULL, prevalence_n = NULL)
 }
 \arguments{
 \item{strata}{A non-empty character vector naming the column(s) that
@@ -14,10 +14,23 @@ frequency matching).}
 \item{ratio}{\code{NULL} or a single whole number >= 1. The number of controls
 matched per case (m:1). Optional metadata; the conditional likelihood does
 not require a fixed ratio.}
+
+\item{prevalence}{\code{NULL} or a single number in (0, 1): the source-population
+prevalence q0, required for the case-control-weighted (\code{"ccw_*"}) marginal
+estimators. Optional for the (default) conditional logistic OR. For a
+case-control-weighted \strong{marginal} effect on matched data the matching
+variable(s) must be included in \code{confounders} (the matched controls are not a
+representative population control sample, so the marginal estimator adjusts
+for the matching variable rather than conditioning on the matched sets; Rose &
+van der Laan 2009 — matching may cost efficiency relative to an unmatched CCW
+analysis).}
+
+\item{prevalence_n}{\code{NULL} or a whole number giving the cohort size q0 was
+estimated from (makes q0 estimated, adding a variance term).}
 }
 \value{
 A \code{matchatr_design} object of \code{type} \code{"matched_cc"} carrying the
-strata and ratio.
+strata, ratio, and (optionally) the prevalence.
 }
 \description{
 Declares an individually or frequency matched case-control sample: each case
@@ -31,6 +44,7 @@ biases the odds ratio and is never used.
 \examples{
 matched_cc(strata = "set")
 matched_cc(strata = c("age_grp", "sex"), ratio = 2)
+matched_cc(strata = "set", prevalence = 0.02) # for a marginal CCW contrast
 
 }
 \seealso{

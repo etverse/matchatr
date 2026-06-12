@@ -43,15 +43,34 @@ matchatr's `build_ncc_selection_dataset()`.  Both apply the identical product
 formula on the same logistic fit, so agreement is within double-precision
 rounding (< 1e-10 typically).
 
-`delicatessen` (M-estimation + sandwich) is reserved for the **causal /
-sandwich** estimands (the case-control-weighted g-formula / IPW / AIPW / TMLE
-contrasts) when those phases land — that is where estimating-equation oracles
-are the natural fit, not the conditional/multinomial MLEs here.
+`delicatessen` (M-estimation + sandwich) anchors the **causal / sandwich**
+estimands — the case-control-weighted marginal contrasts — where an
+estimating-equation oracle is the natural fit rather than a conditional MLE:
+
+| matchatr estimator | estimand | delicatessen oracle |
+|---|---|---|
+| `ccw_gformula` | marginal RD / RR / mOR | weighted outcome logistic + `E_w[Q(a,W)]` means, stacked |
+| `ccw_ipw` | marginal RD / RR / mOR | weighted propensity + `E_w[1{A=a}Y/g_a]` means, stacked |
+| `ccw_aipw` | marginal RD / RR / mOR (doubly robust) | both working models + the doubly-robust EIF means, stacked |
+
+The `ccw_marginal.*` oracle reads one data file (`ccw_marginal_data.csv`, which
+carries the known prevalence `q0` as a column) and writes one tidy results file
+(`ccw_marginal_results.csv`, a row per estimator × scale with estimate / SE /
+Wald CI). The case-control weights are FIXED observation weights, so they enter
+every estimating equation as a constant — exactly as causatr treats them. The
+g-formula and AIPW use the identical canonical estimating equations matchatr
+delegates to causatr, so estimate AND sandwich SE agree to machine precision;
+IPW's treatment-specific mean has a propensity-weighting / normalisation degree
+of freedom causatr resolves slightly differently, so it agrees to ~1e-3.
+`ccw_tmle` targets the same marginal estimand but by a finite-sample-distinct
+fluctuation step, so it is cross-checked against `tmle::tmle(obsWeights=)` (in
+`test-tmle_ccw.R`), not delicatessen.
 
 ## Environment
 
 - Python ≥ 3.11 (developed on 3.14)
-- `numpy`, `scipy`, `pandas`, `statsmodels`
+- `numpy`, `scipy`, `pandas`, `statsmodels` (classical MLE oracles),
+  `delicatessen` ≥ 4.0 (CCW M-estimation / sandwich oracle)
 
 ## Regenerating a results fixture
 

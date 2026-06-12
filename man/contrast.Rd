@@ -33,7 +33,10 @@ or \code{"bootstrap"}.}
 \item{conf_level}{Numeric confidence level for the interval, a single number
 strictly in (0, 1). Defaults to 0.95.}
 
-\item{...}{Reserved for estimator-specific contrast arguments.}
+\item{...}{Reserved for estimator-specific contrast arguments. The
+case-control-weighted estimators accept \code{n_boot} (integer, default 1000), the
+number of within-stratum bootstrap replicates used when
+\code{ci_method = "bootstrap"}.}
 }
 \value{
 A \code{matchatr_result} object carrying the estimates, the contrasts,

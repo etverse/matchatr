@@ -282,6 +282,28 @@ matcha <- function(
     }
   }
 
+  # Case-control weighting (q0-based) maps an unmatched or matched case-control
+  # SAMPLE back to the source population. A nested case-control sample is drawn by
+  # risk-set (incidence-density) sampling, so its controls are not a case-control
+  # sample and the q0 binary reweighting does not identify a marginal effect there;
+  # its marginal estimands are time-to-event and use inclusion-probability weights.
+  if (identical(routing$kind, "ccw") && identical(design$type, "nested_cc")) {
+    rlang::abort(
+      c(
+        paste0(
+          "The case-control-weighted estimator `",
+          estimator,
+          "` does not apply to a nested case-control (risk-set-sampled) design."
+        ),
+        i = paste0(
+          "Use `estimator = \"ipw_cox\"` (Samuelsen inclusion-weighted hazard ratio) ",
+          "for a nested case-control sample."
+        )
+      ),
+      class = c("matchatr_bad_estimator", "matchatr_error")
+    )
+  }
+
   # Case-control weighting reweights the sample to the source population, which
   # is impossible without the marginal prevalence q0.
   if (identical(routing$kind, "ccw") && is.null(design$prevalence)) {
@@ -347,6 +369,9 @@ matcha <- function(
       cc_weights = NULL,
       design_weights = NULL,
       variance_kind = NULL,
+      # For the case-control-weighted estimators: whether q0 is known (fixed) or
+      # estimated from a cohort of `prevalence_n` members (adds a variance term).
+      prevalence_known = is.null(design$prevalence_n),
       # Pluggable logistic fitter (NULL -> stats::glm), used by the glm_logistic
       # engine; e.g. mgcv::gam for smooth confounder adjustment.
       model_fn = model_fn,
