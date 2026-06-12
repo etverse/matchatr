@@ -1,5 +1,35 @@
 # matchatr (development version)
 
+## 2026-06-12 — CCW-TMLE: case-control-weighted targeted learning (PHASE_9 Chunk 3)
+
+`matcha(estimator = "ccw_tmle")` adds targeted maximum likelihood estimation to
+the case-control-weighting family — the one genuinely new engine, since the
+etverse has no targeted-learning code to delegate to. It reports the same marginal
+risk difference / risk ratio / marginal odds ratio as the other CCW estimators,
+and like CCW-AIPW it is **doubly robust** (consistent if either the outcome or the
+propensity model is correct).
+
+The targeting step (`R/tmle_ccw.R`, van der Laan & Rubin 2006; van der Laan & Rose
+2011) runs entirely on the case-control-weighted sample: an initial weighted
+logistic outcome model Q̄⁰(A, W); a weighted propensity g(W) bounded away from
+0/1; the clever covariate H(A, W) = A/g(W) − (1 − A)/(1 − g(W)); a weighted
+logistic fluctuation of Y on H with offset logit Q̄⁰ giving the tilt ε; the update
+Q̄*(a, W) = expit(logit Q̄⁰(a, W) + ε H(a, W)); and the marginalized
+treatment-specific means. The variance is the efficient influence function
+weighted by the case-control weights (delta-method log-scale intervals for the RR
+and OR). The shared `ccw_prepare()` (factored out of `fit_ccw()`) builds the
+weights and 0/1-coded sample for every CCW engine, and `tidy()` / `summary()` now
+branch on the engine being a CCW estimator (CCW-TMLE's model is a
+`matchatr_ccw_tmle`, not a `causatr_fit`).
+
+Validated in `test-tmle_ccw.R` against `tmle::tmle(obsWeights = )` on the same
+case-control weights (plain-glm initial fit, matching gbound): the targeted risk
+difference and its SE agree essentially exactly, the risk / odds ratios within
+~1%. A truth DGP recovers the analytical marginal RD / RR / mOR, and a
+double-robustness DGP confirms CCW-TMLE recovers the marginal truth whether the
+outcome or the propensity working model is misspecified. `tmle` is added to
+`Suggests`.
+
 ## 2026-06-11 — CCW-IPW and doubly-robust CCW-AIPW (PHASE_9 Chunk 2)
 
 Two more case-control-weighted marginal estimators: `matcha(estimator =

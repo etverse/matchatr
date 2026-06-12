@@ -252,3 +252,18 @@ exposure_coef_index <- function(model, exposure, call = rlang::caller_env()) {
   }
   which(ta$assign == pos)
 }
+
+#' Bound a probability vector away from 0 and 1
+#'
+#' Clamps fitted probabilities into `[lower, 1 - lower]` so that `logit`
+#' (`stats::qlogis`) and inverse-probability weights stay finite — used by the
+#' CCW-TMLE engine to bound the propensity and the outcome predictions.
+#'
+#' @param x Numeric vector of fitted probabilities.
+#' @param lower Numeric lower bound in (0, 0.5); the upper bound is `1 - lower`.
+#' @returns `x` clamped to `[lower, 1 - lower]`.
+#' @family estimators
+#' @noRd
+bound01 <- function(x, lower) {
+  pmin(pmax(x, lower), 1 - lower)
+}

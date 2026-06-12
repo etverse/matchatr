@@ -10,16 +10,7 @@ test_that("contrast rejects a non-fit argument", {
 })
 
 test_that("contrast on a non-estimated engine aborts with matchatr_not_estimated", {
-  df <- make_cc_data(n_sets = 6L)
-  # The CCW-TMLE engine is not yet wired; its fit carries model = NULL (the
-  # ccw_gformula / ipw / aipw engines are wired, exercised in test-ccw.R).
-  fit <- matcha(
-    df,
-    "case",
-    "x",
-    unmatched_cc(prevalence = 0.05),
-    estimator = "ccw_tmle"
-  )
+  fit <- make_unestimated_fit()
   expect_null(fit$model)
   expect_error(contrast(fit), class = "matchatr_not_estimated")
 })
@@ -79,13 +70,6 @@ test_that("contrast() defaults to the estimand the engine identifies", {
 })
 
 test_that("the not-estimated message reads clearly", {
-  df <- make_cc_data(n_sets = 6L)
-  fit <- matcha(
-    df,
-    "case",
-    "x",
-    unmatched_cc(prevalence = 0.05),
-    estimator = "ccw_tmle"
-  )
+  fit <- make_unestimated_fit()
   expect_snapshot(contrast(fit), error = TRUE)
 })

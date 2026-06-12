@@ -80,16 +80,16 @@ tidy.matchatr_fit <- function(
     ))
   }
 
-  # A case-control-weighted fit's model is a causatr g-computation fit, not a
-  # conditional-likelihood model: it carries no coef()/vcov() on the reported
-  # scale that the binary path below could read. Its headline is the marginal
-  # contrast, whose scale is chosen at the contrast step, so `tidy()` reports the
-  # tidied marginal effect (the risk difference, the default ccw scale).
-  # `exponentiate` / `robust` select neither the scale nor the variance of a
-  # marginal contrast (causatr returns its influence-function interval), so they
-  # do not apply here; use `contrast(fit, type =)` for the ratio / odds-ratio
-  # scale.
-  if (inherits(model, "causatr_fit")) {
+  # A case-control-weighted fit's model is a causatr g-computation fit or a
+  # targeted (TMLE) fit, not a conditional-likelihood model: it carries no
+  # coef()/vcov() on the reported scale that the binary path below could read.
+  # Its headline is the marginal contrast, whose scale is chosen at the contrast
+  # step, so `tidy()` reports the tidied marginal effect (the risk difference, the
+  # default ccw scale). `exponentiate` / `robust` select neither the scale nor the
+  # variance of a marginal contrast (the engine returns its influence-function
+  # interval), so they do not apply here; use `contrast(fit, type =)` for the
+  # ratio / odds-ratio scale.
+  if (x$engine %in% ccw_estimators()) {
     return(tidy(contrast(x, type = "difference", conf_level = conf.level)))
   }
 

@@ -233,33 +233,37 @@ test_that("ccw_gformula returns a well-formed marginal result", {
   expect_identical(contrast(fit)$type, "difference")
 })
 
-test_that("the S3 surface works on a ccw fit (no causatr_fit vcov crash)", {
+test_that("the S3 surface works on a ccw fit (no vcov crash)", {
   skip_if_not_installed("causatr")
 
   cc <- make_cohort_ccw(n = 3000L, ratio = 3L, seed = 7L)
-  fit <- matcha(
-    cc,
-    outcome = "case",
-    exposure = "x",
-    design = unmatched_cc(prevalence = attr(cc, "q0")),
-    confounders = ~w,
-    estimator = "ccw_gformula"
-  )
+  # ccw_gformula's model is a causatr_fit; ccw_tmle's is a matchatr_ccw_tmle —
+  # neither has coef()/vcov(), so the fit-level tidy / summary must surface the
+  # marginal contrast instead of calling vcov(). Both route through the same
+  # engine-based branch.
+  for (est in c("ccw_gformula", "ccw_tmle")) {
+    fit <- matcha(
+      cc,
+      outcome = "case",
+      exposure = "x",
+      design = unmatched_cc(prevalence = attr(cc, "q0")),
+      confounders = ~w,
+      estimator = est
+    )
 
-  # The fitted model is a causatr_fit with no coef()/vcov(); the fit-level tidy /
-  # summary must surface the marginal contrast instead of calling vcov().
-  expect_no_error(print(fit))
-  td <- tidy(fit)
-  expect_s3_class(td, "data.table")
-  # tidy(fit) reports the marginal risk-difference contrast, equal to the value
-  # contrast() returns directly.
-  rd <- contrast(fit, type = "difference")$contrasts$estimate
-  expect_equal(td$estimate, rd)
-  expect_identical(td$type, "difference")
+    expect_no_error(print(fit))
+    td <- tidy(fit)
+    expect_s3_class(td, "data.table")
+    # tidy(fit) reports the marginal risk-difference contrast, equal to the value
+    # contrast() returns directly.
+    rd <- contrast(fit, type = "difference")$contrasts$estimate
+    expect_equal(td$estimate, rd)
+    expect_identical(td$type, "difference")
 
-  sm <- summary(fit)
-  expect_s3_class(sm, "matchatr_result")
-  expect_identical(sm$estimand, "marginal risk difference")
+    sm <- summary(fit)
+    expect_s3_class(sm, "matchatr_result")
+    expect_identical(sm$estimand, "marginal risk difference")
+  }
 })
 
 test_that("ccw_gformula records the variance it actually computed", {
@@ -349,16 +353,16 @@ test_that("ccw_gformula rejects bootstrap variance and off-scale contrasts", {
   expect_snapshot(error = TRUE, contrast(fit, type = "hr"))
 })
 
-test_that("the CCW rejections fire for ipw and aipw too", {
+test_that("the CCW rejections fire for ipw, aipw, and tmle too", {
   skip_if_not_installed("causatr")
 
-  # The fit_ccw() / contrast_ccw() guards are shared across the CCW family, so the
-  # same classed errors fire for ccw_ipw and ccw_aipw as for ccw_gformula.
+  # The shared ccw_prepare() guard and the contrast_ccw() / contrast_ccw_tmle()
+  # guards fire the same classed errors across the CCW family as for ccw_gformula.
   cc <- make_cohort_ccw(n = 2000L, ratio = 3L, seed = 3L)
   cc$xc <- rnorm(nrow(cc))
   q0 <- attr(cc, "q0")
 
-  for (est in c("ccw_ipw", "ccw_aipw")) {
+  for (est in c("ccw_ipw", "ccw_aipw", "ccw_tmle")) {
     expect_error(
       matcha(cc, "case", "x", unmatched_cc(prevalence = q0), estimator = est),
       class = "matchatr_bad_input" # no confounders

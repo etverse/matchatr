@@ -179,16 +179,18 @@ A non-binary exposure is also declined: this estimator reports the binary averag
 treatment effect (treat-all versus treat-none), so a continuous or multi-level
 exposure is routed to a conditional estimator instead.
 
-## Three estimators, one weighting concept
+## Four estimators, one weighting concept
 
 The same q₀ weights drive a whole family of cohort estimators on the weighted
 sample. `estimator = "ccw_ipw"` weights by an inverse-propensity model instead of
-standardizing an outcome model, and `estimator = "ccw_aipw"` combines both into the
-**augmented** (doubly-robust) estimator. All three report the same marginal effect
-when their models are correct:
+standardizing an outcome model; `estimator = "ccw_aipw"` combines both into the
+**augmented** (doubly-robust) estimator; and `estimator = "ccw_tmle"` is the
+**targeted** maximum likelihood estimator — also doubly robust, and the one engine
+matchatr builds itself (the etverse has no targeted-learning code to delegate to).
+All four report the same marginal effect when their models are correct:
 
 ```{r}
-ests <- c("ccw_gformula", "ccw_ipw", "ccw_aipw")
+ests <- c("ccw_gformula", "ccw_ipw", "ccw_aipw", "ccw_tmle")
 rd <- sapply(ests, function(e) {
   f <- matcha(cc, outcome = "case", exposure = "x",
               design = unmatched_cc(prevalence = q0),
@@ -229,14 +231,14 @@ round(rbind(marginal_RD = rd2, truth = truth_rd), 4)
 ```
 
 With the outcome model misspecified, `ccw_gformula` is biased, but `ccw_ipw` (correct
-propensity) and `ccw_aipw` recover the truth. Swap the misspecification to the
-propensity model and it is `ccw_ipw` that fails while `ccw_gformula` and `ccw_aipw`
-stay on target — AIPW is robust to either.
+propensity), `ccw_aipw`, and `ccw_tmle` recover the truth. Swap the misspecification
+to the propensity model and it is `ccw_ipw` that fails while `ccw_gformula`,
+`ccw_aipw`, and `ccw_tmle` stay on target — AIPW and TMLE are robust to either.
 
 ## Where this sits
 
-The case-control-weighting family now offers g-formula, IPW, and the doubly-robust
-AIPW marginal contrasts for an unmatched case-control study with a known prevalence.
-Still to come (forthcoming chunks): CCW-TMLE (a targeting step), the estimated-q₀
-variance correction, a design-respecting bootstrap, and matched / nested
-case-control support — all built on the same one weighting concept.
+The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW,
+and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a
+known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance
+correction, a design-respecting bootstrap, and matched / nested case-control
+support — all built on the same one weighting concept.

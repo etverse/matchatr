@@ -1,11 +1,11 @@
 # Phase 9 — Case-Control-Weighted Marginal Causal Contrasts
 
-> **Status: IN PROGRESS — Chunks 1–2 (CCW g-formula / IPW / AIPW) complete.**
-> `matcha(estimator = "ccw_gformula" | "ccw_ipw" | "ccw_aipw")` reports the marginal
-> RD / RR / marginal OR from an unmatched case-control sample with a known q0, via
-> `cc_weights()` + `causatr` g-computation / IPW / AIPW (`R/weights_cc.R`,
-> `R/ccw.R`); CCW-AIPW is doubly robust. Chunks 3–4 (CCW-TMLE, estimated-q0
-> variance + matched/nested CC + bootstrap) pending.
+> **Status: IN PROGRESS — Chunks 1–3 (CCW g-formula / IPW / AIPW / TMLE) complete.**
+> `matcha(estimator = "ccw_gformula" | "ccw_ipw" | "ccw_aipw" | "ccw_tmle")` reports
+> the marginal RD / RR / marginal OR from an unmatched case-control sample with a
+> known q0, via `cc_weights()` + `causatr` g-computation / IPW / AIPW (`R/ccw.R`) or
+> matchatr's own targeting engine (`R/tmle_ccw.R`); CCW-AIPW and CCW-TMLE are doubly
+> robust. Chunk 4 (estimated-q0 variance + matched/nested CC + bootstrap) pending.
 > Methods: Rose & van der Laan (2008, 2009, 2011 *Targeted Learning*, 2014 double-robust
 > case-control). Implements Track 2 of `PHASE_8_CAUSAL_STRATEGY`.
 
@@ -60,7 +60,7 @@ matcha(..., estimator = "ccw_tmle")   # targeted (new fluctuation step)
 | unmatched CC | ccw_gformula | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 1) |
 | unmatched CC | ccw_ipw | RD/RR/mOR | sandwich (causatr) | ✅ done (Chunk 2) |
 | unmatched CC | ccw_aipw | RD/RR/mOR | sandwich (DR, causatr) | ✅ done (Chunk 2) |
-| unmatched CC | ccw_tmle | RD/RR | EIF (new) / boot | needs-test |
+| unmatched CC | ccw_tmle | RD/RR/mOR | EIF (DR, new) | ✅ done (Chunk 3) |
 | matched CC | ccw_gformula/aipw | RD/RR | boot (+IF) | needs-test |
 | nested CC | ccw_* | RD/RR | boot | needs-test |
 | any ccw_* | — (no prevalence) | — | — | ⛔ `matchatr_missing_prevalence` |
@@ -117,8 +117,11 @@ genuinely new code.
    outcome / propensity models is wrong through matchatr's single `confounders`
    argument; CCW-AIPW recovers the marginal truth either way. (`R/ccw.R`; `test-ccw.R`,
    `helper-dgp.R::make_dr_cohort_ccw()`.)
-3. CCW-TMLE targeting step (**new code** — causatr has no targeted learning) + EIF
-   variance + `tmle` oracle.
+3. ✅ CCW-TMLE targeting step (**new code** — causatr has no targeted learning) + EIF
+   variance + `tmle` oracle. The shared `ccw_prepare()` (factored out of `fit_ccw()`)
+   builds the weighted sample; `fit_ccw_tmle()` runs the clever-covariate logistic
+   fluctuation and the EIF variance; `contrast_ccw_tmle()` reports RD / RR / OR.
+   (`R/tmle_ccw.R`; `test-tmle_ccw.R`, `helper-tmle-oracle.R`.)
 4. Estimated-q₀ variance correction + matched/nested CC support + bootstrap.
    **Delegation-first for the bootstrap:** causatr's `refit_gcomp` / `refit_ipw` /
    `refit_aipw` already resample and re-apply external `weights`, so matchatr only adds the

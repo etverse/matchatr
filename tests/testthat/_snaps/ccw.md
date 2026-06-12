@@ -4,7 +4,7 @@
       matcha(cc, outcome = "case", exposure = "xc", design = unmatched_cc(prevalence = attr(
         cc, "q0")), confounders = ~w, estimator = "ccw_gformula")
     Condition
-      Error in `fit_ccw()`:
+      Error in `ccw_prepare()`:
       ! The CCW g-formula estimator requires a binary exposure; `xc` is not binary (logical, two-level factor, or numeric 0/1).
       i For a categorical (k>2) or continuous exposure use `a conditional estimator (e.g. estimator = "logistic")`.
 
@@ -14,7 +14,7 @@
       matcha(cc, outcome = "case", exposure = "x", design = unmatched_cc(prevalence = attr(
         cc, "q0")), estimator = "ccw_gformula")
     Condition
-      Error in `fit_ccw()`:
+      Error in `ccw_prepare()`:
       ! The case-control-weighted estimators require `confounders` for the adjustment model(s).
       i Supply an adjustment set, e.g. `confounders = ~ age + smoke`, on `matcha()`.
 

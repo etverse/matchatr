@@ -45,43 +45,8 @@
 #' @seealso [matcha()], [contrast()], `cc_weights()`, [causatr::causat()]
 #' @noRd
 fit_ccw <- function(fit) {
-  prevalence <- fit$design$prevalence
   causat_estimator <- ccw_causat_estimator(fit$estimator)
-
-  # Every CCW estimator needs an adjustment set: g-formula standardizes a
-  # confounder-adjusted outcome model, IPW needs a propensity model, AIPW both.
-  # With no confounders there is nothing to adjust for, and causatr's engines
-  # require it; reject with a matchatr error rather than leaking causatr's.
-  if (is.null(fit$confounders)) {
-    rlang::abort(
-      c(
-        "The case-control-weighted estimators require `confounders` for the adjustment model(s).",
-        i = paste0(
-          "Supply an adjustment set, e.g. `confounders = ~ age + smoke`, on ",
-          "`matcha()`."
-        )
-      ),
-      class = c("matchatr_bad_input", "matchatr_error")
-    )
-  }
-
-  # Coerce both roles to 0/1: the outcome so the weighted GLM reads a proper
-  # 0/1 response, the exposure so the marginal contrast's static(1)/static(0)
-  # interventions match the treatment coding. A non-binary exposure has no
-  # binary average-treatment-effect contrast and is rejected here.
-  y01 <- resolve_binary_outcome(fit$data, fit$outcome)
-  x01 <- resolve_binary_exposure(
-    fit$data,
-    fit$exposure,
-    estimator_label = ccw_estimator_label(fit$estimator),
-    alternative = "a conditional estimator (e.g. estimator = \"logistic\")"
-  )
-
-  dt <- data.table::copy(data.table::as.data.table(fit$data))
-  dt[[fit$outcome]] <- y01
-  dt[[fit$exposure]] <- x01
-
-  weights <- cc_weights(prevalence, y01)
+  prep <- ccw_prepare(fit)
 
   # The outcome model fitter (NULL -> stats::glm); a user may pass mgcv::gam for
   # smooth confounder adjustment.
@@ -97,13 +62,13 @@ fit_ccw <- function(fit) {
   # auto-detected by causatr from the (binary) treatment, so this is the right
   # family for all three estimators.
   args <- list(
-    data = dt,
+    data = prep$dt,
     outcome = fit$outcome,
     treatment = fit$exposure,
     confounders = fit$confounders,
     estimator = causat_estimator,
     family = "quasibinomial",
-    weights = as.numeric(weights),
+    weights = as.numeric(prep$weights),
     model_fn = model_fn
   )
   # IPW / AIPW fit a propensity model; name its fitter so causatr does not warn
@@ -112,6 +77,60 @@ fit_ccw <- function(fit) {
     args$propensity_model_fn <- stats::glm
   }
   do.call(causatr::causat, args)
+}
+
+#' Shared preprocessing for the case-control-weighted estimators
+#'
+#' Validates that an adjustment set is supplied, coerces the outcome and exposure
+#' to 0/1, and builds the Rose & van der Laan case-control weight vector — the
+#' common front end for every CCW engine (the causatr-delegated g-formula / IPW /
+#' AIPW and the hand-rolled TMLE), which differ only in what they do with the
+#' weighted, 0/1-coded sample.
+#'
+#' @param fit A `matchatr_fit` whose `engine` is a `ccw_*` estimator, carrying the
+#'   case-control `data`, the `outcome` / `exposure` / `confounders` roles, and a
+#'   `design` whose `prevalence` (q0) is set.
+#' @returns A list with `dt` (a `data.table` copy of `data` with the outcome and
+#'   exposure recoded to 0/1) and `weights` (the numeric case-control weights, one
+#'   per row of `dt`). Aborts with `matchatr_bad_input` when no `confounders` are
+#'   supplied or the exposure is non-binary.
+#' @family estimators
+#' @seealso `fit_ccw()`, `fit_ccw_tmle()`, `cc_weights()`
+#' @noRd
+ccw_prepare <- function(fit) {
+  # Every CCW estimator needs an adjustment set: g-formula standardizes a
+  # confounder-adjusted outcome model, IPW needs a propensity model, AIPW and
+  # TMLE both. With no confounders there is nothing to adjust for; reject early.
+  if (is.null(fit$confounders)) {
+    rlang::abort(
+      c(
+        "The case-control-weighted estimators require `confounders` for the adjustment model(s).",
+        i = paste0(
+          "Supply an adjustment set, e.g. `confounders = ~ age + smoke`, on ",
+          "`matcha()`."
+        )
+      ),
+      class = c("matchatr_bad_input", "matchatr_error")
+    )
+  }
+
+  # Coerce both roles to 0/1: the outcome so the weighted GLM reads a proper 0/1
+  # response, the exposure so the treat-all / treat-none interventions match the
+  # treatment coding. A non-binary exposure has no binary average-treatment-effect
+  # contrast and is rejected here.
+  y01 <- resolve_binary_outcome(fit$data, fit$outcome)
+  x01 <- resolve_binary_exposure(
+    fit$data,
+    fit$exposure,
+    estimator_label = ccw_estimator_label(fit$estimator),
+    alternative = "a conditional estimator (e.g. estimator = \"logistic\")"
+  )
+
+  dt <- data.table::copy(data.table::as.data.table(fit$data))
+  dt[[fit$outcome]] <- y01
+  dt[[fit$exposure]] <- x01
+
+  list(dt = dt, weights = cc_weights(fit$design$prevalence, y01))
 }
 
 #' Map a CCW estimator name to its causatr engine
@@ -149,6 +168,7 @@ ccw_estimator_label <- function(estimator) {
     ccw_gformula = "CCW g-formula",
     ccw_ipw = "CCW IPW",
     ccw_aipw = "CCW AIPW",
+    ccw_tmle = "CCW TMLE",
     "case-control-weighted"
   )
 }

@@ -4,6 +4,28 @@
 # validate and route. Later phases replace / extend this with a cohort DGP that
 # has known causal truth and samples designs from it.
 
+# A matchatr_fit whose engine has no wired estimator, so its `model` is NULL --
+# the fixture for testing the generic "not estimated" contract (contrast() /
+# test_homogeneity() / summary() aborting with matchatr_not_estimated). It uses
+# the two-phase `survey` engine, which stays unwired until its own phase lands;
+# unlike a ccw_* estimator, that keeps the fixture stable as the causal engines
+# are wired one by one. The fit's `engine` is "survey_twophase".
+make_unestimated_fit <- function() {
+  df <- data.frame(
+    case = rep(c(1L, 0L), each = 10L),
+    x = rep(0:1, 10L),
+    s = rep(1:2, each = 10L),
+    ph = rep(c(1L, 0L), 10L)
+  )
+  matcha(
+    df,
+    outcome = "case",
+    exposure = "x",
+    design = two_phase(phase1 = "s", phase2 = "ph"),
+    estimator = "survey"
+  )
+}
+
 # A matched case-control / NCC sample: `n_sets` matched sets, each with exactly
 # one case and `ratio` controls, so every set is informative for the
 # conditional likelihood. Columns: case (0/1), x (binary exposure), age, smoke,

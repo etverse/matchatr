@@ -43,10 +43,10 @@ summary.matchatr_fit <- function(
 
   # A case-control-weighted fit reports a marginal effect (chosen scale at the
   # contrast step), not a conditional odds-ratio coefficient table, and its
-  # causatr model carries no coef()/vcov() the odds-ratio path expects. Show the
-  # marginal contrast (the risk difference, the default ccw scale) under the fit
-  # header instead; `contrast(type =)` gives the ratio / odds-ratio scale.
-  if (inherits(object$model, "causatr_fit")) {
+  # causatr / TMLE model carries no coef()/vcov() the odds-ratio path expects.
+  # Show the marginal contrast (the risk difference, the default ccw scale) under
+  # the fit header instead; `contrast(type =)` gives the ratio / odds-ratio scale.
+  if (object$engine %in% ccw_estimators()) {
     cat("<matchatr_fit> summary\n")
     cat(" Design:     ", design_label(object$design$type), "\n", sep = "")
     cat(

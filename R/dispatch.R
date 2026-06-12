@@ -128,6 +128,7 @@ default_contrast_type <- function(engine, design_type = NULL) {
     ccw_gformula = "difference",
     ccw_ipw = "difference",
     ccw_aipw = "difference",
+    ccw_tmle = "difference",
     "difference"
   )
 }
@@ -240,12 +241,13 @@ run_engine <- function(fit) {
     ipw_aalen = fit_ipw_aalen(fit),
     cch = fit_cch(fit),
     # Case-control-weighted causal estimators: reweight to the source population
-    # and delegate the marginal estimate to causatr (g-computation / IPW / AIPW).
-    # All three route through the same fit_ccw(), which reads fit$estimator. The
-    # CCW-TMLE engine is not yet wired and falls through to NULL.
+    # and estimate the marginal effect on the weighted sample. g-computation /
+    # IPW / AIPW delegate to causatr through the same fit_ccw() (which reads
+    # fit$estimator); CCW-TMLE is matchatr's own targeting engine.
     ccw_gformula = fit_ccw(fit),
     ccw_ipw = fit_ccw(fit),
     ccw_aipw = fit_ccw(fit),
+    ccw_tmle = fit_ccw_tmle(fit),
     NULL
   )
 }
