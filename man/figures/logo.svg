@@ -1,0 +1,38 @@
+<svg viewBox="0 0 524 604" width="524" height="604" xmlns="http://www.w3.org/2000/svg">
+  <!-- matchatr hex sticker: matched case-control sets sampled from a faint source cohort -->
+  <!-- sticker body + border -->
+  <polygon points="262,10 514.88,156 514.88,448 262,594 9.12,448 9.12,156" fill="#F2E8D2" stroke="#342A1D" stroke-width="10" stroke-linejoin="round"></polygon>
+  <polygon points="262,32 495.83,167 495.83,437 262,572 28.17,437 28.17,167" fill="none" stroke="#342A1D" stroke-width="2" stroke-linejoin="round" opacity="0.32"></polygon>
+
+  <!-- source population (cohort), faint -->
+  <g fill="none" stroke="#342A1D" stroke-width="2.5" opacity="0.30">
+    <circle cx="178" cy="198" r="7"></circle><circle cx="220" cy="198" r="7"></circle><circle cx="262" cy="198" r="7"></circle><circle cx="304" cy="198" r="7"></circle><circle cx="346" cy="198" r="7"></circle>
+    <circle cx="178" cy="240" r="7"></circle><circle cx="262" cy="240" r="7"></circle><circle cx="346" cy="240" r="7"></circle>
+    <circle cx="178" cy="282" r="7"></circle><circle cx="220" cy="282" r="7"></circle><circle cx="304" cy="282" r="7"></circle>
+    <circle cx="220" cy="324" r="7"></circle><circle cx="262" cy="324" r="7"></circle><circle cx="346" cy="324" r="7"></circle>
+    <circle cx="178" cy="366" r="7"></circle><circle cx="304" cy="366" r="7"></circle><circle cx="346" cy="366" r="7"></circle>
+  </g>
+
+  <!-- matched set A (sampled from the cohort): case + two controls -->
+  <g stroke="#BC5A34" stroke-width="3.5" stroke-linecap="round">
+    <line x1="240" y1="242" x2="200" y2="206"></line>
+    <line x1="240" y1="242" x2="286" y2="224"></line>
+  </g>
+  <circle cx="200" cy="206" r="9" fill="#342A1D"></circle>
+  <circle cx="286" cy="224" r="9" fill="#342A1D"></circle>
+  <circle cx="240" cy="242" r="14" fill="#BC5A34" stroke="#342A1D" stroke-width="3.5"></circle>
+
+  <!-- matched set B -->
+  <g stroke="#BC5A34" stroke-width="3.5" stroke-linecap="round">
+    <line x1="298" y1="322" x2="262" y2="358"></line>
+    <line x1="298" y1="322" x2="344" y2="344"></line>
+  </g>
+  <circle cx="262" cy="358" r="9" fill="#342A1D"></circle>
+  <circle cx="344" cy="344" r="9" fill="#342A1D"></circle>
+  <circle cx="298" cy="322" r="14" fill="#BC5A34" stroke="#342A1D" stroke-width="3.5"></circle>
+
+  <!-- wordmark -->
+  <g opacity="1">
+    <text x="262" y="506" fill="#342A1D" font-family="'Spectral',Georgia,serif" font-weight="500" font-size="54" letter-spacing="1.5" text-anchor="middle">matchatr</text>
+  </g>
+</svg>

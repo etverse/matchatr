@@ -1,11 +1,17 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# matchatr
+# matchatr <img src="man/figures/logo.png" align="right" height="139" alt="matchatr hex sticker: matched case-control sets — a case linked to two controls — sampled from a faint source cohort" />
 
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/etverse/matchatr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/etverse/matchatr/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/etverse/matchatr/graph/badge.svg)](https://app.codecov.io/gh/etverse/matchatr)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/mit)
 <!-- badges: end -->
 
 **matchatr** provides causal inference for **(matched) case-control,
