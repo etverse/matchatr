@@ -332,7 +332,7 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "matchatr",
+    "title": "matchatr ",
     "section": "",
     "text": "matchatr provides causal inference for (matched) case-control, nested case-control (NCC), and case-cohort study designs. It pairs design-faithful classical estimators with marginal causal effects, and integrates with the etverse ecosystem — delegating estimation to causatr (g-computation / IPW / AIPW with sandwich and bootstrap variance) and survatr (causal survival on person-period data).\n\nStatus: classical engines complete; the case-control-weighting causal layer complete. The design taxonomy, the two-step matcha() / contrast() API, and the (design, estimator) dispatch (PHASE_1) are in place, and the classical engines run end to end: the unmatched case-control logistic and Mantel-Haenszel ORs (PHASE_2), the matched case-control conditional-logistic and McNemar ORs with stratum-specific effect modification (PHASE_3), the polytomous subtype ORs with test_homogeneity() (PHASE_4), the nested case-control risk-set hazard ratio (PHASE_5), the case-cohort Prentice / Self-Prentice / Borgan hazard ratios and absolute risk (PHASE_6), and the Samuelsen IPW weighted Cox / AFT / additive-hazards analyses of NCC data with absolute and excess risk (PHASE_7). The causal layer is complete (PHASE_9): estimator = \"ccw_gformula\" / \"ccw_ipw\" / \"ccw_aipw\" / \"ccw_tmle\" report a marginal risk difference, risk ratio, or marginal odds ratio from an unmatched or matched case-control sample with a known (or cohort-estimated) prevalence q₀, via Rose & van der Laan case-control weighting — g-computation / IPW / (doubly-robust) AIPW delegated to causatr, and a doubly-robust targeted maximum likelihood (TMLE) engine matchatr builds itself. Variance is the causatr sandwich / TMLE efficient influence function, optionally widened for an estimated q₀ or replaced by a design-preserving within-stratum bootstrap. See the articles for worked examples. The design-weighted causal survival layer and the efficiency phases (PHASE_10–PHASE_20) remain at the design stage.\n\n\n\nTwo orthogonal axes: a design object encodes the sampling structure (strata, matching ratio, time scale, prevalence, inclusion weights); an estimator chooses the analysis.\n\n\n\n\n\n\n\n\nDesign\nClassical estimand\nCausal (marginal) estimand\n\n\n\n\nUnmatched case-control\nconditional OR, Mantel-Haenszel\nRD / RR / marginal OR (case-control weighting)\n\n\nMatched case-control\nconditional OR (conditional logistic)\nRD / RR via standardization\n\n\nNested case-control\nrisk-set HR; Samuelsen IPW Cox\nmarginal survival contrasts (design-weighted)\n\n\nCase-cohort\nPrentice / Self-Prentice / Borgan HR\nabsolute risk, RD(t), RMST\n\n\n\nMarginal causal effects use case-control weighting (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and design-based inclusion weighting (Samuelsen, Borgan): the weights are passed as observation weights into the etverse engines, so they compose directly with existing estimators.\n\n\n\nYou can install the development version of matchatr from GitHub with:\n# install.packages(\"pak\")\npak::pak(\"etverse/matchatr\")\n\n\n\nlibrary(matchatr)\n\n# Matched case-control -&gt; conditional odds ratio (infert: a matched study of\n# spontaneous/induced abortion and infertility, matched on age and parity).\nfit &lt;- matcha(\n  infert,\n  outcome = \"case\", exposure = \"spontaneous\",\n  design = matched_cc(strata = \"stratum\"),\n  confounders = ~ induced, estimator = \"clogit\"\n)\n\ncontrast(fit, type = \"or\")\n#&gt; &lt;matchatr_result&gt;\n#&gt;  Estimator:  clogit  (engine: clogit)\n#&gt;  Estimand:   conditional OR\n#&gt;  Contrast:   Odds ratio\n#&gt;  CI method:  model\n#&gt;  N:          248\n#&gt; \n#&gt; Contrasts:\n#&gt;     comparison estimate     se ci_lower ci_upper\n#&gt;         &lt;char&gt;    &lt;num&gt;  &lt;num&gt;    &lt;num&gt;    &lt;num&gt;\n#&gt; 1: spontaneous 7.285423 2.5677 3.651357 14.53635\nThe marginal causal contrasts (case-control weighting) reuse the same two-step API once a source-population prevalence q0 is supplied — they are part of the roadmap below:\nfit &lt;- matcha(\n  data,\n  outcome = \"case\", exposure = \"x\",\n  design = unmatched_cc(prevalence = 0.02),   # source-population prevalence q0\n  confounders = ~ age + smoke, estimator = \"ccw_gformula\"\n)\ncontrast(fit, type = \"difference\", ci_method = \"sandwich\")\n\n\n\nThe design is documented in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan. See CLAUDE.md for the phase index and FEATURE_COVERAGE_MATRIX.md for what is implemented and tested.\n\n\n\nmatchatr is one package in the etverse family for causal inference and methodological triangulation, alongside causatr (causal effect estimation) and survatr (causal survival analysis).",
     "crumbs": [
@@ -342,7 +342,7 @@
   {
     "objectID": "index.html#what-it-does",
     "href": "index.html#what-it-does",
-    "title": "matchatr",
+    "title": "matchatr ",
     "section": "",
     "text": "Two orthogonal axes: a design object encodes the sampling structure (strata, matching ratio, time scale, prevalence, inclusion weights); an estimator chooses the analysis.\n\n\n\n\n\n\n\n\nDesign\nClassical estimand\nCausal (marginal) estimand\n\n\n\n\nUnmatched case-control\nconditional OR, Mantel-Haenszel\nRD / RR / marginal OR (case-control weighting)\n\n\nMatched case-control\nconditional OR (conditional logistic)\nRD / RR via standardization\n\n\nNested case-control\nrisk-set HR; Samuelsen IPW Cox\nmarginal survival contrasts (design-weighted)\n\n\nCase-cohort\nPrentice / Self-Prentice / Borgan HR\nabsolute risk, RD(t), RMST\n\n\n\nMarginal causal effects use case-control weighting (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and design-based inclusion weighting (Samuelsen, Borgan): the weights are passed as observation weights into the etverse engines, so they compose directly with existing estimators.",
     "crumbs": [
@@ -352,7 +352,7 @@
   {
     "objectID": "index.html#installation",
     "href": "index.html#installation",
-    "title": "matchatr",
+    "title": "matchatr ",
     "section": "",
     "text": "You can install the development version of matchatr from GitHub with:\n# install.packages(\"pak\")\npak::pak(\"etverse/matchatr\")",
     "crumbs": [
@@ -362,7 +362,7 @@
   {
     "objectID": "index.html#example",
     "href": "index.html#example",
-    "title": "matchatr",
+    "title": "matchatr ",
     "section": "",
     "text": "library(matchatr)\n\n# Matched case-control -&gt; conditional odds ratio (infert: a matched study of\n# spontaneous/induced abortion and infertility, matched on age and parity).\nfit &lt;- matcha(\n  infert,\n  outcome = \"case\", exposure = \"spontaneous\",\n  design = matched_cc(strata = \"stratum\"),\n  confounders = ~ induced, estimator = \"clogit\"\n)\n\ncontrast(fit, type = \"or\")\n#&gt; &lt;matchatr_result&gt;\n#&gt;  Estimator:  clogit  (engine: clogit)\n#&gt;  Estimand:   conditional OR\n#&gt;  Contrast:   Odds ratio\n#&gt;  CI method:  model\n#&gt;  N:          248\n#&gt; \n#&gt; Contrasts:\n#&gt;     comparison estimate     se ci_lower ci_upper\n#&gt;         &lt;char&gt;    &lt;num&gt;  &lt;num&gt;    &lt;num&gt;    &lt;num&gt;\n#&gt; 1: spontaneous 7.285423 2.5677 3.651357 14.53635\nThe marginal causal contrasts (case-control weighting) reuse the same two-step API once a source-population prevalence q0 is supplied — they are part of the roadmap below:\nfit &lt;- matcha(\n  data,\n  outcome = \"case\", exposure = \"x\",\n  design = unmatched_cc(prevalence = 0.02),   # source-population prevalence q0\n  confounders = ~ age + smoke, estimator = \"ccw_gformula\"\n)\ncontrast(fit, type = \"difference\", ci_method = \"sandwich\")",
     "crumbs": [
@@ -372,7 +372,7 @@
   {
     "objectID": "index.html#roadmap",
     "href": "index.html#roadmap",
-    "title": "matchatr",
+    "title": "matchatr ",
     "section": "",
     "text": "The design is documented in PHASE_1–PHASE_20 at the repository root, mapping the Handbook of Statistical Methods for Case-Control Studies (Borgan et al., 2018) to an implementation plan. See CLAUDE.md for the phase index and FEATURE_COVERAGE_MATRIX.md for what is implemented and tested.",
     "crumbs": [
@@ -382,7 +382,7 @@
   {
     "objectID": "index.html#part-of-the-etverse",
     "href": "index.html#part-of-the-etverse",
-    "title": "matchatr",
+    "title": "matchatr ",
     "section": "",
     "text": "matchatr is one package in the etverse family for causal inference and methodological triangulation, alongside causatr (causal effect estimation) and survatr (causal survival analysis).",
     "crumbs": [
