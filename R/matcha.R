@@ -96,6 +96,15 @@
 #' matcha(df, outcome = "case", exposure = "x",
 #'        design = matched_cc(strata = "set"), estimator = "clogit")
 #'
+#' @references
+#' Borgan O, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (eds) (2018).
+#' *Handbook of Statistical Methods for Case-Control Studies*. Chapman &
+#' Hall/CRC. (The organizing reference for the package's designs and
+#' estimators; see the per-design constructors for method-specific citations.)
+#'
+#' Prentice RL, Pyke R (1979). Logistic disease incidence models and
+#' case-control studies. *Biometrika* 66(3):403-411.
+#'
 #' @family fitting
 #' @seealso [unmatched_cc()], [matched_cc()], [nested_cc()], [case_cohort()]
 #' @export

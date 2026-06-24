@@ -82,6 +82,17 @@ fit <- matcha(ncc, outcome = "d", exposure = "x",
 excess_risk(fit, times = c(1, 2, 3, 4))
 }
 }
+\references{
+Aalen OO (1980). A model for nonparametric regression analysis of counting
+processes. In \emph{Mathematical Statistics and Probability Theory} (Lecture
+Notes in Statistics 2), pp. 1-25. Springer.
+
+Lin DY, Ying Z (1994). Semiparametric analysis of the additive risk model.
+\emph{Biometrika} 81(1):61-71.
+
+Borgan O, Langholz B (1997). Estimation of excess risk from case-control
+data using Aalen's linear regression model. \emph{Biometrics} 53(2):690-697.
+}
 \seealso{
 \code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=absolute_risk]{absolute_risk()}}, \code{\link[=sample_ncc]{sample_ncc()}}
 

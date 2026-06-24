@@ -125,6 +125,15 @@ matcha(df, outcome = "case", exposure = "x",
        design = matched_cc(strata = "set"), estimator = "clogit")
 
 }
+\references{
+Borgan O, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (eds) (2018).
+\emph{Handbook of Statistical Methods for Case-Control Studies}. Chapman &
+Hall/CRC. (The organizing reference for the package's designs and
+estimators; see the per-design constructors for method-specific citations.)
+
+Prentice RL, Pyke R (1979). Logistic disease incidence models and
+case-control studies. \emph{Biometrika} 66(3):403-411.
+}
 \seealso{
 \code{\link[=unmatched_cc]{unmatched_cc()}}, \code{\link[=matched_cc]{matched_cc()}}, \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=case_cohort]{case_cohort()}}
 }

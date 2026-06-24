@@ -76,9 +76,10 @@ predicted probability from the fitted selection model. Cases (cohort events)
 are always included with weight 1.
 
 The default \code{selection_formula = NULL} maps to \code{~ risk_time}, a time-only
-logistic model matching the simplest GLM specification of Borgan, Samuelsen
-& Aastveit (2003, \emph{Lifetime Data Analysis} 9(2)). Richer models can include
-cohort covariates: \code{~ risk_time + age + sex}.
+logistic model in the spirit of the estimated-weight (working-model)
+approach of Samuelsen, Ånestad & Skrondal (2007, \emph{Scandinavian Journal of
+Statistics} 34(1)). Richer models can include cohort covariates:
+\code{~ risk_time + age + sex}.
 
 \strong{Population-stratum matching caveat.} If \code{ncc} was generated with
 \code{\link[=sample_ncc]{sample_ncc()}} using a \code{match} argument (e.g. \code{match = ~ sex}), controls
@@ -108,6 +109,14 @@ fit <- matcha(ncc_glm, outcome = "d", exposure = "x",
               estimator = "ipw_cox")
 contrast(fit)
 
+}
+\references{
+Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
+case-control studies. \emph{Biometrika} 84(2):379-394.
+
+Samuelsen SO, Ånestad H, Skrondal A (2007). Stratified case-cohort analysis
+of general cohort sampling designs. \emph{Scandinavian Journal of Statistics}
+34(1):103-119.
 }
 \seealso{
 \code{\link[=sample_ncc]{sample_ncc()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=nested_cc]{nested_cc()}}

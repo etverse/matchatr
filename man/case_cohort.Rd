@@ -58,6 +58,20 @@ case_cohort(subcohort = "in_subcohort", time = "t",
             method = "I.Borgan", stratum = "region")
 
 }
+\references{
+Prentice RL (1986). A case-cohort design for epidemiologic cohort studies
+and disease prevention trials. \emph{Biometrika} 73(1):1-11.
+
+Self SG, Prentice RL (1988). Asymptotic distribution theory and efficiency
+results for case-cohort studies. \emph{The Annals of Statistics} 16(1):64-81.
+
+Lin DY, Ying Z (1993). Cox regression with incomplete covariate
+measurements. \emph{Journal of the American Statistical Association}
+88(424):1341-1349.
+
+Borgan O, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure
+stratified case-cohort designs. \emph{Lifetime Data Analysis} 6(1):39-58.
+}
 \seealso{
 \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=matcha]{matcha()}}
 

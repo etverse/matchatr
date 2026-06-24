@@ -106,6 +106,15 @@ fit2 <- matcha(ncc2, outcome = "d2", exposure = "x",
 contrast(fit2)
 
 }
+\references{
+Saarela O, Kulathinal S, Arjas E, Läärä E (2008). Nested case-control data
+utilized for multiple outcomes: a likelihood approach and alternatives.
+\emph{Statistics in Medicine} 27(28):5991-6008.
+
+Støer NC, Samuelsen SO (2012). Comparison of estimators in nested
+case-control studies with multiple outcomes. \emph{Lifetime Data Analysis}
+18(3):261-283.
+}
 \seealso{
 \code{\link[=sample_ncc]{sample_ncc()}}, \code{\link[=compute_ncc_weights]{compute_ncc_weights()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=nested_cc]{nested_cc()}}
 

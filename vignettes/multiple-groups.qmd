@@ -6,6 +6,9 @@ vignette: >
   %\VignetteIndexEntry{Multiple case / control groups}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+nocite: |
+  @borgan2018handbook, @venables2002modern
 ---
 
 ```{r}
@@ -123,7 +126,7 @@ The pooled odds ratio is the minimum-variance (inverse-variance / GLS) combinati
 of the subtype odds ratios — the restricted estimator under homogeneity,
 asymptotically equal to the constrained maximum-likelihood fit — so it is more
 efficient than any single subtype odds ratio. It is the canonical etiologic-
-heterogeneity Wald test (Begg & Gray, 1984), computed on the already-fitted
+heterogeneity Wald test [@begg1984calculation], computed on the already-fitted
 model, so it needs no refit and handles continuous confounders directly:
 
 ```{r}
@@ -170,11 +173,5 @@ combination.
 
 ## References
 
-Begg CB, Gray R (1984). Calculation of polytomous logistic regression parameters
-using individualized regressions. *Biometrika* 71(1), 11-18.
-
-Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). *Handbook
-of Statistical Methods for Case-Control Studies*, Chapter 5. Chapman & Hall/CRC.
-
-Venables WN, Ripley BD (2002). *Modern Applied Statistics with S*, 4th ed.
-Springer. (The `nnet::multinom` fitter.)
+::: {#refs}
+:::

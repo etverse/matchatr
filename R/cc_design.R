@@ -41,6 +41,18 @@
 #' unmatched_cc(prevalence = 0.02, prevalence_n = 50000) # q0 estimated from a cohort
 #' unmatched_cc(strata = "agegrp")
 #'
+#' @references
+#' Prentice RL, Pyke R (1979). Logistic disease incidence models and
+#' case-control studies. *Biometrika* 66(3):403-411.
+#'
+#' Robins J, Breslow N, Greenland S (1986). Estimators of the Mantel-Haenszel
+#' variance consistent in both sparse data and large-strata limiting models.
+#' *Biometrics* 42(2):311-323.
+#'
+#' Rose S, van der Laan MJ (2008). Simple optimal weighting of cases and
+#' controls in case-control studies. *The International Journal of
+#' Biostatistics* 4(1):Article 19.
+#'
 #' @family design constructors
 #' @seealso [matched_cc()], [nested_cc()], [case_cohort()], [matcha()]
 #' @export
@@ -107,6 +119,17 @@ unmatched_cc <- function(
 #' matched_cc(strata = c("age_grp", "sex"), ratio = 2)
 #' matched_cc(strata = "set", prevalence = 0.02) # for a marginal CCW contrast
 #'
+#' @references
+#' McNemar Q (1947). Note on the sampling error of the difference between
+#' correlated proportions or percentages. *Psychometrika* 12(2):153-157.
+#'
+#' Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:
+#' The Analysis of Case-Control Studies*. IARC Scientific Publications No. 32.
+#'
+#' Rose S, van der Laan MJ (2009). Why match? Investigating matched case-control
+#' study designs with causal effect estimation. *The International Journal of
+#' Biostatistics* 5(1):Article 1.
+#'
 #' @family design constructors
 #' @seealso [unmatched_cc()], [nested_cc()], [matcha()]
 #' @export
@@ -162,6 +185,21 @@ matched_cc <- function(
 #' @examples
 #' nested_cc(strata = "set", time = "t")
 #' nested_cc(strata = "set", time = "t", ratio = 3)
+#'
+#' @references
+#' Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by
+#' application to asbestos mining" (Liddell FDK, McDonald JC, Thomas DC).
+#' *Journal of the Royal Statistical Society, Series A* 140(4):469-491.
+#'
+#' Prentice RL, Breslow NE (1978). Retrospective studies and failure time
+#' models. *Biometrika* 65(1):153-158.
+#'
+#' Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control
+#' sampling in the Cox regression model. *The Annals of Statistics*
+#' 20(4):1903-1928.
+#'
+#' Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
+#' case-control studies. *Biometrika* 84(2):379-394.
 #'
 #' @family design constructors
 #' @seealso [case_cohort()], [counter_matched()], [matcha()]
@@ -228,6 +266,20 @@ nested_cc <- function(strata, time, ratio = NULL) {
 #' case_cohort(subcohort = "in_subcohort", time = "t", id = "subject_id")
 #' case_cohort(subcohort = "in_subcohort", time = "t",
 #'             method = "I.Borgan", stratum = "region")
+#'
+#' @references
+#' Prentice RL (1986). A case-cohort design for epidemiologic cohort studies
+#' and disease prevention trials. *Biometrika* 73(1):1-11.
+#'
+#' Self SG, Prentice RL (1988). Asymptotic distribution theory and efficiency
+#' results for case-cohort studies. *The Annals of Statistics* 16(1):64-81.
+#'
+#' Lin DY, Ying Z (1993). Cox regression with incomplete covariate
+#' measurements. *Journal of the American Statistical Association*
+#' 88(424):1341-1349.
+#'
+#' Borgan O, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure
+#' stratified case-cohort designs. *Lifetime Data Analysis* 6(1):39-58.
 #'
 #' @family design constructors
 #' @seealso [nested_cc()], [matcha()]
@@ -348,6 +400,10 @@ two_phase <- function(phase1, phase2) {
 #' counter_matched(strata = "set", time = "risk_time", weights = "log_w")
 #' counter_matched(strata = "set", time = "risk_time", weights = "log_w",
 #'                 ratio = 2L)
+#'
+#' @references
+#' Langholz B, Borgan O (1995). Counter-matching: a stratified nested
+#' case-control sampling method. *Biometrika* 82(1):69-79.
 #'
 #' @family design constructors
 #' @seealso [nested_cc()], [sample_ncc_counter_matched()], [matcha()]

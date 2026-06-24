@@ -97,6 +97,18 @@
 #' ncc_ipw <- sample_ncc(cohort, time = "t", event = "d", m = 2, incl_prob = TRUE)
 #' ncc_ipw[, c("id", "case", "set", "ipw_weight", ".cohort_row")]
 #'
+#' @references
+#' Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by
+#' application to asbestos mining" (Liddell FDK, McDonald JC, Thomas DC).
+#' *Journal of the Royal Statistical Society, Series A* 140(4):469-491.
+#'
+#' Prentice RL, Breslow NE (1978). Retrospective studies and failure time
+#' models. *Biometrika* 65(1):153-158.
+#'
+#' Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
+#' case-control studies. *Biometrika* 84(2):379-394. (Kaplan-Meier inclusion
+#' probabilities returned when `incl_prob = TRUE`.)
+#'
 #' @family sampling
 #' @seealso [nested_cc()], [matcha()], [Epi::ccwc()]
 #' @export
@@ -494,6 +506,10 @@ samuelsen_km_weights <- function(n, case_rows, elig_list, m_requested) {
 #'                                        weights = "log_w"),
 #'               estimator = "weighted_cox")
 #' contrast(fit)
+#'
+#' @references
+#' Langholz B, Borgan O (1995). Counter-matching: a stratified nested
+#' case-control sampling method. *Biometrika* 82(1):69-79.
 #'
 #' @family sampling
 #' @seealso [counter_matched()], [matcha()], [sample_ncc()]

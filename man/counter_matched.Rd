@@ -43,6 +43,10 @@ counter_matched(strata = "set", time = "risk_time", weights = "log_w",
                 ratio = 2L)
 
 }
+\references{
+Langholz B, Borgan O (1995). Counter-matching: a stratified nested
+case-control sampling method. \emph{Biometrika} 82(1):69-79.
+}
 \seealso{
 \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=sample_ncc_counter_matched]{sample_ncc_counter_matched()}}, \code{\link[=matcha]{matcha()}}
 

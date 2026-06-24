@@ -6,6 +6,9 @@ vignette: >
   %\VignetteIndexEntry{Matched case-control odds ratios}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+nocite: |
+  @pike1980bias
 ---
 
 ```{r}
@@ -19,7 +22,7 @@ sharing the values of the matching variable(s). The design-faithful analysis is
 conditions on the matched-set totals, which removes the matching-variable
 nuisance parameters. Fitting matched-set indicators by ordinary logistic
 regression instead biases the odds ratio — for 1:1 matching its estimate
-converges to the *squared* OR (Breslow & Day, 1980) — so matchatr never does
+converges to the *squared* OR [@breslow1980statistical] — so matchatr never does
 that.
 
 matchatr provides three tools on `matched_cc()`:
@@ -67,8 +70,8 @@ conditional likelihood treats any matched-set composition uniformly.
 
 For genuine 1:1 pairs there is a closed form: with `n10` pairs where only the
 case is exposed and `n01` where only the control is exposed, the matched-pair
-odds ratio is `OR = n10 / n01` with `Var(log OR) = 1/n10 + 1/n01` (McNemar,
-1947). Pairs concordant on exposure carry no information and cancel.
+odds ratio is `OR = n10 / n01` with `Var(log OR) = 1/n10 + 1/n01`
+[@mcnemar1947note]. Pairs concordant on exposure carry no information and cancel.
 
 We simulate matched pairs from the conditional likelihood with a known
 conditional OR of 3:
@@ -176,12 +179,5 @@ combination.
 
 ## References
 
-Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:
-The Analysis of Case-Control Studies*. IARC.
-
-McNemar Q (1947). Note on the sampling error of the difference between
-correlated proportions or percentages. *Psychometrika* 12(2):153-157.
-
-Pike MC, Hill AP, Smith PG (1980). Bias and efficiency in logistic analyses of
-stratified case-control studies. *International Journal of Epidemiology*
-9(1):89-95.
+::: {#refs}
+:::
