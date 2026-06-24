@@ -1,5 +1,36 @@
 # matchatr (development version)
 
+## 2026-06-24 — Design-weighted marginal causal survival, case-cohort (PHASE_10 Chunk 1)
+
+`matcha(design = case_cohort(...), estimator = "surv_gcomp")` reports a **marginal
+causal-survival contrast** from a case-cohort sample: the marginal risk difference
+(`contrast(type = "difference")`), risk ratio (`"ratio"`), or restricted mean
+survival time difference (`"rmst"`) at the requested follow-up `times`, with a
+design-preserving bootstrap interval.
+
+The estimator g-computes on the design's own weighted Cox: the subcohort sampling
+weights enter the `survival::cch` pseudo-likelihood, an inverse-probability Breslow
+baseline gives Λ̂₀(t), and the subject-specific absolute risk
+F(t | x, W) = 1 − exp(−Λ̂₀(t) exp(β̂ᵀx)) is Horvitz-Thompson standardized over the
+subcohort (a random cohort sample) to the treat-all / treat-none marginal risks. The
+closed-form marginalization reuses the validated `absolute_risk()` machinery
+(`ipw_breslow_cch()`, `ar_lp_from_newdata()`).
+
+This **does not delegate to `survatr`**, contrary to the original PHASE_10 plan: a
+full-cohort truth oracle showed that feeding constant inclusion weights into
+survatr's pooled-logistic `surv_gcomp` biases the contrast (survatr marginalizes the
+counterfactual survival unweighted, and a constant per-subject weight cannot express
+the time-varying case-cohort risk-set weighting), so the standardization is built on
+matchatr's weighted-Cox + IPW-Breslow estimators instead. `survatr` moves from
+Imports to Suggests.
+
+Validated in `test-causal_survival_sampled.R`: Monte-Carlo unbiasedness against the
+full-cohort g-computation truth for the RD(t) / RR(t) / RMST difference (the
+case-cohort sample retains every case, so the failure-time grid is identical and the
+comparison is exact), stratified-subcohort recovery, and agreement of the marginalized
+closed form with `absolute_risk()` per subject. Nested case-control (Chunk 2) and a
+doubly-robust `surv_aipw` (Chunk 3) are pending / deferred.
+
 ## 2026-06-12 — Matched case-control support for the CCW family (PHASE_9 Chunk 4c)
 
 `matched_cc()` now accepts `prevalence` (and `prevalence_n`), so the

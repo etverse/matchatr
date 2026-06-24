@@ -168,6 +168,11 @@ tidy.matchatr_result <- function(x, ...) {
     conf.low = x$contrasts$ci_lower,
     conf.high = x$contrasts$ci_upper
   )
+  # A time-indexed survival contrast carries one row per evaluation time; surface
+  # that time so the tidy table stays one-row-per-reported-effect.
+  if (!is.null(x$contrasts$time)) {
+    out[["time"]] <- x$contrasts$time
+  }
   out[]
 }
 

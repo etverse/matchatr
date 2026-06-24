@@ -6,9 +6,10 @@
 \usage{
 contrast(
   fit,
-  type = c("difference", "ratio", "or", "hr", "af", "excess"),
+  type = c("difference", "ratio", "or", "hr", "af", "excess", "rmst"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
+  times = NULL,
   ...
 )
 }
@@ -18,12 +19,14 @@ contrast(
 \item{type}{Character contrast scale: \code{"difference"}, \code{"ratio"}, \code{"or"}
 (odds ratio), \code{"hr"} (hazard ratio, nested case-control risk-set / weighted
 Cox), \code{"af"} (acceleration factor / time ratio, the IPW NCC accelerated
-failure time model), or \code{"excess"} (excess hazard / additive rate
-difference, the IPW NCC additive-hazards model). When omitted, it defaults
-to the estimand the design and estimator identify — \code{"or"} for the classical
-odds-ratio engines, \code{"hr"} for the risk-set / weighted Cox engines, \code{"af"}
-for \code{ipw_aft}, \code{"excess"} for \code{ipw_aalen}, \code{"difference"} otherwise. Each
-estimator identifies exactly one scale, so an off-scale request aborts with
+failure time model), \code{"excess"} (excess hazard / additive rate
+difference, the IPW NCC additive-hazards model), or \code{"rmst"} (restricted
+mean survival time difference, the design-weighted causal-survival
+estimator). When omitted, it defaults to the estimand the design and
+estimator identify — \code{"or"} for the classical odds-ratio engines, \code{"hr"} for
+the risk-set / weighted Cox engines, \code{"af"} for \code{ipw_aft}, \code{"excess"} for
+\code{ipw_aalen}, \code{"difference"} otherwise. Each estimator identifies exactly one
+family of scales, so an off-scale request aborts with
 \code{matchatr_unidentified_estimand}.}
 
 \item{ci_method}{Character variance source for the interval: \code{"model"}
@@ -32,6 +35,11 @@ or \code{"bootstrap"}.}
 
 \item{conf_level}{Numeric confidence level for the interval, a single number
 strictly in (0, 1). Defaults to 0.95.}
+
+\item{times}{Numeric vector of follow-up times (risk difference / ratio) or
+RMST horizons at which to report a marginal causal-survival contrast (the
+design-weighted \code{surv_gcomp} estimator). Required for that estimator;
+ignored by the non-survival engines. Defaults to \code{NULL}.}
 
 \item{...}{Reserved for estimator-specific contrast arguments. The
 case-control-weighted estimators accept \code{n_boot} (integer, default 1000), the

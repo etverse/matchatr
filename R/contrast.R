@@ -29,18 +29,24 @@
 #' @param type Character contrast scale: `"difference"`, `"ratio"`, `"or"`
 #'   (odds ratio), `"hr"` (hazard ratio, nested case-control risk-set / weighted
 #'   Cox), `"af"` (acceleration factor / time ratio, the IPW NCC accelerated
-#'   failure time model), or `"excess"` (excess hazard / additive rate
-#'   difference, the IPW NCC additive-hazards model). When omitted, it defaults
-#'   to the estimand the design and estimator identify — `"or"` for the classical
-#'   odds-ratio engines, `"hr"` for the risk-set / weighted Cox engines, `"af"`
-#'   for `ipw_aft`, `"excess"` for `ipw_aalen`, `"difference"` otherwise. Each
-#'   estimator identifies exactly one scale, so an off-scale request aborts with
+#'   failure time model), `"excess"` (excess hazard / additive rate
+#'   difference, the IPW NCC additive-hazards model), or `"rmst"` (restricted
+#'   mean survival time difference, the design-weighted causal-survival
+#'   estimator). When omitted, it defaults to the estimand the design and
+#'   estimator identify — `"or"` for the classical odds-ratio engines, `"hr"` for
+#'   the risk-set / weighted Cox engines, `"af"` for `ipw_aft`, `"excess"` for
+#'   `ipw_aalen`, `"difference"` otherwise. Each estimator identifies exactly one
+#'   family of scales, so an off-scale request aborts with
 #'   `matchatr_unidentified_estimand`.
 #' @param ci_method Character variance source for the interval: `"model"`
 #'   (information-matrix Wald, the default), `"sandwich"` (Huber-White robust),
 #'   or `"bootstrap"`.
 #' @param conf_level Numeric confidence level for the interval, a single number
 #'   strictly in (0, 1). Defaults to 0.95.
+#' @param times Numeric vector of follow-up times (risk difference / ratio) or
+#'   RMST horizons at which to report a marginal causal-survival contrast (the
+#'   design-weighted `surv_gcomp` estimator). Required for that estimator;
+#'   ignored by the non-survival engines. Defaults to `NULL`.
 #' @param ... Reserved for estimator-specific contrast arguments. The
 #'   case-control-weighted estimators accept `n_boot` (integer, default 1000), the
 #'   number of within-stratum bootstrap replicates used when
@@ -68,9 +74,10 @@
 #' @export
 contrast <- function(
   fit,
-  type = c("difference", "ratio", "or", "hr", "af", "excess"),
+  type = c("difference", "ratio", "or", "hr", "af", "excess", "rmst"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
+  times = NULL,
   ...
 ) {
   if (!inherits(fit, "matchatr_fit")) {
@@ -180,6 +187,15 @@ contrast <- function(
       ci_method = ci_method,
       conf_level = conf_level,
       call = call
+    ),
+    surv_gcomp = contrast_surv_gcomp(
+      fit,
+      type = type,
+      ci_method = ci_method,
+      conf_level = conf_level,
+      times = times,
+      call = call,
+      ...
     ),
     # `...` forwards the case-control-weighted bootstrap's `n_boot` argument.
     ccw_gformula = contrast_ccw(
