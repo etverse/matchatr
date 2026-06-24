@@ -124,7 +124,7 @@ surv_gcomp_underlying_engine <- function(design_type) {
 #'   (the inclusion weights aligned to `newdata`), and `engine` (the underlying
 #'   weighted-Cox engine for the `absolute_risk()` dispatch).
 #' @family causal survival
-#' @seealso `contrast_surv_gcomp()`, `cc_inclusion_weights()`
+#' @seealso `contrast_surv_gcomp()`, `subcohort_std_weights()`
 #' @noRd
 surv_gcomp_std_sample <- function(fit) {
   design_type <- fit$design$type
@@ -191,25 +191,4 @@ subcohort_std_weights <- function(dt, design, is_sc) {
   big_n_s <- table(strat)
   small_n_s <- table(strat[is_sc])
   as.numeric(big_n_s[strat]) / as.numeric(small_n_s[strat])
-}
-
-#' Inverse subcohort-sampling-fraction weights for a case-cohort sample
-#'
-#' Computes the design (inclusion-probability) weight for each cohort subject in
-#' a case-cohort sample: a case is ascertained with certainty (weight 1), a
-#' subcohort non-case is upweighted by the inverse of its subcohort sampling
-#' fraction `N_s / n_s`. Used by the design-preserving bootstrap to rebuild the
-#' analysis sample after resampling.
-#'
-#' @param dt A `data.table` of the full cohort.
-#' @param design The `matchatr_design` (its `subcohort` and `stratum` slots).
-#' @param is_sc Logical vector flagging subcohort membership, aligned to `dt`.
-#' @param event01 Integer 0/1 event indicator aligned to `dt`.
-#' @returns A numeric vector of inclusion weights, one per row of `dt`.
-#' @family causal survival
-#' @seealso `surv_gcomp_std_sample()`, [case_cohort()]
-#' @noRd
-cc_inclusion_weights <- function(dt, design, is_sc, event01) {
-  std <- subcohort_std_weights(dt, design, is_sc)
-  ifelse(event01 == 1L, 1.0, std)
 }
