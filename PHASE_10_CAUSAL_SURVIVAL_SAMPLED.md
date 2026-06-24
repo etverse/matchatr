@@ -56,137 +56,105 @@ average of the fitted absolute risk over the cohort covariate distribution:
   risk difference / ratio at the requested `times`. The conditional OR / HR and
   the IPW NCC scales are rejected (`matchatr_unidentified_estimand`).
 
+## Current status & roadmap (2026-06-24)
+
+**Shipped — Chunk 1 (case-cohort):** `matcha(design = case_cohort(...), estimator =
+"surv_gcomp")` → `contrast(type = "difference" | "ratio" | "rmst", times = )` with a
+design-preserving cohort-resample bootstrap. Files: `R/causal_survival_sampled.R`,
+`R/contrast_surv_sampled.R`, `R/variance_surv_sampled.R`. Validated by the full-cohort
+g-computation truth oracle + per-subject `absolute_risk()` agreement + an independent
+dense-grid RMST oracle.
+
+**Pending — Chunk 2 (nested case-control):** wire the `nested_cc` dispatch row (the
+`fit_ipw_cox()` / `ipw_breslow_ncc()` branches already exist in the engine helpers) and a
+**design-aware Samuelsen bootstrap** (resample the cohort, redraw the risk sets, recompute
+the KM inclusion weights, refit). Not started.
+
+**Deferred — Chunk 3 (doubly-robust `surv_aipw`):** see the Chunk 3 references below.
+
+**Open questions (the current rejection paths, under literature review):** whether to
+support a non-binary exposure (modified-treatment-policy / dose-response standardization),
+which additional marginal survival scales to add (RMTL, survival-difference, CIF, quantile
+survival), and whether an analytic influence-function / sandwich SE can replace or augment
+the bootstrap. The unmatched/matched-CC rejection (no time-to-event structure) and the
+`times` input validation are settled.
+
 ## Scope
 
-**In:** marginal causal survival estimands (absolute risk F_x(t), risk difference,
-risk ratio, RMST difference) under NCC and case-cohort sampling, by feeding the
-design / inclusion-probability weights (Phase 7 Samuelsen, Phase 6 Borgan) into
-`survatr`'s weighted person-period causal-survival engine.
+**In:** marginal causal-survival estimands (absolute risk F_x(t), risk difference, risk
+ratio, RMST difference) under case-cohort (Chunk 1) and nested case-control (Chunk 2)
+sampling, g-computed on the design's inclusion-weighted Cox.
 
 **Out:** classical HR estimation (Phases 5–7), the non-survival CCW family (Phase 9),
-weight calibration (Phase 12).
+weight calibration (Phase 12), competing risks under sampling.
 
-## Key design decisions
-
-- **Delegate causal survival to `survatr`.** survatr does pooled-logistic discrete-time
-  hazard g-computation (`surv_gcomp`), propensity IPW (`surv_ipw`), and time-varying ICE
-  (`surv_ice`) on person-period data, with sandwich/bootstrap variance and
-  survival / risk / risk-difference / risk-ratio / RMST / RMTL / quantile / CIF contrasts.
-  matchatr's job is to (a) convert the sampled design to person-period form and (b) supply
-  the inclusion-probability weights as survatr observation weights.
-- **Only `surv_gcomp` accepts external observation weights** (verified: `gcomp_survival.R`
-  broadcasts `weights` to the at-risk rows and switches to quasibinomial). `surv_ipw`,
-  `surv_ice`, and competing-risks **reject** external weights (their weights are the
-  fitted propensity / IPCW weights, a different object from design weights). So the
-  design-weighted path for **every** sampled design routes through `surv_gcomp + design
-  weights`, NOT `surv_ipw` — the inclusion weights are observation weights into the
-  standardized hazard model, not a substitute for a propensity model. (Composing design
-  weights with survatr's stabilized IPW would need a survatr change — see prerequisites.)
-- **survatr requires rectangular person-period data** (it rejects a ragged panel). A
-  sampled NCC / case-cohort is not rectangular, so `fit_surv_sampled()` must pad the
-  retained subjects to a common time grid before calling `surv_fit()`.
-- **Design weights, not case-control weights.** This track uses Samuelsen/Borgan
-  inverse-inclusion-probability weights (Phase 6/7), which reweight the sampled cohort to
-  the full cohort. (Distinct from Phase 9's q₀ weights — `hard-rules.md`.)
-- **Variance is the harder part.** survatr's sandwich treats weights as fixed; the
-  sampling variation of estimated inclusion weights needs the Samuelsen/Borgan
-  correction or a design-aware bootstrap (resample the cohort, re-sample the design,
-  refit). Default to bootstrap for marginal contrasts under sampling; offer the
-  fixed-weight sandwich as a fast (slightly anticonservative) option with a classed
-  warning, mirroring survatr's existing unbalanced-panel warning pattern.
-- **Reject** combinations survatr cannot weight (e.g. designs without a usable
-  person-period mapping) with a classed error.
-
-## API design
+## API
 
 ```r
-# Case-cohort -> marginal absolute risk + risk difference
-fit <- matcha(cohort_pp, outcome = "event", exposure = "x",
+# Case-cohort -> marginal risk difference / ratio at follow-up times (Chunk 1).
+fit <- matcha(cohort, outcome = "event", exposure = "x",
               design = case_cohort(subcohort = "sub", time = "t"),
-              confounders = ~ age, estimator = "surv_gcomp")   # -> survatr weighted
-contrast(fit, type = "difference", times = c(2, 5))            # marginal RD(t)
-rmst_difference(fit, horizon = 5)
-
-# NCC with Samuelsen KM weights -> marginal survival contrast.
-# The Samuelsen inclusion weights are observation weights into surv_gcomp (the
-# only survatr estimator that accepts external weights), NOT a propensity model,
-# so this is surv_gcomp + design weights, not surv_ipw.
-matcha(ncc_pp, outcome = "event", exposure = "dose",
-       design = nested_cc(strata = "set", time = "t", weights = ncc_weights("km")),
-       estimator = "surv_gcomp")
+              confounders = ~ age, estimator = "surv_gcomp")  # cch under the hood
+contrast(fit, type = "difference", times = c(2, 5))           # marginal RD(t)
+contrast(fit, type = "ratio", times = c(2, 5))                # marginal RR(t)
+contrast(fit, type = "rmst", times = 5)                       # marginal RMST diff up to 5
+# n_boot controls the design-preserving bootstrap (default 500).
 ```
+
+`matcha()` is called with the **full cohort** (as for `cch`); the contrast standardizes
+over the subcohort. RMST is a `type =` of `contrast()`, not a separate verb. The exposure
+is recoded to 0/1.
 
 ## Support matrix
 
-| Design | Weight | Estimator (survatr) | Estimand | Variance | Status |
+| Design | Engine | Estimand | Contrast | Variance | Status |
 |---|---|---|---|---|---|
-| case-cohort | Borgan IPW | surv_gcomp | F_x(t), RD, RR, RMST | bootstrap | needs-test |
-| NCC | Samuelsen KM | surv_gcomp (design weights) | F_x(t), RD, RR, RMST | bootstrap | needs-test |
-| case-cohort / NCC | Borgan / Samuelsen | surv_aipw (DR) | RD (DR) | bootstrap | **blocked on survatr `surv_aipw`** |
-| any | fixed-weight sandwich | surv_gcomp | RD | sandwich + warning | smoke |
-| design w/o PP mapping | — | — | — | ⛔ `matchatr_no_person_period` |
+| case-cohort | `cch` | marginal F_x(t) | difference / ratio | bootstrap | ✅ Chunk 1 |
+| case-cohort | `cch` | marginal RMST | rmst | bootstrap | ✅ Chunk 1 |
+| nested CC | `ipw_cox` | marginal F_x(t) / RMST | difference / ratio / rmst | design-aware bootstrap | ⏳ Chunk 2 |
+| case-cohort / NCC | DR | marginal RD (DR) | difference | — | ⏳ Chunk 3 (deferred) |
+| unmatched / matched CC | — | — | — | — | ⛔ `matchatr_bad_estimator` (no time-to-event) |
+| non-binary exposure | — | — | — | — | ⛔ `matchatr_bad_input` (under review) |
+| off-scale `type` (or/hr/af/excess) | — | — | — | — | ⛔ `matchatr_unidentified_estimand` |
+| `ci_method = "sandwich"` | — | — | — | — | ⛔ `matchatr_unsupported_variance` (under review) |
+| missing / non-positive `times` | — | — | — | — | ⛔ `matchatr_bad_input` |
 
-Both sampled designs now route through **`surv_gcomp` + design weights** (the only
-survatr estimator that accepts external weights); the earlier `surv_ipw` row for NCC was
-removed because survatr's `surv_ipw` rejects external weights. The DR (`surv_aipw`) row
-is blocked on a survatr addition (see prerequisites).
+## Implementation
 
-## survatr prerequisites (from the 2026-06-11 reuse audit)
-
-Two survatr capabilities this phase assumes do not exist yet. Resolve before the
-corresponding chunk:
-
-1. **`surv_gcomp` external weights — present (no change needed).** Confirmed survatr's
-   `surv_fit(estimator = "gcomp", weights = )` accepts external observation weights, so the
-   primary design-weighted path (Chunks 1–2) needs no survatr change.
-2. **`surv_aipw` (doubly-robust survival) — MISSING; must be added to survatr.** survatr
-   ships only `gcomp` / `ipw` / `ice`; there is no AIPW/DR survival estimator, so the DR
-   row (Chunk 3) is blocked until survatr gains one. A DR treatment-specific survival /
-   RMST estimator is **theoretically sound and well-established**: the locally efficient
-   augmented-IPW (AIPWCC) estimator is consistent for the treatment-specific survival
-   distribution if **either** the outcome (survival/hazard) model **or** the propensity +
-   censoring models are correct. Primary references (verified):
-   - Robins & Rotnitzky (1992) — the AIPW / locally efficient estimating-equation theory.
-   - Hubbard, van der Laan & Robins (2000), *Statistical Models in Epidemiology, the
-     Environment, and Clinical Trials* — locally efficient survival estimation.
-   - **Zhang & Schaubel (2012)**, "Contrasting treatment-specific survival using
-     double-robust estimators", *Statistics in Medicine* 31(30): 4255–4268 — DR for
-     treatment-specific survival **and RMST**, consistent if either a logistic treatment
-     model or a Cox death-hazard model is correct. The closest fit to survatr's
-     pooled-logistic-hazard + propensity framework, and the recommended template.
-   - **Bai, Tsiatis & O'Brien (2013)**, "Doubly-robust Estimators of Treatment-specific
-     Survival Distributions in Observational Studies with Stratified Sampling",
-     *Biometrics* 69(4) — locally efficient AIPWCC for treatment-specific survival
-     **under stratified sampling**, directly relevant to the NCC / case-cohort sampled
-     designs this phase targets.
-
-   **Action:** file a survatr feature request for `estimator = "surv_aipw"` (a DR survival
-   estimator accepting external design weights), templated on Zhang & Schaubel (2012);
-   matchatr's Chunk 3 then delegates to it exactly as Chunks 1–2 delegate to `surv_gcomp`.
-   Until then, Chunk 3 is deferred (the singly-robust `surv_gcomp` path still ships in
-   Chunks 1–2).
-3. **`surv_ipw` external weights — by design rejected; not pursued.** survatr's `surv_ipw`
-   is a propensity-weighted MSM, so it rejects external design weights. Composing design
-   weights with stabilized IPW is a possible future survatr extension but is NOT needed:
-   the design-weighted path uses `surv_gcomp` (decision above), so no survatr change is
-   requested here.
-
-## Implementation plan
-
-- `R/causal_survival_sampled.R` — `fit_surv_sampled()`: convert design → person-period
-  (reuse `survatr::to_person_period`-style prep), attach inclusion weights, call
-  `survatr::surv_fit()` with the chosen estimator + weights, wrap the result; route
-  `contrast()`/`rmst_difference()` to survatr.
-- `R/variance_samuelsen.R` (shared with Phase 7) — sampling-variance correction;
-  design-aware bootstrap refitter.
+- `R/causal_survival_sampled.R` — `fit_surv_gcomp()` (delegates to `fit_cch()` /
+  `fit_ipw_cox()` after `surv_gcomp_recode_exposure()`), `surv_gcomp_std_sample()` +
+  `subcohort_std_weights()` (the Horvitz-Thompson standardization sample and weights).
+- `R/contrast_surv_sampled.R` — `contrast_surv_gcomp()`, `surv_gcomp_marginal_risk()`
+  (closed-form F^a(t) from `surv_gcomp_breslow()` + `ar_lp_from_newdata()`),
+  `surv_gcomp_rmst_diff()` (left-Riemann integral of the step survival).
+- `R/variance_surv_sampled.R` — `surv_gcomp_boot_ci()` + `boot_percentile_ci()` (the
+  design-preserving bootstrap; Chunk 2 adds the Samuelsen design-aware variant).
 
 ## Variance / inference notes
 
-Marginal contrasts under sampling: design-aware bootstrap is the reference (resample the
-full cohort, redraw the NCC/case-cohort sample, recompute weights, refit via survatr).
-The fixed-weight survatr sandwich ignores weight-estimation variance → anticonservative;
-gate it behind a classed warning. For known/fixed inclusion probabilities the sandwich is
-appropriate.
+The shipped variance is the design-preserving bootstrap (cohort resample for case-cohort;
+a Samuelsen risk-set redraw for NCC in Chunk 2). An analytic influence-function / sandwich
+SE for the design-weighted standardized survival is an open question (under review) — it
+must account for both the marginalization (coupling subjects) and the sampling variability
+of the inclusion weights, so the bootstrap is the correct default for now; an explicit
+`ci_method = "sandwich"` request is rejected rather than silently substituted.
+
+## Chunk 3 references — doubly-robust treatment-specific survival
+
+A DR estimator is consistent for the treatment-specific survival if **either** the outcome
+(hazard) model **or** the propensity (+ censoring) models is correct. References (verified):
+
+- Robins & Rotnitzky (1992) — AIPW / locally efficient estimating-equation theory.
+- Hubbard, van der Laan & Robins (2000) — locally efficient survival estimation.
+- **Zhang & Schaubel (2012)**, *Statistics in Medicine* 31(30): 4255–4268 — DR for
+  treatment-specific survival **and RMST** (logistic treatment or Cox hazard model).
+- **Bai, Tsiatis & O'Brien (2013)**, *Biometrics* 69(4) — locally efficient AIPWCC for
+  treatment-specific survival **under stratified sampling** — directly relevant to the
+  sampled designs here.
+
+Since the pivot, the DR estimator would be matchatr's own (g-computation + augmentation on
+the weighted Cox), **not** a survatr delegation — so Chunk 3 is deferred on effort, not
+blocked on a survatr addition.
 
 ## Oracle testing strategy
 
