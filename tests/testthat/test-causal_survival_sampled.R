@@ -249,6 +249,26 @@ test_that("the RMST integral equals a dense-grid integral of marginal survival",
   expect_equal(eng[3], fine1 - fine0, tolerance = 5e-3)
 })
 
+test_that("the bootstrap summary guards failed replicates instead of silent NA", {
+  # A column with no successful replicate aborts rather than returning NA.
+  expect_error(
+    boot_percentile_ci(matrix(NA_real_, 5L, 1L), 0.95),
+    class = "matchatr_bootstrap_failed"
+  )
+  # Some failed replicates warn, and the interval uses the survivors.
+  est <- cbind(
+    c(0.10, 0.20, 0.30, NA, NA),
+    c(0.10, 0.20, 0.30, 0.40, 0.50)
+  )
+  res <- NULL
+  expect_warning(
+    res <- boot_percentile_ci(est, 0.95),
+    class = "matchatr_bootstrap_failures"
+  )
+  expect_equal(res$se[1], stats::sd(c(0.10, 0.20, 0.30)))
+  expect_equal(res$se[2], stats::sd(c(0.10, 0.20, 0.30, 0.40, 0.50)))
+})
+
 # --- result structure ---------------------------------------------------------
 
 test_that("the result carries per-time contrasts, intervention risks, and tidies", {

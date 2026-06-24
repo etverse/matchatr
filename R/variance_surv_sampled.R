@@ -69,6 +69,55 @@ surv_gcomp_boot_ci <- function(fit, type, times, conf_level, n_boot) {
     }
   }
 
+  boot_percentile_ci(est, conf_level)
+}
+
+#' Percentile interval from a bootstrap-replicate matrix, guarding empty columns
+#'
+#' Reduces a `replicate x time` matrix of bootstrap contrast estimates to the
+#' standard error and percentile bounds, dropping failed (`NA`) replicates. A
+#' failed refit leaves an `NA` row; `na.rm = TRUE` would otherwise turn a column
+#' with *no* successful replicate into a silent `NA` interval, so this aborts when
+#' any column is all-`NA` and warns when some replicates were dropped — the caller
+#' (and tests) can then match on the classed condition rather than discover a
+#' silently missing interval.
+#'
+#' @param est A numeric `n_boot` by `length(times)` matrix; failed replicates are
+#'   `NA` rows.
+#' @param conf_level Numeric confidence level in (0, 1).
+#' @param call Caller environment surfaced in the abort.
+#' @returns A list with `se`, `lower`, and `upper`, each aligned to the columns of
+#'   `est`. Aborts `matchatr_bootstrap_failed` when a column has no successful
+#'   replicate; warns `matchatr_bootstrap_failures` when some replicates failed.
+#' @family causal survival
+#' @seealso `surv_gcomp_boot_ci()`
+#' @noRd
+boot_percentile_ci <- function(est, conf_level, call = rlang::caller_env()) {
+  n_ok <- colSums(!is.na(est))
+  if (any(n_ok == 0L)) {
+    rlang::abort(
+      c(
+        "The design-preserving bootstrap produced no successful replicate.",
+        i = "Every weighted-Cox refit failed, so the marginal-survival interval is undefined."
+      ),
+      class = c("matchatr_bootstrap_failed", "matchatr_error"),
+      call = call
+    )
+  }
+  n_failed <- nrow(est) - min(n_ok)
+  if (n_failed > 0L) {
+    rlang::warn(
+      c(
+        paste0(
+          n_failed,
+          " bootstrap replicate(s) failed to refit and were dropped."
+        ),
+        i = "The percentile interval is computed from the successful replicates only."
+      ),
+      class = c("matchatr_bootstrap_failures", "matchatr_warning")
+    )
+  }
+
   alpha <- 1 - conf_level
   se <- apply(est, 2L, stats::sd, na.rm = TRUE)
   lower <- apply(
