@@ -49,6 +49,17 @@
 #'               estimator = "ipw_aalen")
 #' excess_risk(fit, times = c(1, 2, 3, 4))
 #' }
+#' @references
+#' Aalen OO (1980). A model for nonparametric regression analysis of counting
+#' processes. In *Mathematical Statistics and Probability Theory* (Lecture
+#' Notes in Statistics 2), pp. 1-25. Springer.
+#'
+#' Lin DY, Ying Z (1994). Semiparametric analysis of the additive risk model.
+#' *Biometrika* 81(1):61-71.
+#'
+#' Borgan O, Langholz B (1997). Estimation of excess risk from case-control
+#' data using Aalen's linear regression model. *Biometrics* 53(2):690-697.
+#'
 #' @family contrasts
 #' @seealso [matcha()], [contrast()], [absolute_risk()], [sample_ncc()]
 #' @export

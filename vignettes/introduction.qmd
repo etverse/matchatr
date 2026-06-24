@@ -6,6 +6,9 @@ vignette: >
   %\VignetteIndexEntry{Introduction to matchatr}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+nocite: |
+  @rose2009whymatch
 ---
 
 ```{r}
@@ -147,7 +150,7 @@ contrasts — that layer is on the roadmap below.
 ## What works today
 
 matchatr is built phase by phase against the *Handbook of Statistical Methods
-for Case-Control Studies* (Borgan et al., 2018). The classical odds-ratio
+for Case-Control Studies* [@borgan2018handbook]. The classical odds-ratio
 engines are implemented:
 
 | Design | Estimator | Estimand | Article |
@@ -165,9 +168,5 @@ TMLE, design-weighted causal survival) are designed but not yet implemented; see
 
 ## References
 
-Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). *Handbook
-of Statistical Methods for Case-Control Studies*. Chapman & Hall/CRC.
-
-Rose S, van der Laan MJ (2009). Why match? Investigating matched case-control
-study designs with causal effect estimation. *The International Journal of
-Biostatistics* 5(1).
+::: {#refs}
+:::

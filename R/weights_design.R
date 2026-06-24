@@ -27,9 +27,10 @@
 #' are always included with weight 1.
 #'
 #' The default `selection_formula = NULL` maps to `~ risk_time`, a time-only
-#' logistic model matching the simplest GLM specification of Borgan, Samuelsen
-#' & Aastveit (2003, *Lifetime Data Analysis* 9(2)). Richer models can include
-#' cohort covariates: `~ risk_time + age + sex`.
+#' logistic model in the spirit of the estimated-weight (working-model)
+#' approach of Samuelsen, Ånestad & Skrondal (2007, *Scandinavian Journal of
+#' Statistics* 34(1)). Richer models can include cohort covariates:
+#' `~ risk_time + age + sex`.
 #'
 #' **Population-stratum matching caveat.** If `ncc` was generated with
 #' [sample_ncc()] using a `match` argument (e.g. `match = ~ sex`), controls
@@ -86,6 +87,14 @@
 #'               design = nested_cc(strata = "set", time = "t"),
 #'               estimator = "ipw_cox")
 #' contrast(fit)
+#'
+#' @references
+#' Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
+#' case-control studies. *Biometrika* 84(2):379-394.
+#'
+#' Samuelsen SO, Ånestad H, Skrondal A (2007). Stratified case-cohort analysis
+#' of general cohort sampling designs. *Scandinavian Journal of Statistics*
+#' 34(1):103-119.
 #'
 #' @family sampling
 #' @seealso [sample_ncc()], [matcha()], [nested_cc()]
@@ -224,7 +233,7 @@ compute_ncc_weights <- function(
 
   # Construct the selection model formula.
   if (is.null(selection_formula)) {
-    # Default: time-only working model (Borgan, Samuelsen & Aastveit 2003).
+    # Default: time-only working model (Samuelsen, Ånestad & Skrondal 2007).
     fit_formula <- selected ~ risk_time
   } else {
     check_formula(selection_formula, call = call)

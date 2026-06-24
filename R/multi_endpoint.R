@@ -94,6 +94,15 @@
 #'                estimator = "ipw_cox")
 #' contrast(fit2)
 #'
+#' @references
+#' Saarela O, Kulathinal S, Arjas E, Läärä E (2008). Nested case-control data
+#' utilized for multiple outcomes: a likelihood approach and alternatives.
+#' *Statistics in Medicine* 27(28):5991-6008.
+#'
+#' Støer NC, Samuelsen SO (2012). Comparison of estimators in nested
+#' case-control studies with multiple outcomes. *Lifetime Data Analysis*
+#' 18(3):261-283.
+#'
 #' @family sampling
 #' @seealso [sample_ncc()], [compute_ncc_weights()], [matcha()], [nested_cc()]
 #' @export

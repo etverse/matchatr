@@ -1,0 +1,649 @@
+% references.bib --- single source of truth for matchatr documentation citations.
+% Cited from the Quarto vignettes via @key / [@key]; mirrored as plain-text
+% roxygen @references in R/ and as prose in the design docs (PHASE_*.md). Every
+% entry carries a DOI (or, for two older works with none, the full print
+% reference) so it can be verified independently. Keys follow the scheme
+% firstauthorYYYYkeyword. DOIs were checked against Crossref.
+
+% ---------------------------------------------------------------------------
+% Foundational handbook
+% ---------------------------------------------------------------------------
+
+@book{borgan2018handbook,
+  editor    = {Borgan, {\O}rnulf and Breslow, Norman and Chatterjee, Nilanjan and Gail, Mitchell H. and Scott, Alastair and Wild, Chris J.},
+  title     = {Handbook of Statistical Methods for Case-Control Studies},
+  year      = {2018},
+  publisher = {Chapman \& Hall/CRC},
+  address   = {Boca Raton, FL},
+  doi       = {10.1201/9781315154084}
+}
+
+% ---------------------------------------------------------------------------
+% Classical (unmatched / matched / polytomous) case-control odds ratios
+% ---------------------------------------------------------------------------
+
+@article{mantel1959statistical,
+  author  = {Mantel, Nathan and Haenszel, William},
+  title   = {Statistical aspects of the analysis of data from retrospective studies of disease},
+  journal = {Journal of the National Cancer Institute},
+  year    = {1959},
+  volume  = {22},
+  number  = {4},
+  pages   = {719--748},
+  doi     = {10.1093/jnci/22.4.719}
+}
+
+@article{mcnemar1947note,
+  author  = {McNemar, Quinn},
+  title   = {Note on the sampling error of the difference between correlated proportions or percentages},
+  journal = {Psychometrika},
+  year    = {1947},
+  volume  = {12},
+  number  = {2},
+  pages   = {153--157},
+  doi     = {10.1007/BF02295996}
+}
+
+@article{prentice1979logistic,
+  author  = {Prentice, Ross L. and Pyke, Ronald},
+  title   = {Logistic disease incidence models and case-control studies},
+  journal = {Biometrika},
+  year    = {1979},
+  volume  = {66},
+  number  = {3},
+  pages   = {403--411},
+  doi     = {10.1093/biomet/66.3.403}
+}
+
+@book{breslow1980statistical,
+  author    = {Breslow, Norman E. and Day, Nicholas E.},
+  title     = {Statistical Methods in Cancer Research, Volume 1: The Analysis of Case-Control Studies},
+  year      = {1980},
+  publisher = {International Agency for Research on Cancer (IARC Scientific Publications No. 32)},
+  address   = {Lyon}
+}
+
+@article{pike1980bias,
+  author  = {Pike, Malcolm C. and Hill, Adrian P. and Smith, Peter G.},
+  title   = {Bias and efficiency in logistic analyses of stratified case-control studies},
+  journal = {International Journal of Epidemiology},
+  year    = {1980},
+  volume  = {9},
+  number  = {1},
+  pages   = {89--95},
+  doi     = {10.1093/ije/9.1.89}
+}
+
+@article{robins1986estimators,
+  author  = {Robins, James and Breslow, Norman and Greenland, Sander},
+  title   = {Estimators of the Mantel-Haenszel variance consistent in both sparse data and large-strata limiting models},
+  journal = {Biometrics},
+  year    = {1986},
+  volume  = {42},
+  number  = {2},
+  pages   = {311--323},
+  doi     = {10.2307/2531052}
+}
+
+@article{begg1984calculation,
+  author  = {Begg, Colin B. and Gray, Robert},
+  title   = {Calculation of polychotomous logistic regression parameters using individualized regressions},
+  journal = {Biometrika},
+  year    = {1984},
+  volume  = {71},
+  number  = {1},
+  pages   = {11--18},
+  doi     = {10.1093/biomet/71.1.11}
+}
+
+@article{dubin1986risk,
+  author  = {Dubin, Neil and Pasternack, Bernard S.},
+  title   = {Risk assessment for case-control subgroups by polychotomous logistic regression},
+  journal = {American Journal of Epidemiology},
+  year    = {1986},
+  volume  = {123},
+  number  = {6},
+  pages   = {1101--1117},
+  doi     = {10.1093/oxfordjournals.aje.a114338}
+}
+
+@book{venables2002modern,
+  author    = {Venables, William N. and Ripley, Brian D.},
+  title     = {Modern Applied Statistics with S},
+  edition   = {Fourth},
+  year      = {2002},
+  publisher = {Springer},
+  address   = {New York},
+  doi       = {10.1007/978-0-387-21706-2}
+}
+
+@article{pearce2016analysis,
+  author  = {Pearce, Neil},
+  title   = {Analysis of matched case-control studies},
+  journal = {BMJ},
+  year    = {2016},
+  volume  = {352},
+  pages   = {i969},
+  doi     = {10.1136/bmj.i969}
+}
+
+% ---------------------------------------------------------------------------
+% Risk-set sampling, nested case-control, case-cohort
+% ---------------------------------------------------------------------------
+
+@article{thomas1977addendum,
+  author  = {Thomas, Duncan C.},
+  title   = {Addendum to ``Methods of cohort analysis: appraisal by application to asbestos mining'' (Liddell, F. D. K., McDonald, J. C. and Thomas, D. C.)},
+  journal = {Journal of the Royal Statistical Society, Series A},
+  year    = {1977},
+  volume  = {140},
+  number  = {4},
+  pages   = {469--491},
+  doi     = {10.2307/2345280}
+}
+
+@article{prentice1978retrospective,
+  author  = {Prentice, Ross L. and Breslow, Norman E.},
+  title   = {Retrospective studies and failure time models},
+  journal = {Biometrika},
+  year    = {1978},
+  volume  = {65},
+  number  = {1},
+  pages   = {153--158},
+  doi     = {10.1093/biomet/65.1.153}
+}
+
+@incollection{aalen1980model,
+  author    = {Aalen, Odd O.},
+  title     = {A model for nonparametric regression analysis of counting processes},
+  booktitle = {Mathematical Statistics and Probability Theory},
+  series    = {Lecture Notes in Statistics},
+  volume    = {2},
+  year      = {1980},
+  pages     = {1--25},
+  publisher = {Springer},
+  address   = {New York},
+  doi       = {10.1007/978-1-4615-7397-5_1}
+}
+
+@article{prentice1986casecohort,
+  author  = {Prentice, Ross L.},
+  title   = {A case-cohort design for epidemiologic cohort studies and disease prevention trials},
+  journal = {Biometrika},
+  year    = {1986},
+  volume  = {73},
+  number  = {1},
+  pages   = {1--11},
+  doi     = {10.1093/biomet/73.1.1}
+}
+
+@article{self1988asymptotic,
+  author  = {Self, Steven G. and Prentice, Ross L.},
+  title   = {Asymptotic distribution theory and efficiency results for case-cohort studies},
+  journal = {The Annals of Statistics},
+  year    = {1988},
+  volume  = {16},
+  number  = {1},
+  pages   = {64--81},
+  doi     = {10.1214/aos/1176350691}
+}
+
+@article{lin1989robust,
+  author  = {Lin, Danyu Y. and Wei, Lee-Jen},
+  title   = {The robust inference for the Cox proportional hazards model},
+  journal = {Journal of the American Statistical Association},
+  year    = {1989},
+  volume  = {84},
+  number  = {408},
+  pages   = {1074--1078},
+  doi     = {10.1080/01621459.1989.10478874}
+}
+
+@article{borgan1990note,
+  author  = {Borgan, {\O}rnulf and Liest{\o}l, Knut},
+  title   = {A note on confidence intervals and bands for the survival function based on transformations},
+  journal = {Scandinavian Journal of Statistics},
+  year    = {1990},
+  volume  = {17},
+  number  = {1},
+  pages   = {35--41}
+}
+
+@article{goldstein1992asymptotic,
+  author  = {Goldstein, Larry and Langholz, Bryan},
+  title   = {Asymptotic theory for nested case-control sampling in the Cox regression model},
+  journal = {The Annals of Statistics},
+  year    = {1992},
+  volume  = {20},
+  number  = {4},
+  pages   = {1903--1928},
+  doi     = {10.1214/aos/1176348895}
+}
+
+@article{lin1993cox,
+  author  = {Lin, Danyu Y. and Ying, Zhiliang},
+  title   = {Cox regression with incomplete covariate measurements},
+  journal = {Journal of the American Statistical Association},
+  year    = {1993},
+  volume  = {88},
+  number  = {424},
+  pages   = {1341--1349},
+  doi     = {10.1080/01621459.1993.10476416}
+}
+
+@article{lin1994semiparametric,
+  author  = {Lin, Danyu Y. and Ying, Zhiliang},
+  title   = {Semiparametric analysis of the additive risk model},
+  journal = {Biometrika},
+  year    = {1994},
+  volume  = {81},
+  number  = {1},
+  pages   = {61--71},
+  doi     = {10.1093/biomet/81.1.61}
+}
+
+@article{langholz1995countermatching,
+  author  = {Langholz, Bryan and Borgan, {\O}rnulf},
+  title   = {Counter-matching: a stratified nested case-control sampling method},
+  journal = {Biometrika},
+  year    = {1995},
+  volume  = {82},
+  number  = {1},
+  pages   = {69--79},
+  doi     = {10.1093/biomet/82.1.69}
+}
+
+@article{borgan1997estimation,
+  author  = {Borgan, {\O}rnulf and Langholz, Bryan},
+  title   = {Estimation of excess risk from case-control data using Aalen's linear regression model},
+  journal = {Biometrics},
+  year    = {1997},
+  volume  = {53},
+  number  = {2},
+  pages   = {690--697},
+  doi     = {10.2307/2533968}
+}
+
+@article{samuelsen1997pseudolikelihood,
+  author  = {Samuelsen, Sven Ove},
+  title   = {A pseudolikelihood approach to analysis of nested case-control studies},
+  journal = {Biometrika},
+  year    = {1997},
+  volume  = {84},
+  number  = {2},
+  pages   = {379--394},
+  doi     = {10.1093/biomet/84.2.379}
+}
+
+@article{borgan2000exposure,
+  author  = {Borgan, {\O}rnulf and Langholz, Bryan and Samuelsen, Sven Ove and Goldstein, Larry and Pogoda, Janice},
+  title   = {Exposure stratified case-cohort designs},
+  journal = {Lifetime Data Analysis},
+  year    = {2000},
+  volume  = {6},
+  number  = {1},
+  pages   = {39--58},
+  doi     = {10.1023/A:1009661900674}
+}
+
+@article{samuelsen2007stratified,
+  author  = {Samuelsen, Sven Ove and {\AA}nestad, Henrik and Skrondal, Anders},
+  title   = {Stratified case-cohort analysis of general cohort sampling designs},
+  journal = {Scandinavian Journal of Statistics},
+  year    = {2007},
+  volume  = {34},
+  number  = {1},
+  pages   = {103--119},
+  doi     = {10.1111/j.1467-9469.2006.00552.x}
+}
+
+@article{saarela2008nested,
+  author  = {Saarela, Olli and Kulathinal, Sangita and Arjas, Elja and L{\"a}{\"a}r{\"a}, Esa},
+  title   = {Nested case-control data utilized for multiple outcomes: a likelihood approach and alternatives},
+  journal = {Statistics in Medicine},
+  year    = {2008},
+  volume  = {27},
+  number  = {28},
+  pages   = {5991--6008},
+  doi     = {10.1002/sim.3416}
+}
+
+@article{stoer2012comparison,
+  author  = {St{\o}er, Nathalie C. and Samuelsen, Sven Ove},
+  title   = {Comparison of estimators in nested case-control studies with multiple outcomes},
+  journal = {Lifetime Data Analysis},
+  year    = {2012},
+  volume  = {18},
+  number  = {3},
+  pages   = {261--283},
+  doi     = {10.1007/s10985-012-9214-8}
+}
+
+@article{stoer2013inverse,
+  author  = {St{\o}er, Nathalie C. and Samuelsen, Sven Ove},
+  title   = {Inverse probability weighting in nested case-control studies with additional matching---a simulation study},
+  journal = {Statistics in Medicine},
+  year    = {2013},
+  volume  = {32},
+  number  = {30},
+  pages   = {5328--5339},
+  doi     = {10.1002/sim.6019}
+}
+
+@article{kang2017efficient,
+  author  = {Kang, Sangwook and Lu, Wenbin and Liu, Mengling},
+  title   = {Efficient estimation for accelerated failure time model under case-cohort and nested case-control sampling},
+  journal = {Biometrics},
+  year    = {2017},
+  volume  = {73},
+  number  = {1},
+  pages   = {114--123},
+  doi     = {10.1111/biom.12573}
+}
+
+% ---------------------------------------------------------------------------
+% Marginal causal effects from case-control samples (case-control weighting)
+% ---------------------------------------------------------------------------
+
+@article{vanderlaan2006targeted,
+  author  = {van der Laan, Mark J. and Rubin, Daniel},
+  title   = {Targeted maximum likelihood learning},
+  journal = {The International Journal of Biostatistics},
+  year    = {2006},
+  volume  = {2},
+  number  = {1},
+  pages   = {Article 11},
+  doi     = {10.2202/1557-4679.1043}
+}
+
+@article{rose2008simple,
+  author  = {Rose, Sherri and van der Laan, Mark J.},
+  title   = {Simple optimal weighting of cases and controls in case-control studies},
+  journal = {The International Journal of Biostatistics},
+  year    = {2008},
+  volume  = {4},
+  number  = {1},
+  pages   = {Article 19},
+  doi     = {10.2202/1557-4679.1115}
+}
+
+@article{rose2009whymatch,
+  author  = {Rose, Sherri and van der Laan, Mark J.},
+  title   = {Why match? Investigating matched case-control study designs with causal effect estimation},
+  journal = {The International Journal of Biostatistics},
+  year    = {2009},
+  volume  = {5},
+  number  = {1},
+  pages   = {Article 1},
+  doi     = {10.2202/1557-4679.1127}
+}
+
+@book{vdl2011targeted,
+  author    = {van der Laan, Mark J. and Rose, Sherri},
+  title     = {Targeted Learning: Causal Inference for Observational and Experimental Data},
+  year      = {2011},
+  publisher = {Springer},
+  address   = {New York},
+  doi       = {10.1007/978-1-4419-9782-1}
+}
+
+@article{rose2014doublerobust,
+  author  = {Rose, Sherri and van der Laan, Mark J.},
+  title   = {A double robust approach to causal effects in case-control studies},
+  journal = {American Journal of Epidemiology},
+  year    = {2014},
+  volume  = {179},
+  number  = {6},
+  pages   = {663--669},
+  doi     = {10.1093/aje/kwt318}
+}
+
+% ---------------------------------------------------------------------------
+% Causal survival on sampled designs (PHASE 10, design)
+% ---------------------------------------------------------------------------
+
+@incollection{robins1992recovery,
+  author    = {Robins, James M. and Rotnitzky, Andrea},
+  title     = {Recovery of information and adjustment for dependent censoring using surrogate markers},
+  booktitle = {AIDS Epidemiology: Methodological Issues},
+  editor    = {Jewell, Nicholas P. and Dietz, Klaus and Farewell, Vernon T.},
+  year      = {1992},
+  pages     = {297--331},
+  publisher = {Birkh{\"a}user},
+  address   = {Boston},
+  doi       = {10.1007/978-1-4757-1229-2_14}
+}
+
+@incollection{hubbard2000nonparametric,
+  author    = {Hubbard, Alan E. and van der Laan, Mark J. and Robins, James M.},
+  title     = {Nonparametric locally efficient estimation of the treatment specific survival distribution with right censored data and covariates in observational studies},
+  booktitle = {Statistical Models in Epidemiology, the Environment, and Clinical Trials},
+  series    = {The IMA Volumes in Mathematics and its Applications},
+  volume    = {116},
+  year      = {2000},
+  pages     = {135--177},
+  publisher = {Springer},
+  address   = {New York},
+  doi       = {10.1007/978-1-4612-1284-3_3}
+}
+
+@article{zhang2012contrasting,
+  author  = {Zhang, Min and Schaubel, Douglas E.},
+  title   = {Contrasting treatment-specific survival using double-robust estimators},
+  journal = {Statistics in Medicine},
+  year    = {2012},
+  volume  = {31},
+  number  = {30},
+  pages   = {4255--4268},
+  doi     = {10.1002/sim.5511}
+}
+
+@article{bai2013doubly,
+  author  = {Bai, Xiaofei and Tsiatis, Anastasios A. and O'Brien, Sean M.},
+  title   = {Doubly-robust estimators of treatment-specific survival distributions in observational studies with stratified sampling},
+  journal = {Biometrics},
+  year    = {2013},
+  volume  = {69},
+  number  = {4},
+  pages   = {830--839},
+  doi     = {10.1111/biom.12076}
+}
+
+% ---------------------------------------------------------------------------
+% Multiple imputation for missing-by-design data (PHASE 13, design)
+% ---------------------------------------------------------------------------
+
+@article{meng1994uncongenial,
+  author  = {Meng, Xiao-Li},
+  title   = {Multiple-imputation inferences with uncongenial sources of input},
+  journal = {Statistical Science},
+  year    = {1994},
+  volume  = {9},
+  number  = {4},
+  pages   = {538--558},
+  doi     = {10.1214/ss/1177010269}
+}
+
+@article{moons2006using,
+  author  = {Moons, Karel G. M. and Donders, Rogier A. R. T. and Stijnen, Theo and Harrell, Frank E.},
+  title   = {Using the outcome for imputation of missing predictor values was preferred},
+  journal = {Journal of Clinical Epidemiology},
+  year    = {2006},
+  volume  = {59},
+  number  = {10},
+  pages   = {1092--1101},
+  doi     = {10.1016/j.jclinepi.2006.01.009}
+}
+
+@article{sterne2009multiple,
+  author  = {Sterne, Jonathan A. C. and White, Ian R. and Carlin, John B. and Spratt, Michael and Royston, Patrick and Kenward, Michael G. and Wood, Angela M. and Carpenter, James R.},
+  title   = {Multiple imputation for missing data in epidemiological and clinical research: potential and pitfalls},
+  journal = {BMJ},
+  year    = {2009},
+  volume  = {338},
+  pages   = {b2393},
+  doi     = {10.1136/bmj.b2393}
+}
+
+@article{white2009imputing,
+  author  = {White, Ian R. and Royston, Patrick},
+  title   = {Imputing missing covariate values for the Cox model},
+  journal = {Statistics in Medicine},
+  year    = {2009},
+  volume  = {28},
+  number  = {15},
+  pages   = {1982--1998},
+  doi     = {10.1002/sim.3618}
+}
+
+@article{marti2011multiple,
+  author  = {Marti, H{\'e}l{\`e}ne and Chavance, Michel},
+  title   = {Multiple imputation analysis of case-cohort studies},
+  journal = {Statistics in Medicine},
+  year    = {2011},
+  volume  = {30},
+  number  = {13},
+  pages   = {1595--1607},
+  doi     = {10.1002/sim.4130}
+}
+
+@article{keogh2013using,
+  author  = {Keogh, Ruth H. and White, Ian R.},
+  title   = {Using full-cohort data in nested case-control and case-cohort studies by multiple imputation},
+  journal = {Statistics in Medicine},
+  year    = {2013},
+  volume  = {32},
+  number  = {23},
+  pages   = {4021--4043},
+  doi     = {10.1002/sim.5818}
+}
+
+@article{bartlett2015smcfcs,
+  author  = {Bartlett, Jonathan W. and Seaman, Shaun R. and White, Ian R. and Carpenter, James R.},
+  title   = {Multiple imputation of covariates by fully conditional specification: accommodating the substantive model},
+  journal = {Statistical Methods in Medical Research},
+  year    = {2015},
+  volume  = {24},
+  number  = {4},
+  pages   = {462--487},
+  doi     = {10.1177/0962280214521348}
+}
+
+@article{seaman2015handling,
+  author  = {Seaman, Shaun R. and Keogh, Ruth H.},
+  title   = {Handling missing data in matched case-control studies using multiple imputation},
+  journal = {Biometrics},
+  year    = {2015},
+  volume  = {71},
+  number  = {4},
+  pages   = {1150--1159},
+  doi     = {10.1111/biom.12358}
+}
+
+@article{keogh2018multiple,
+  author  = {Keogh, Ruth H. and Seaman, Shaun R. and Bartlett, Jonathan W. and Wood, Angela M.},
+  title   = {Multiple imputation of missing data in nested case-control and case-cohort studies},
+  journal = {Biometrics},
+  year    = {2018},
+  volume  = {74},
+  number  = {4},
+  pages   = {1438--1449},
+  doi     = {10.1111/biom.12910}
+}
+
+@article{dashti2024handling,
+  author  = {Dashti, S. Ghazaleh and Lee, Katherine J. and Simpson, Julie A. and White, Ian R. and Carlin, John B. and Moreno-Betancur, Margarita},
+  title   = {Handling missing data when estimating causal effects with targeted maximum likelihood estimation},
+  journal = {American Journal of Epidemiology},
+  year    = {2024},
+  volume  = {193},
+  number  = {7},
+  pages   = {1019--1030},
+  doi     = {10.1093/aje/kwae012}
+}
+
+% ---------------------------------------------------------------------------
+% Calibration, two-phase, and semiparametric MLE (PHASES 12 & 14, design)
+% ---------------------------------------------------------------------------
+
+@article{louis1982finding,
+  author  = {Louis, Thomas A.},
+  title   = {Finding the observed information matrix when using the EM algorithm},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  year    = {1982},
+  volume  = {44},
+  number  = {2},
+  pages   = {226--233},
+  doi     = {10.1111/j.2517-6161.1982.tb01203.x}
+}
+
+@article{han2015combining,
+  author  = {Han, Peisong},
+  title   = {Combining inverse probability weighting and multiple imputation to improve robustness of estimation},
+  journal = {Scandinavian Journal of Statistics},
+  year    = {2015},
+  volume  = {43},
+  number  = {1},
+  pages   = {246--260},
+  doi     = {10.1111/sjos.12177}
+}
+
+@article{zenglin2007maximum,
+  author  = {Zeng, Donglin and Lin, Danyu Y.},
+  title   = {Maximum likelihood estimation in semiparametric regression models with censored data},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  year    = {2007},
+  volume  = {69},
+  number  = {4},
+  pages   = {507--564},
+  doi     = {10.1111/j.1369-7412.2007.00606.x}
+}
+
+@article{zenglin2014efficient,
+  author  = {Zeng, Donglin and Lin, Danyu Y.},
+  title   = {Efficient estimation of semiparametric transformation models for two-phase cohort studies},
+  journal = {Journal of the American Statistical Association},
+  year    = {2014},
+  volume  = {109},
+  number  = {505},
+  pages   = {371--383},
+  doi     = {10.1080/01621459.2013.842172}
+}
+
+% ---------------------------------------------------------------------------
+% Secondary analysis of case-control studies (PHASE 18, design)
+% ---------------------------------------------------------------------------
+
+@article{macarroll2016semiparametric,
+  author  = {Ma, Yanyuan and Carroll, Raymond J.},
+  title   = {Semiparametric estimation in the secondary analysis of case-control studies},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  year    = {2016},
+  volume  = {78},
+  number  = {1},
+  pages   = {127--151},
+  doi     = {10.1111/rssb.12107}
+}
+
+@article{sofer2017control,
+  author  = {Sofer, Tamar and Cornelis, Marilyn C. and Kraft, Peter and Tchetgen Tchetgen, Eric J.},
+  title   = {Control function assisted IPW estimation with a secondary outcome in case-control studies},
+  journal = {Statistica Sinica},
+  year    = {2017},
+  doi     = {10.5705/ss.202015.0116}
+}
+
+% ---------------------------------------------------------------------------
+% Alternative risk models (PHASE 17, design)
+% ---------------------------------------------------------------------------
+
+@article{kovalchik2013general,
+  author  = {Kovalchik, Stephanie A. and Varadhan, Ravi and Fetterman, Barbara and Poitras, Nancy E. and Wacholder, Sholom and Katki, Hormuzd A.},
+  title   = {A general binomial regression model to estimate standardized risk differences from binary response data},
+  journal = {Statistics in Medicine},
+  year    = {2013},
+  volume  = {32},
+  number  = {5},
+  pages   = {808--821},
+  doi     = {10.1002/sim.5553}
+}

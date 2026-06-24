@@ -69,11 +69,12 @@
 #'
 #' @seealso [matcha()], [contrast()], [tidy.matchatr_homogeneity()]
 #' @references
-#' Begg CB, Gray R (1984). Calculation of polytomous logistic regression
-#' parameters using individualized regressions. *Biometrika* 71(1), 11-18.
+#' Begg CB, Gray R (1984). Calculation of polychotomous logistic regression
+#' parameters using individualized regressions. *Biometrika* 71(1):11-18.
 #'
 #' Borgan O, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018).
 #' *Handbook of Statistical Methods for Case-Control Studies*, Chapter 5.
+#' Chapman & Hall/CRC.
 #' @family estimators
 #' @export
 test_homogeneity <- function(fit, conf_level = 0.95) {

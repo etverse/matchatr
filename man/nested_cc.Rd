@@ -36,6 +36,21 @@ nested_cc(strata = "set", time = "t")
 nested_cc(strata = "set", time = "t", ratio = 3)
 
 }
+\references{
+Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by
+application to asbestos mining" (Liddell FDK, McDonald JC, Thomas DC).
+\emph{Journal of the Royal Statistical Society, Series A} 140(4):469-491.
+
+Prentice RL, Breslow NE (1978). Retrospective studies and failure time
+models. \emph{Biometrika} 65(1):153-158.
+
+Goldstein L, Langholz B (1992). Asymptotic theory for nested case-control
+sampling in the Cox regression model. \emph{The Annals of Statistics}
+20(4):1903-1928.
+
+Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
+case-control studies. \emph{Biometrika} 84(2):379-394.
+}
 \seealso{
 \code{\link[=case_cohort]{case_cohort()}}, \code{\link[=counter_matched]{counter_matched()}}, \code{\link[=matcha]{matcha()}}
 

@@ -20,7 +20,7 @@
 #' oversampled in a case-control study, so they receive the smaller weight and
 #' controls the larger one (for a rare outcome). This is the Rose & van der Laan
 #' case-control-weighted (CCW) estimating-equation weight (Rose & van der Laan
-#' 2008, *Int. J. Biostat.* 4(1); 2014, *Biometrics* 70(1)).
+#' 2008, *Int. J. Biostat.* 4(1); 2014, *Am. J. Epidemiol.* 179(6):663-669).
 #'
 #' The marginal prevalence q0 may be **known** (from a registry / the
 #' literature) or **estimated** from the full cohort. When estimated, its

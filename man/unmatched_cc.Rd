@@ -52,6 +52,18 @@ unmatched_cc(prevalence = 0.02, prevalence_n = 50000) # q0 estimated from a coho
 unmatched_cc(strata = "agegrp")
 
 }
+\references{
+Prentice RL, Pyke R (1979). Logistic disease incidence models and
+case-control studies. \emph{Biometrika} 66(3):403-411.
+
+Robins J, Breslow N, Greenland S (1986). Estimators of the Mantel-Haenszel
+variance consistent in both sparse data and large-strata limiting models.
+\emph{Biometrics} 42(2):311-323.
+
+Rose S, van der Laan MJ (2008). Simple optimal weighting of cases and
+controls in case-control studies. \emph{The International Journal of
+Biostatistics} 4(1):Article 19.
+}
 \seealso{
 \code{\link[=matched_cc]{matched_cc()}}, \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=case_cohort]{case_cohort()}}, \code{\link[=matcha]{matcha()}}
 

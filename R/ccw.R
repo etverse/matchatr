@@ -20,7 +20,7 @@
 #' population's outcome margin q0, so the weighted empirical distribution mimics
 #' the cohort and a cohort estimator on it targets the marginal estimand
 #' (Rose & van der Laan 2008, *Int. J. Biostat.* 4(1); the doubly-robust CCW-AIPW
-#' is Rose & van der Laan 2014, *Biometrics* 70(1)).
+#' is Rose & van der Laan 2014, *Am. J. Epidemiol.* 179(6):663-669).
 #'
 #' The outcome and exposure are coerced to 0/1 so the marginal contrast's
 #' interventions (treat-all versus treat-none) align with the fitted treatment

@@ -100,6 +100,10 @@ fit <- matcha(ncc_cm, outcome = "case", exposure = "x",
 contrast(fit)
 
 }
+\references{
+Langholz B, Borgan O (1995). Counter-matching: a stratified nested
+case-control sampling method. \emph{Biometrika} 82(1):69-79.
+}
 \seealso{
 \code{\link[=counter_matched]{counter_matched()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=sample_ncc]{sample_ncc()}}
 

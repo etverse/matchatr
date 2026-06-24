@@ -67,6 +67,18 @@ fit <- matcha(cohort, outcome = "d", exposure = "x",
 absolute_risk(fit, newdata = data.frame(x = 1, z = 0), times = c(1, 2, 3))
 }
 }
+\references{
+Borgan O, Liestøl K (1990). A note on confidence intervals and bands for the
+survival function based on transformations. \emph{Scandinavian Journal of
+Statistics} 17(1):35-41.
+
+Borgan O, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure
+stratified case-cohort designs. \emph{Lifetime Data Analysis} 6(1):39-58.
+
+Kang S, Lu W, Liu M (2017). Efficient estimation for accelerated failure time
+model under case-cohort and nested case-control sampling. \emph{Biometrics}
+73(1):114-123.
+}
 \seealso{
 \code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=case_cohort]{case_cohort()}}, \code{\link[=sample_ncc]{sample_ncc()}}
 

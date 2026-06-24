@@ -109,7 +109,7 @@ Two more case-control-weighted marginal estimators: `matcha(estimator =
 marginal odds ratio as `ccw_gformula`, on a case-control sample with a known
 prevalence q0. **CCW-AIPW is doubly robust** — consistent for the marginal effect
 if **either** the outcome model or the propensity model is correctly specified
-(Rose & van der Laan 2014, *Biometrics* 70(1)).
+(Rose & van der Laan 2014, *Am. J. Epidemiol.* 179(6):663-669).
 
 The implementation is delegation-first: `fit_ccw()` (`R/ccw.R`) is parameterized
 over the estimator, mapping `ccw_gformula` / `ccw_ipw` / `ccw_aipw` to
@@ -413,9 +413,9 @@ Adds `compute_ncc_weights()` for GLM and GAM working-model inclusion probabiliti
 - **`matchatr_missing_phase1`** fires when `cohort = NULL` or the `time` column
   is absent from `cohort`: both signals that the Phase-1 event times needed to
   reconstruct risk sets are unavailable.
-- **Default `selection_formula = ~ risk_time`** — a time-only logistic model
-  matching the simplest GLM specification of Borgan, Samuelsen & Aastveit
-  (2003). Users can extend with cohort covariates.
+- **Default `selection_formula = ~ risk_time`** — a time-only logistic model in
+  the spirit of the estimated-weight working-model approach of Samuelsen, Ånestad
+  & Skrondal (2007). Users can extend with cohort covariates.
 - **Oracle**: `multipleNCC::wpl(weight.method = "glm")` — log-HR agreement
   within 2e-2 (minor formula difference in default time term between the two
   implementations).

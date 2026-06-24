@@ -6,6 +6,7 @@ vignette: >
   %\VignetteIndexEntry{Unmatched case-control odds ratios}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r}
@@ -21,8 +22,8 @@ sampling design. matchatr provides two engines on `unmatched_cc()`:
 
 - `estimator = "logistic"` — logistic regression
   (`outcome ~ exposure + confounders`), the conditional OR for any exposure
-  type. Because case-control sampling shifts only the intercept (Prentice &
-  Pyke, 1979), the slope ORs equal the source-population ORs.
+  type. Because case-control sampling shifts only the intercept
+  [@prentice1979logistic], the slope ORs equal the source-population ORs.
 - `estimator = "mh"` — the closed-form Mantel-Haenszel stratified OR with a
   Robins-Breslow-Greenland confidence interval.
 
@@ -96,7 +97,7 @@ contrast(fit_cont, type = "or")
 ### A categorical exposure: the `esoph` dose-response
 
 The built-in `esoph` data is the Ille-et-Vilaine case-control study of
-oesophageal cancer (Breslow & Day, 1980), stored as per-cell case / control
+oesophageal cancer [@breslow1980statistical], stored as per-cell case / control
 counts. We expand it to one row per subject so it can enter the logistic engine.
 
 ```{r}
@@ -189,8 +190,8 @@ fit_mh <- matcha(
 contrast(fit_mh, type = "or")
 ```
 
-The reported interval is the Robins-Breslow-Greenland (1986) variance, valid in
-both the sparse-data and large-stratum limits. The MH estimator needs a 2×2
+The reported interval is the Robins-Breslow-Greenland variance
+[@robins1986estimators], valid in both the sparse-data and large-stratum limits. The MH estimator needs a 2×2
 table per stratum, so the exposure must be binary; a categorical (k > 2) or
 continuous exposure is routed to `estimator = "logistic"` with a classed error.
 With no `strata`, `"mh"` reduces to the crude single-table OR.
@@ -227,12 +228,5 @@ combination.
 
 ## References
 
-Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:
-The Analysis of Case-Control Studies*. IARC.
-
-Prentice RL, Pyke R (1979). Logistic disease incidence models and case-control
-studies. *Biometrika* 66(3):403-411.
-
-Robins J, Breslow N, Greenland S (1986). Estimators of the Mantel-Haenszel
-variance consistent in both sparse data and large-strata limiting models.
-*Biometrics* 42(2):311-323.
+::: {#refs}
+:::

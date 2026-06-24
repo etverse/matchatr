@@ -6,6 +6,9 @@ vignette: >
   %\VignetteIndexEntry{IPW analysis of nested case-control data}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+nocite: |
+  @stoer2013inverse
 ---
 
 ```{r}
@@ -57,8 +60,8 @@ cohort <- data.frame(
 `sample_ncc()` with `incl_prob = TRUE` draws the NCC sample and appends two
 columns needed for the IPW analysis:
 
--   **`ipw_weight`** — the Samuelsen (1997) inverse inclusion probability
-    1/π_j for each sampled control; cases get weight 1. The inclusion
+-   **`ipw_weight`** — the @samuelsen1997pseudolikelihood inverse inclusion
+    probability 1/π_j for each sampled control; cases get weight 1. The inclusion
     probability is the Kaplan-Meier-type formula
     π_j = 1 − prod of (1 − m_i / n_elig_i) over all event times where j
     was eligible, where m_i is the controls sampled and n_elig_i the eligible
@@ -276,8 +279,8 @@ only the baseline-hazard weighting differs.
 
 ## Multiple endpoints from one control set
 
-The real payoff of breaking the matching is **control reuse across endpoints**.
-The classical conditional analysis ties each control to its case's failure time,
+The real payoff of breaking the matching is **control reuse across endpoints**
+[@saarela2008nested]. The classical conditional analysis ties each control to its case's failure time,
 so a control set sampled for one endpoint cannot serve another. Under IPW the
 sample is a weighted pseudo-cohort, so the *same* controls can fit a weighted Cox
 for any endpoint recorded in the cohort. matchatr supports two modes.
@@ -334,7 +337,7 @@ it builds the deduplicated analysis sample.
 ### Mode B — reuse a primary-endpoint control set for a secondary endpoint
 
 If the NCC was drawn for a single *primary* endpoint, its controls can still be
-reused for a *secondary* one. `reuse_ncc_endpoint()` keeps the controls' primary
+reused for a *secondary* one [@stoer2012comparison]. `reuse_ncc_endpoint()` keeps the controls' primary
 inclusion weights 1/π_j (the inclusion probability is a property of the sampling,
 not the endpoint) and augments the secondary endpoint's cases that were not
 sampled — pulled from the Phase-1 cohort with weight 1, since every case of an
@@ -369,7 +372,7 @@ The **accelerated failure time** model (`estimator = "ipw_aft"`) acts on the
 survival-*time* scale: `contrast(type = "af")` reports the **time ratio**
 exp(β) — the factor by which a unit of exposure multiplies the survival time
 (above one prolongs, below one shortens). It is a weighted Weibull `survreg`
-with a robust sandwich.
+with a robust sandwich [@kang2017efficient].
 
 ```{r}
 fit_aft <- matcha(ncc, outcome = "d", exposure = "exposure",
@@ -412,7 +415,7 @@ contrast(fit_ln)
 The **additive-hazards** model (`estimator = "ipw_aalen"`) acts on the *rate*
 scale: it writes the hazard as a sum, λ(t) = λ₀(t) + γ·exposure, so
 `contrast(type = "excess")` reports the **excess hazard** γ — an additive rate
-difference. Unlike a ratio it can be negative (a protective exposure lowers the
+difference [@borgan1997estimation]. Unlike a ratio it can be negative (a protective exposure lowers the
 rate), and its confidence interval is symmetric (it is not exponentiated).
 
 ```{r}
@@ -422,7 +425,8 @@ fit_add <- matcha(ncc, outcome = "d", exposure = "exposure",
 contrast(fit_add)
 ```
 
-`contrast()` reports a single time-*constant* excess hazard (the Lin-Ying model).
+`contrast()` reports a single time-*constant* excess hazard (the Lin-Ying model;
+@lin1994semiparametric).
 To let the effect vary with time, `excess_risk()` returns the **cumulative**
 excess hazard $B_j(t) = \int_0^t \beta_j(s)\,ds$ — the additive analogue of
 `absolute_risk()`. A straight line means a constant rate difference; curvature
@@ -460,26 +464,5 @@ contrast(fit_aft, type = "hr")
 
 ## References
 
-Lin DY & Ying Z (1994). Semiparametric analysis of the additive risk model.
-*Biometrika*, 81(1), 61–71.
-
-Borgan Ø & Langholz B (1997). Estimation of excess risk from case-control data
-using Aalen's linear regression model. *Biometrics*, 53(2), 690–697.
-
-Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested
-case-control studies. *Biometrika*, 84(2), 379–394.
-
-Saarela O, Kulathinal S, Arjas E & Läärä E (2008). Nested case–control data
-utilized for multiple outcomes: a likelihood approach and alternatives.
-*Statistics in Medicine*, 27(28), 5991–6008.
-
-Støer NC & Samuelsen SO (2012). Comparison of estimators in nested case–control
-studies with multiple outcomes. *Lifetime Data Analysis*, 18(3), 261–283.
-
-Støer NC & Samuelsen SO (2013). Inverse probability weighting in nested
-case-control studies with additional matching — a simulation study.
-*Statistics in Medicine*, 32(30), 5328–5339.
-
-Kang S, Lu W & Liu M (2017). Efficient estimation for accelerated failure time
-model under case-cohort and nested case-control sampling. *Biometrics*, 73(1),
-114–123.
+::: {#refs}
+:::

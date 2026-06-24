@@ -47,6 +47,17 @@ matched_cc(strata = c("age_grp", "sex"), ratio = 2)
 matched_cc(strata = "set", prevalence = 0.02) # for a marginal CCW contrast
 
 }
+\references{
+McNemar Q (1947). Note on the sampling error of the difference between
+correlated proportions or percentages. \emph{Psychometrika} 12(2):153-157.
+
+Breslow NE, Day NE (1980). \emph{Statistical Methods in Cancer Research, Volume 1:
+The Analysis of Case-Control Studies}. IARC Scientific Publications No. 32.
+
+Rose S, van der Laan MJ (2009). Why match? Investigating matched case-control
+study designs with causal effect estimation. \emph{The International Journal of
+Biostatistics} 5(1):Article 1.
+}
 \seealso{
 \code{\link[=unmatched_cc]{unmatched_cc()}}, \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=matcha]{matcha()}}
 

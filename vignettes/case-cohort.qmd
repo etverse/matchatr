@@ -6,6 +6,9 @@ vignette: >
   %\VignetteIndexEntry{Case-cohort hazard ratios and absolute risk}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+nocite: |
+  @self1988asymptotic
 ---
 
 ```{r}
@@ -35,7 +38,8 @@ library(survival)
 ## The Wilms tumour data
 
 We use `survival::nwtco`, the standard case-cohort example from the
-*Handbook of Statistical Methods for Case-Control Studies*. A random subcohort
+*Handbook of Statistical Methods for Case-Control Studies* [@borgan2018handbook].
+A random subcohort
 of 668 subjects was drawn from 4 028 children enrolled in the National Wilms
 Tumour Study. The endpoint is relapse (`rel`); the exposure of interest is
 histological type (`histol`: 1 = unfavourable). The subcohort indicator is
@@ -58,7 +62,7 @@ per-stratum cohort sizes are computed correctly.
 
 ## Hazard ratio: Prentice pseudo-likelihood
 
-The Prentice (1986) pseudo-likelihood augments each risk set with the case if
+The @prentice1986casecohort pseudo-likelihood augments each risk set with the case if
 the case falls outside the subcohort. `contrast()` reports the hazard ratio with
 the Self-Prentice corrected asymptotic variance (the naive information-matrix SE
 is not valid here because controls are reused across failure times).
@@ -84,7 +88,7 @@ and age at diagnosis.
 
 Three further methods are supported. `"SelfPrentice"` uses the subcohort alone
 at each failure time (slightly more efficient); `"LinYing"` uses the full
-subcohort plus all failures (Lin & Ying 1993).
+subcohort plus all failures [@lin1993cox].
 
 ```{r}
 fit_sp <- matcha(nwtco2, "rel", "histol",
@@ -109,7 +113,7 @@ estimators rather than the point estimates.
 ## Stratified subcohorts: Borgan I/II
 
 When the subcohort is drawn by stratified sampling (e.g. oversampling a rare
-exposure group), the Borgan (2000) IPW estimators weight each risk-set
+exposure group), the @borgan2000exposure IPW estimators weight each risk-set
 contribution by the inverse of its stratum-specific subcohort sampling fraction
 `N_s / n_sub_s`. Provide the stratification column via `stratum =`.
 
@@ -143,7 +147,7 @@ IPW Breslow estimator. The subcohort-only risk-set denominator at each event
 time is scaled by the inverse sampling fraction `N / n_sub` (or per-stratum
 `N_s / n_sub_s` for Borgan methods) so the estimate targets the full-cohort
 baseline hazard. Pointwise confidence intervals use the delta method on the
-complementary log-log scale.
+complementary log-log scale [@borgan1990note].
 
 ```{r}
 # Two covariate profiles: favourable vs unfavourable histology, median age
@@ -209,18 +213,5 @@ See `FEATURE_COVERAGE_MATRIX.md` for the full combination table.
 
 ## References
 
-Prentice RL (1986). A case-cohort design for epidemiologic cohort studies and
-disease prevention trials. *Biometrika* 73(1):1-11.
-
-Self SG, Prentice RL (1988). Asymptotic distribution theory and efficiency
-results for case-cohort studies. *Annals of Statistics* 16(1):64-81.
-
-Lin DY, Ying Z (1993). Cox regression with incomplete covariate measurements.
-*Journal of the American Statistical Association* 88(422):1341-1349.
-
-Borgan Ø, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure
-stratified case-cohort designs. *Lifetime Data Analysis* 6(1):39-58.
-
-Borgan Ø, Liestøl K (1990). A note on confidence intervals and bands for the
-survival function based on transformations. *Scandinavian Journal of Statistics*
-17(1):35-41.
+::: {#refs}
+:::

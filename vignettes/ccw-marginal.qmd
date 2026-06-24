@@ -6,6 +6,7 @@ vignette: >
   %\VignetteIndexEntry{Marginal causal effects from a case-control sample}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r}
@@ -27,7 +28,7 @@ A **marginal** causal effect — the average treatment effect as a risk differen
 (RD), risk ratio (RR), or marginal odds ratio (mOR) — needs one extra ingredient:
 the source-population outcome prevalence **q₀ = P(Y = 1)**. With q₀ we can undo the
 case-oversampling and recover the marginal effect by **case-control weighting**
-(Rose & van der Laan, 2008).
+[@rose2008simple].
 
 ```{r}
 #| message: false
@@ -185,8 +186,9 @@ The same q₀ weights drive a whole family of cohort estimators on the weighted
 sample. `estimator = "ccw_ipw"` weights by an inverse-propensity model instead of
 standardizing an outcome model; `estimator = "ccw_aipw"` combines both into the
 **augmented** (doubly-robust) estimator; and `estimator = "ccw_tmle"` is the
-**targeted** maximum likelihood estimator — also doubly robust, and the one engine
-matchatr builds itself (the etverse has no targeted-learning code to delegate to).
+**targeted** maximum likelihood estimator [@vanderlaan2006targeted] — also doubly
+robust, and the one engine matchatr builds itself (the etverse has no
+targeted-learning code to delegate to).
 All four report the same marginal effect when their models are correct:
 
 ```{r}
@@ -203,7 +205,8 @@ round(rbind(marginal_RD = rd, truth = truth["RD"]), 4)
 ## Double robustness of CCW-AIPW
 
 CCW-AIPW's appeal is that it is consistent if **either** the outcome model **or**
-the propensity model is correct — you get two chances to be right. We can see this
+the propensity model is correct — you get two chances to be right
+[@rose2014doublerobust]. We can see this
 directly. Build a cohort where the outcome truly depends on `w` non-linearly but
 the propensity is linear in `w`; fitting both working models as `~ w` (linear)
 then misspecifies the **outcome** model while the **propensity** model is correct:
@@ -242,3 +245,8 @@ and the targeted (TMLE) marginal contrasts for an unmatched case-control study w
 known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance
 correction, a design-respecting bootstrap, and matched / nested case-control
 support — all built on the same one weighting concept.
+
+## References
+
+::: {#refs}
+:::

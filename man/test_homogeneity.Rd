@@ -78,11 +78,12 @@ test_homogeneity(fit)
 
 }
 \references{
-Begg CB, Gray R (1984). Calculation of polytomous logistic regression
-parameters using individualized regressions. \emph{Biometrika} 71(1), 11-18.
+Begg CB, Gray R (1984). Calculation of polychotomous logistic regression
+parameters using individualized regressions. \emph{Biometrika} 71(1):11-18.
 
 Borgan O, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018).
 \emph{Handbook of Statistical Methods for Case-Control Studies}, Chapter 5.
+Chapman & Hall/CRC.
 }
 \seealso{
 \code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=tidy.matchatr_homogeneity]{tidy.matchatr_homogeneity()}}
