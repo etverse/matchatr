@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -500,7 +519,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>In a <em>matched</em> case-control study each case is matched to one or more controls sharing the values of the matching variable(s). The design-faithful analysis is <strong>conditional logistic regression</strong> (conditional maximum likelihood): it conditions on the matched-set totals, which removes the matching-variable nuisance parameters. Fitting matched-set indicators by ordinary logistic regression instead biases the odds ratio — for 1:1 matching its estimate converges to the <em>squared</em> OR (Breslow &amp; Day, 1980) — so matchatr never does that.</p>
+<p>In a <em>matched</em> case-control study each case is matched to one or more controls sharing the values of the matching variable(s). The design-faithful analysis is <strong>conditional logistic regression</strong> (conditional maximum likelihood): it conditions on the matched-set totals, which removes the matching-variable nuisance parameters. Fitting matched-set indicators by ordinary logistic regression instead biases the odds ratio — for 1:1 matching its estimate converges to the <em>squared</em> OR <span class="citation" data-cites="breslow1980statistical">(<a href="#ref-breslow1980statistical" role="doc-biblioref">Breslow and Day 1980</a>)</span> — so matchatr never does that.</p>
 <p>matchatr provides three tools on <code>matched_cc()</code>:</p>
 <ul>
 <li><code>estimator = "clogit"</code> — the conditional logistic OR for any matched-set composition (1:1, m:1, variable-ratio).</li>
@@ -557,7 +576,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="mcnemars-11-matched-pair-or" class="level2">
 <h2 class="anchored" data-anchor-id="mcnemars-11-matched-pair-or">McNemar’s 1:1 matched-pair OR</h2>
-<p>For genuine 1:1 pairs there is a closed form: with <code>n10</code> pairs where only the case is exposed and <code>n01</code> where only the control is exposed, the matched-pair odds ratio is <code>OR = n10 / n01</code> with <code>Var(log OR) = 1/n10 + 1/n01</code> (McNemar, 1947). Pairs concordant on exposure carry no information and cancel.</p>
+<p>For genuine 1:1 pairs there is a closed form: with <code>n10</code> pairs where only the case is exposed and <code>n01</code> where only the control is exposed, the matched-pair odds ratio is <code>OR = n10 / n01</code> with <code>Var(log OR) = 1/n10 + 1/n01</code> <span class="citation" data-cites="mcnemar1947note">(<a href="#ref-mcnemar1947note" role="doc-biblioref">McNemar 1947</a>)</span>. Pairs concordant on exposure carry no information and cancel.</p>
 <p>We simulate matched pairs from the conditional likelihood with a known conditional OR of 3:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -716,9 +735,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
-<p>Breslow NE, Day NE (1980). <em>Statistical Methods in Cancer Research, Volume 1: The Analysis of Case-Control Studies</em>. IARC.</p>
-<p>McNemar Q (1947). Note on the sampling error of the difference between correlated proportions or percentages. <em>Psychometrika</em> 12(2):153-157.</p>
-<p>Pike MC, Hill AP, Smith PG (1980). Bias and efficiency in logistic analyses of stratified case-control studies. <em>International Journal of Epidemiology</em> 9(1):89-95.</p>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-breslow1980statistical" class="csl-entry" role="listitem">
+Breslow, Norman E., and Nicholas E. Day. 1980. <em>Statistical Methods in Cancer Research, Volume 1: The Analysis of Case-Control Studies</em>. International Agency for Research on Cancer (IARC Scientific Publications No. 32).
+</div>
+<div id="ref-mcnemar1947note" class="csl-entry" role="listitem">
+McNemar, Quinn. 1947. <span>“Note on the Sampling Error of the Difference Between Correlated Proportions or Percentages.”</span> <em>Psychometrika</em> 12 (2): 153–57. <a href="https://doi.org/10.1007/BF02295996">https://doi.org/10.1007/BF02295996</a>.
+</div>
+<div id="ref-pike1980bias" class="csl-entry" role="listitem">
+Pike, Malcolm C., Adrian P. Hill, and Peter G. Smith. 1980. <span>“Bias and Efficiency in Logistic Analyses of Stratified Case-Control Studies.”</span> <em>International Journal of Epidemiology</em> 9 (1): 89–95. <a href="https://doi.org/10.1093/ije/9.1.89">https://doi.org/10.1093/ije/9.1.89</a>.
+</div>
+</div>
 
 
 <!-- -->
@@ -1185,185 +1212,181 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Matched case-control odds ratios}</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>In a *matched* case-control study each case is matched to one or more controls</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>sharing the values of the matching variable(s). The design-faithful analysis is</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>**conditional logistic regression** (conditional maximum likelihood): it</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>conditions on the matched-set totals, which removes the matching-variable</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>nuisance parameters. Fitting matched-set indicators by ordinary logistic</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>regression instead biases the odds ratio — for 1:1 matching its estimate</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>converges to the *squared* OR (Breslow &amp; Day, 1980) — so matchatr never does</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>that.</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>matchatr provides three tools on <span class="in">`matched_cc()`</span>:</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "clogit"`</span> — the conditional logistic OR for any matched-set</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  composition (1:1, m:1, variable-ratio).</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "mcnemar"`</span> — the closed-form 1:1 matched-pair OR.</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`effect_modifier = `</span> — stratum-specific conditional ORs from an</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="in">`exposure × modifier`</span> interaction.</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conditional logistic regression</span></span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>We use the built-in <span class="in">`infert`</span> data: a matched case-control study of secondary</span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>infertility and prior abortion, with cases matched to controls on age and parity</span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>(<span class="in">`stratum`</span> identifies the matched sets).</span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  infert,</span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"spontaneous"</span>,</span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"stratum"</span>),</span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> induced, <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>fit</span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>Conditioning on the matched-set totals controls the matching variables (age,</span>
-<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>parity) implicitly, so only the exposure and adjustment ORs are reported:</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="an">nocite:</span><span class="co"> |</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">  @pike1980bias</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>In a *matched* case-control study each case is matched to one or more controls</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>sharing the values of the matching variable(s). The design-faithful analysis is</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>**conditional logistic regression** (conditional maximum likelihood): it</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>conditions on the matched-set totals, which removes the matching-variable</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>nuisance parameters. Fitting matched-set indicators by ordinary logistic</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>regression instead biases the odds ratio — for 1:1 matching its estimate</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>converges to the *squared* OR <span class="co">[</span><span class="ot">@breslow1980statistical</span><span class="co">]</span> — so matchatr never does</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>that.</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>matchatr provides three tools on <span class="in">`matched_cc()`</span>:</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "clogit"`</span> — the conditional logistic OR for any matched-set</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  composition (1:1, m:1, variable-ratio).</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "mcnemar"`</span> — the closed-form 1:1 matched-pair OR.</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`effect_modifier = `</span> — stratum-specific conditional ORs from an</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="in">`exposure × modifier`</span> interaction.</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conditional logistic regression</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>We use the built-in <span class="in">`infert`</span> data: a matched case-control study of secondary</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>infertility and prior abortion, with cases matched to controls on age and parity</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>(<span class="in">`stratum`</span> identifies the matched sets).</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  infert,</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"spontaneous"</span>,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"stratum"</span>),</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> induced, <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>fit</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>The interval is the partial-likelihood information-matrix Wald interval.</span>
-<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="in">`"clogit"`</span> is the design's default estimator, so <span class="in">`estimator = "clogit"`</span> may be</span>
-<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>omitted. m:1 and variable-ratio matching need no special handling — the</span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>conditional likelihood treats any matched-set composition uniformly.</span>
-<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="fu">## McNemar's 1:1 matched-pair OR</span></span>
-<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>For genuine 1:1 pairs there is a closed form: with <span class="in">`n10`</span> pairs where only the</span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>case is exposed and <span class="in">`n01`</span> where only the control is exposed, the matched-pair</span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>odds ratio is <span class="in">`OR = n10 / n01`</span> with <span class="in">`Var(log OR) = 1/n10 + 1/n01`</span> (McNemar,</span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>1947). Pairs concordant on exposure carry no information and cancel.</span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>We simulate matched pairs from the conditional likelihood with a known</span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>conditional OR of 3:</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>Conditioning on the matched-set totals controls the matching variables (age,</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>parity) implicitly, so only the exposure and adjustment ORs are reported:</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>The interval is the partial-likelihood information-matrix Wald interval.</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="in">`"clogit"`</span> is the design's default estimator, so <span class="in">`estimator = "clogit"`</span> may be</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>omitted. m:1 and variable-ratio matching need no special handling — the</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>conditional likelihood treats any matched-set composition uniformly.</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="fu">## McNemar's 1:1 matched-pair OR</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>For genuine 1:1 pairs there is a closed form: with <span class="in">`n10`</span> pairs where only the</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>case is exposed and <span class="in">`n01`</span> where only the control is exposed, the matched-pair</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>odds ratio is <span class="in">`OR = n10 / n01`</span> with <span class="in">`Var(log OR) = 1/n10 + 1/n01`</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@mcnemar1947note</span><span class="co">]</span>. Pairs concordant on exposure carry no information and cancel.</span>
 <span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4</span>)</span>
-<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>n_pairs <span class="ot">&lt;-</span> <span class="dv">1200</span></span>
-<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>OR_true <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="co"># Each pair is exposure-discordant with probability 0.4; among discordant pairs</span></span>
-<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a><span class="co"># the case (rather than the control) is the exposed member with probability</span></span>
-<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a><span class="co"># OR/(1 + OR), so n10/n01 estimates the conditional OR.</span></span>
-<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>discordant <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n_pairs, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>p_case_exposed <span class="ot">&lt;-</span> OR_true <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> OR_true)</span>
-<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>case_exposed <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(discordant <span class="sc">==</span> <span class="dv">1</span>, <span class="fu">rbinom</span>(n_pairs, <span class="dv">1</span>, p_case_exposed),</span>
-<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">rbinom</span>(n_pairs, <span class="dv">1</span>, <span class="fl">0.5</span>))</span>
-<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>ctrl_exposed <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(discordant <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>L <span class="sc">-</span> case_exposed, case_exposed)</span>
-<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>pairs <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">set    =</span> <span class="fu">rep</span>(<span class="fu">seq_len</span>(n_pairs), <span class="at">each =</span> <span class="dv">2</span>),</span>
-<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">case   =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>L, <span class="dv">0</span>L), <span class="at">times =</span> n_pairs),</span>
-<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">smoker =</span> <span class="fu">as.vector</span>(<span class="fu">rbind</span>(case_exposed, ctrl_exposed))</span>
-<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>fit_mn <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>  pairs,</span>
-<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"smoker"</span>,</span>
-<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>), <span class="at">estimator =</span> <span class="st">"mcnemar"</span></span>
-<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_mn, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a>This is exact, not a model fit. And because the conditional likelihood *reduces*</span>
-<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>to McNemar's for 1:1 binary data, <span class="in">`clogit`</span> on the same pairs gives an identical</span>
-<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>point estimate and interval:</span>
-<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>fit_cl <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>  pairs,</span>
-<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"smoker"</span>,</span>
-<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>), <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
-<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_cl, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a><span class="in">`"mcnemar"`</span> applies only to genuine 1:1 pairs with a binary exposure: a richer</span>
-<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>matched set (m:1) is rejected with a pointer to <span class="in">`"clogit"`</span>, as is a non-binary</span>
-<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a>exposure.</span>
-<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a><span class="fu">## Stratum-specific effect modification</span></span>
-<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>To ask whether the exposure effect *differs* across the levels of a categorical</span>
-<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>modifier, pass <span class="in">`effect_modifier =`</span>. The conditional logistic engine then fits</span>
-<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a><span class="in">`outcome ~ exposure * modifier + confounders + strata(set)`</span>, and</span>
-<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast(type = "or")`</span> reports the exposure's conditional OR *within each</span>
-<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>modifier level* — the main coefficient at the reference level and the linear</span>
-<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>combination β_x + β_{x:level} elsewhere — with Wald intervals from the joint</span>
-<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a>partial-likelihood variance (so each per-level SE accounts for the</span>
-<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>main–interaction covariance).</span>
-<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>Here we split <span class="in">`infert`</span> by maternal age and ask whether the spontaneous-abortion</span>
-<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>OR differs between younger and older women:</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>We simulate matched pairs from the conditional likelihood with a known</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>conditional OR of 3:</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4</span>)</span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>n_pairs <span class="ot">&lt;-</span> <span class="dv">1200</span></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>OR_true <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a><span class="co"># Each pair is exposure-discordant with probability 0.4; among discordant pairs</span></span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="co"># the case (rather than the control) is the exposed member with probability</span></span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="co"># OR/(1 + OR), so n10/n01 estimates the conditional OR.</span></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>discordant <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n_pairs, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>p_case_exposed <span class="ot">&lt;-</span> OR_true <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> OR_true)</span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>case_exposed <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(discordant <span class="sc">==</span> <span class="dv">1</span>, <span class="fu">rbinom</span>(n_pairs, <span class="dv">1</span>, p_case_exposed),</span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">rbinom</span>(n_pairs, <span class="dv">1</span>, <span class="fl">0.5</span>))</span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>ctrl_exposed <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(discordant <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>L <span class="sc">-</span> case_exposed, case_exposed)</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>pairs <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">set    =</span> <span class="fu">rep</span>(<span class="fu">seq_len</span>(n_pairs), <span class="at">each =</span> <span class="dv">2</span>),</span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>  <span class="at">case   =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="dv">1</span>L, <span class="dv">0</span>L), <span class="at">times =</span> n_pairs),</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>  <span class="at">smoker =</span> <span class="fu">as.vector</span>(<span class="fu">rbind</span>(case_exposed, ctrl_exposed))</span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>fit_mn <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>  pairs,</span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"smoker"</span>,</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>), <span class="at">estimator =</span> <span class="st">"mcnemar"</span></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_mn, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>This is exact, not a model fit. And because the conditional likelihood *reduces*</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>to McNemar's for 1:1 binary data, <span class="in">`clogit`</span> on the same pairs gives an identical</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>point estimate and interval:</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>fit_cl <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>  pairs,</span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"smoker"</span>,</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"set"</span>), <span class="at">estimator =</span> <span class="st">"clogit"</span></span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_cl, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a><span class="in">`"mcnemar"`</span> applies only to genuine 1:1 pairs with a binary exposure: a richer</span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>matched set (m:1) is rejected with a pointer to <span class="in">`"clogit"`</span>, as is a non-binary</span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>exposure.</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a><span class="fu">## Stratum-specific effect modification</span></span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a>To ask whether the exposure effect *differs* across the levels of a categorical</span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>modifier, pass <span class="in">`effect_modifier =`</span>. The conditional logistic engine then fits</span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="in">`outcome ~ exposure * modifier + confounders + strata(set)`</span>, and</span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast(type = "or")`</span> reports the exposure's conditional OR *within each</span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>modifier level* — the main coefficient at the reference level and the linear</span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a>combination β_x + β_{x:level} elsewhere — with Wald intervals from the joint</span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>partial-likelihood variance (so each per-level SE accounts for the</span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>main–interaction covariance).</span>
 <span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a>infert2 <span class="ot">&lt;-</span> infert</span>
-<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>infert2<span class="sc">$</span>age_grp <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(infert2<span class="sc">$</span>age <span class="sc">&lt;</span> <span class="dv">31</span>, <span class="st">"younger"</span>, <span class="st">"older"</span>))</span>
-<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>fit_em <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>  infert2,</span>
-<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"spontaneous"</span>,</span>
-<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"stratum"</span>), <span class="at">estimator =</span> <span class="st">"clogit"</span>,</span>
-<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>  <span class="at">effect_modifier =</span> <span class="st">"age_grp"</span></span>
-<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_em, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>The modifier may coincide with a matching variable — that is the canonical use</span>
-<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>(does the exposure effect vary across the matching factor?). Effect modification</span>
-<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>is supported for a single-coefficient exposure (binary, continuous, or two-level</span>
-<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>factor) crossed with a categorical modifier; a 3+-level factor exposure or a</span>
-<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>numeric modifier is rejected with a classed error.</span>
-<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the design does and does not identify</span></span>
-<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>As with the unmatched design, only the odds ratio is identified; risk</span>
-<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>differences and risk ratios need a source-population prevalence q0 and a</span>
-<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a>case-control-weighted estimator. The conditional fit reports the</span>
-<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>information-matrix interval only, so <span class="in">`ci_method = "sandwich"`</span> / <span class="in">`"bootstrap"`</span></span>
-<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a>are declined for these engines.</span>
-<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
-<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
-<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matching <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Status <span class="pp">|</span></span>
-<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1:1 / m:1 / variable-ratio <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> conditional OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1:1 (binary exposure) <span class="pp">|</span> <span class="in">`mcnemar`</span> <span class="pp">|</span> matched-pair OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`clogit`</span> + <span class="in">`effect_modifier`</span> <span class="pp">|</span> stratum-specific OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m:1 (or richer) <span class="pp">|</span> <span class="in">`mcnemar`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`clogit`</span> <span class="pp">|</span></span>
-<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> non-binary exposure <span class="pp">|</span> <span class="in">`mcnemar`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`clogit`</span> <span class="pp">|</span></span>
-<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`clogit`</span> / <span class="in">`mcnemar`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
-<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-188"><a href="#cb7-188" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
-<span id="cb7-189"><a href="#cb7-189" aria-hidden="true" tabindex="-1"></a>combination.</span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>Here we split <span class="in">`infert`</span> by maternal age and ask whether the spontaneous-abortion</span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>OR differs between younger and older women:</span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>infert2 <span class="ot">&lt;-</span> infert</span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>infert2<span class="sc">$</span>age_grp <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(infert2<span class="sc">$</span>age <span class="sc">&lt;</span> <span class="dv">31</span>, <span class="st">"younger"</span>, <span class="st">"older"</span>))</span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>fit_em <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>  infert2,</span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"spontaneous"</span>,</span>
+<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">matched_cc</span>(<span class="at">strata =</span> <span class="st">"stratum"</span>), <span class="at">estimator =</span> <span class="st">"clogit"</span>,</span>
+<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">effect_modifier =</span> <span class="st">"age_grp"</span></span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_em, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>The modifier may coincide with a matching variable — that is the canonical use</span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>(does the exposure effect vary across the matching factor?). Effect modification</span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a>is supported for a single-coefficient exposure (binary, continuous, or two-level</span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a>factor) crossed with a categorical modifier; a 3+-level factor exposure or a</span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a>numeric modifier is rejected with a classed error.</span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the design does and does not identify</span></span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>As with the unmatched design, only the odds ratio is identified; risk</span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a>differences and risk ratios need a source-population prevalence q0 and a</span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a>case-control-weighted estimator. The conditional fit reports the</span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a>information-matrix interval only, so <span class="in">`ci_method = "sandwich"`</span> / <span class="in">`"bootstrap"`</span></span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a>are declined for these engines.</span>
+<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
+<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
+<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matching <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Status <span class="pp">|</span></span>
+<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1:1 / m:1 / variable-ratio <span class="pp">|</span> <span class="in">`clogit`</span> <span class="pp">|</span> conditional OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1:1 (binary exposure) <span class="pp">|</span> <span class="in">`mcnemar`</span> <span class="pp">|</span> matched-pair OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`clogit`</span> + <span class="in">`effect_modifier`</span> <span class="pp">|</span> stratum-specific OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m:1 (or richer) <span class="pp">|</span> <span class="in">`mcnemar`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`clogit`</span> <span class="pp">|</span></span>
+<span id="cb7-188"><a href="#cb7-188" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> non-binary exposure <span class="pp">|</span> <span class="in">`mcnemar`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`clogit`</span> <span class="pp">|</span></span>
+<span id="cb7-189"><a href="#cb7-189" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`clogit`</span> / <span class="in">`mcnemar`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
 <span id="cb7-190"><a href="#cb7-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a>Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:</span>
-<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a>The Analysis of Case-Control Studies*. IARC.</span>
+<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
+<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a>combination.</span>
+<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
 <span id="cb7-195"><a href="#cb7-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-196"><a href="#cb7-196" aria-hidden="true" tabindex="-1"></a>McNemar Q (1947). Note on the sampling error of the difference between</span>
-<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a>correlated proportions or percentages. *Psychometrika* 12(2):153-157.</span>
-<span id="cb7-198"><a href="#cb7-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-199"><a href="#cb7-199" aria-hidden="true" tabindex="-1"></a>Pike MC, Hill AP, Smith PG (1980). Bias and efficiency in logistic analyses of</span>
-<span id="cb7-200"><a href="#cb7-200" aria-hidden="true" tabindex="-1"></a>stratified case-control studies. *International Journal of Epidemiology*</span>
-<span id="cb7-201"><a href="#cb7-201" aria-hidden="true" tabindex="-1"></a>9(1):89-95.</span>
+<span id="cb7-196"><a href="#cb7-196" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

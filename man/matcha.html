@@ -476,6 +476,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
@@ -603,6 +604,11 @@ Optional model-fitting function for the unmatched case-control logistic engine, 
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A <code>matchatr_fit</code> object: a list with the validated specification (<code>data</code>, <code>outcome</code>, <code>exposure</code>, <code>confounders</code>, <code>design</code>, <code>estimator</code>, <code>engine</code>, <code>effect_modifier</code>), a <code>details</code> list (resolved engine, weighting scheme, reserved variance / weight slots, case and control counts), and the originating <code>call</code>. The <code>model</code> slot holds the fitted estimation object for an implemented engine, or <code>NULL</code> otherwise.</p>
+</section>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References</h3>
+<p>Borgan O, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (eds) (2018). <em>Handbook of Statistical Methods for Case-Control Studies</em>. Chapman &amp; Hall/CRC. (The organizing reference for the package’s designs and estimators; see the per-design constructors for method-specific citations.)</p>
+<p>Prentice RL, Pyke R (1979). Logistic disease incidence models and case-control studies. <em>Biometrika</em> 66(3):403-411.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>

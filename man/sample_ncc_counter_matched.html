@@ -476,6 +476,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
@@ -578,6 +579,10 @@ A single whole number &gt;= 1, the number of controls sampled per case from the 
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A <code>data.table</code> with one row per sampled subject: the selected rows of <code>cohort</code> (all original columns) plus <code>set</code> (integer matched-set id), <code>case</code> (per-set 0/1 indicator), <code>risk_time</code> (the set’s failure time), and <code>log_w</code> (the log-sampling-weight for the weighted partial likelihood). Aborts with <code>matchatr_empty_risk_set</code> when any case has no eligible control in the opposite surrogate stratum.</p>
+</section>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References</h3>
+<p>Langholz B, Borgan O (1995). Counter-matching: a stratified nested case-control sampling method. <em>Biometrika</em> 82(1):69-79.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>

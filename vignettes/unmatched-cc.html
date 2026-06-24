@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -508,7 +527,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>In an <em>unmatched</em> case-control study, cases and controls are sampled independently from the source population — no individual or frequency matching. The classical analysis is the <strong>conditional odds ratio</strong>, identified from the case-control sample even though the marginal disease frequency is fixed by the sampling design. matchatr provides two engines on <code>unmatched_cc()</code>:</p>
 <ul>
-<li><code>estimator = "logistic"</code> — logistic regression (<code>outcome ~ exposure + confounders</code>), the conditional OR for any exposure type. Because case-control sampling shifts only the intercept (Prentice &amp; Pyke, 1979), the slope ORs equal the source-population ORs.</li>
+<li><code>estimator = "logistic"</code> — logistic regression (<code>outcome ~ exposure + confounders</code>), the conditional OR for any exposure type. Because case-control sampling shifts only the intercept <span class="citation" data-cites="prentice1979logistic">(<a href="#ref-prentice1979logistic" role="doc-biblioref">Prentice and Pyke 1979</a>)</span>, the slope ORs equal the source-population ORs.</li>
 <li><code>estimator = "mh"</code> — the closed-form Mantel-Haenszel stratified OR with a Robins-Breslow-Greenland confidence interval.</li>
 </ul>
 <div class="cell">
@@ -607,7 +626,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="a-categorical-exposure-the-esoph-dose-response" class="level3">
 <h3 class="anchored" data-anchor-id="a-categorical-exposure-the-esoph-dose-response">A categorical exposure: the <code>esoph</code> dose-response</h3>
-<p>The built-in <code>esoph</code> data is the Ille-et-Vilaine case-control study of oesophageal cancer (Breslow &amp; Day, 1980), stored as per-cell case / control counts. We expand it to one row per subject so it can enter the logistic engine.</p>
+<p>The built-in <code>esoph</code> data is the Ille-et-Vilaine case-control study of oesophageal cancer <span class="citation" data-cites="breslow1980statistical">(<a href="#ref-breslow1980statistical" role="doc-biblioref">Breslow and Day 1980</a>)</span>, stored as per-cell case / control counts. We expand it to one row per subject so it can enter the logistic engine.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -746,7 +765,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:          x 3.001334 0.1440983 2.731788 3.297477</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>The reported interval is the Robins-Breslow-Greenland (1986) variance, valid in both the sparse-data and large-stratum limits. The MH estimator needs a 2×2 table per stratum, so the exposure must be binary; a categorical (k &gt; 2) or continuous exposure is routed to <code>estimator = "logistic"</code> with a classed error. With no <code>strata</code>, <code>"mh"</code> reduces to the crude single-table OR.</p>
+<p>The reported interval is the Robins-Breslow-Greenland variance <span class="citation" data-cites="robins1986estimators">(<a href="#ref-robins1986estimators" role="doc-biblioref">Robins et al. 1986</a>)</span>, valid in both the sparse-data and large-stratum limits. The MH estimator needs a 2×2 table per stratum, so the exposure must be binary; a categorical (k &gt; 2) or continuous exposure is routed to <code>estimator = "logistic"</code> with a classed error. With no <code>strata</code>, <code>"mh"</code> reduces to the crude single-table OR.</p>
 </section>
 <section id="what-the-design-does-and-does-not-identify" class="level2">
 <h2 class="anchored" data-anchor-id="what-the-design-does-and-does-not-identify">What the design does and does not identify</h2>
@@ -852,9 +871,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
-<p>Breslow NE, Day NE (1980). <em>Statistical Methods in Cancer Research, Volume 1: The Analysis of Case-Control Studies</em>. IARC.</p>
-<p>Prentice RL, Pyke R (1979). Logistic disease incidence models and case-control studies. <em>Biometrika</em> 66(3):403-411.</p>
-<p>Robins J, Breslow N, Greenland S (1986). Estimators of the Mantel-Haenszel variance consistent in both sparse data and large-strata limiting models. <em>Biometrics</em> 42(2):311-323.</p>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-breslow1980statistical" class="csl-entry" role="listitem">
+Breslow, Norman E., and Nicholas E. Day. 1980. <em>Statistical Methods in Cancer Research, Volume 1: The Analysis of Case-Control Studies</em>. International Agency for Research on Cancer (IARC Scientific Publications No. 32).
+</div>
+<div id="ref-prentice1979logistic" class="csl-entry" role="listitem">
+Prentice, Ross L., and Ronald Pyke. 1979. <span>“Logistic Disease Incidence Models and Case-Control Studies.”</span> <em>Biometrika</em> 66 (3): 403–11. <a href="https://doi.org/10.1093/biomet/66.3.403">https://doi.org/10.1093/biomet/66.3.403</a>.
+</div>
+<div id="ref-robins1986estimators" class="csl-entry" role="listitem">
+Robins, James, Norman Breslow, and Sander Greenland. 1986. <span>“Estimators of the Mantel-Haenszel Variance Consistent in Both Sparse Data and Large-Strata Limiting Models.”</span> <em>Biometrics</em> 42 (2): 311–23. <a href="https://doi.org/10.2307/2531052">https://doi.org/10.2307/2531052</a>.
+</div>
+</div>
 
 
 <!-- -->
@@ -1321,236 +1348,230 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Unmatched case-control odds ratios}</span></span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>In an *unmatched* case-control study, cases and controls are sampled</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>independently from the source population — no individual or frequency matching.</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>The classical analysis is the **conditional odds ratio**, identified from the</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>case-control sample even though the marginal disease frequency is fixed by the</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>sampling design. matchatr provides two engines on <span class="in">`unmatched_cc()`</span>:</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "logistic"`</span> — logistic regression</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  (<span class="in">`outcome ~ exposure + confounders`</span>), the conditional OR for any exposure</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  type. Because case-control sampling shifts only the intercept (Prentice &amp;</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  Pyke, 1979), the slope ORs equal the source-population ORs.</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "mh"`</span> — the closed-form Mantel-Haenszel stratified OR with a</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>  Robins-Breslow-Greenland confidence interval.</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## Logistic conditional OR</span></span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a><span class="fu">### A binary exposure</span></span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>We simulate a cohort with a known log odds ratio, then draw an unmatched</span>
-<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>case-control sample (all cases plus an equal number of controls). The conditional</span>
-<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>OR should recover the cohort log-OR.</span>
-<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8000</span></span>
-<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>age <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">50</span>, <span class="dv">10</span>)</span>
-<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a><span class="co"># True conditional log-OR for x is log(2.5).</span></span>
-<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="fl">2.5</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.03</span> <span class="sc">*</span> (age <span class="sc">-</span> <span class="dv">50</span>)</span>
-<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>case <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(lp))</span>
-<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> case, <span class="at">x =</span> x, <span class="at">age =</span> age)</span>
-<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a><span class="co"># Unmatched case-control sample: every case + an equal random sample of controls.</span></span>
-<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">1</span>, ]</span>
-<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">0</span>, ]</span>
-<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">rbind</span>(cases, controls[<span class="fu">sample</span>(<span class="fu">nrow</span>(controls), <span class="fu">nrow</span>(cases)), ])</span>
-<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>  cc,</span>
-<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
-<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
-<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-71"><a href="#cb11-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-72"><a href="#cb11-72" aria-hidden="true" tabindex="-1"></a>The recovered OR is close to the true 2.5 even though the sample is roughly 50%</span>
-<span id="cb11-73"><a href="#cb11-73" aria-hidden="true" tabindex="-1"></a>cases — the odds ratio is invariant to the case / control sampling fractions.</span>
-<span id="cb11-74"><a href="#cb11-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-75"><a href="#cb11-75" aria-hidden="true" tabindex="-1"></a>The full coefficient table is available through <span class="in">`tidy()`</span> (the intercept is</span>
-<span id="cb11-76"><a href="#cb11-76" aria-hidden="true" tabindex="-1"></a>*not* an interpretable baseline risk under case-control sampling, so treat it as</span>
-<span id="cb11-77"><a href="#cb11-77" aria-hidden="true" tabindex="-1"></a>a nuisance):</span>
-<span id="cb11-78"><a href="#cb11-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-81"><a href="#cb11-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-82"><a href="#cb11-82" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(fit, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-83"><a href="#cb11-83" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-84"><a href="#cb11-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-85"><a href="#cb11-85" aria-hidden="true" tabindex="-1"></a><span class="fu">### A continuous exposure</span></span>
-<span id="cb11-86"><a href="#cb11-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-87"><a href="#cb11-87" aria-hidden="true" tabindex="-1"></a>A continuous exposure yields a single per-unit OR:</span>
-<span id="cb11-88"><a href="#cb11-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-91"><a href="#cb11-91" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-92"><a href="#cb11-92" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
-<span id="cb11-93"><a href="#cb11-93" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
-<span id="cb11-94"><a href="#cb11-94" aria-hidden="true" tabindex="-1"></a>dose <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb11-95"><a href="#cb11-95" aria-hidden="true" tabindex="-1"></a>case <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> dose))</span>
-<span id="cb11-96"><a href="#cb11-96" aria-hidden="true" tabindex="-1"></a>d_cont <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> case, <span class="at">dose =</span> dose)</span>
-<span id="cb11-97"><a href="#cb11-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-98"><a href="#cb11-98" aria-hidden="true" tabindex="-1"></a>fit_cont <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb11-99"><a href="#cb11-99" aria-hidden="true" tabindex="-1"></a>  d_cont,</span>
-<span id="cb11-100"><a href="#cb11-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"dose"</span>,</span>
-<span id="cb11-101"><a href="#cb11-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
-<span id="cb11-102"><a href="#cb11-102" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-103"><a href="#cb11-103" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_cont, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-104"><a href="#cb11-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-105"><a href="#cb11-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-106"><a href="#cb11-106" aria-hidden="true" tabindex="-1"></a><span class="fu">### A categorical exposure: the `esoph` dose-response</span></span>
-<span id="cb11-107"><a href="#cb11-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-108"><a href="#cb11-108" aria-hidden="true" tabindex="-1"></a>The built-in <span class="in">`esoph`</span> data is the Ille-et-Vilaine case-control study of</span>
-<span id="cb11-109"><a href="#cb11-109" aria-hidden="true" tabindex="-1"></a>oesophageal cancer (Breslow &amp; Day, 1980), stored as per-cell case / control</span>
-<span id="cb11-110"><a href="#cb11-110" aria-hidden="true" tabindex="-1"></a>counts. We expand it to one row per subject so it can enter the logistic engine.</span>
-<span id="cb11-111"><a href="#cb11-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-114"><a href="#cb11-114" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-115"><a href="#cb11-115" aria-hidden="true" tabindex="-1"></a>esoph_long <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(esoph)), <span class="cf">function</span>(i) {</span>
-<span id="cb11-116"><a href="#cb11-116" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(esoph[i, ], <span class="fu">data.frame</span>(</span>
-<span id="cb11-117"><a href="#cb11-117" aria-hidden="true" tabindex="-1"></a>    <span class="at">case  =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>L, ncases), <span class="fu">rep</span>(<span class="dv">0</span>L, ncontrols)),</span>
-<span id="cb11-118"><a href="#cb11-118" aria-hidden="true" tabindex="-1"></a>    <span class="at">agegp =</span> agegp, <span class="at">alcgp =</span> alcgp, <span class="at">tobgp =</span> tobgp</span>
-<span id="cb11-119"><a href="#cb11-119" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb11-120"><a href="#cb11-120" aria-hidden="true" tabindex="-1"></a>}))</span>
-<span id="cb11-121"><a href="#cb11-121" aria-hidden="true" tabindex="-1"></a><span class="co"># Use alcohol as an unordered factor so we get one OR per consumption band.</span></span>
-<span id="cb11-122"><a href="#cb11-122" aria-hidden="true" tabindex="-1"></a>esoph_long<span class="sc">$</span>alcgp <span class="ot">&lt;-</span> <span class="fu">factor</span>(esoph_long<span class="sc">$</span>alcgp, <span class="at">ordered =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb11-123"><a href="#cb11-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-124"><a href="#cb11-124" aria-hidden="true" tabindex="-1"></a>fit_alc <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb11-125"><a href="#cb11-125" aria-hidden="true" tabindex="-1"></a>  esoph_long,</span>
-<span id="cb11-126"><a href="#cb11-126" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"alcgp"</span>,</span>
-<span id="cb11-127"><a href="#cb11-127" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
-<span id="cb11-128"><a href="#cb11-128" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> agegp <span class="sc">+</span> tobgp, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
-<span id="cb11-129"><a href="#cb11-129" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-130"><a href="#cb11-130" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_alc, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-131"><a href="#cb11-131" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-132"><a href="#cb11-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-133"><a href="#cb11-133" aria-hidden="true" tabindex="-1"></a>A factor exposure reports one OR per non-reference level versus the baseline</span>
-<span id="cb11-134"><a href="#cb11-134" aria-hidden="true" tabindex="-1"></a>(here <span class="in">`0-39g/day`</span>), recovering the canonical monotone alcohol dose-response.</span>
-<span id="cb11-135"><a href="#cb11-135" aria-hidden="true" tabindex="-1"></a>The reference level used is recorded on the result:</span>
-<span id="cb11-136"><a href="#cb11-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-139"><a href="#cb11-139" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-140"><a href="#cb11-140" aria-hidden="true" tabindex="-1"></a>fit_alc_result <span class="ot">&lt;-</span> <span class="fu">contrast</span>(fit_alc, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-141"><a href="#cb11-141" aria-hidden="true" tabindex="-1"></a>fit_alc_result<span class="sc">$</span>reference</span>
-<span id="cb11-142"><a href="#cb11-142" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-143"><a href="#cb11-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-144"><a href="#cb11-144" aria-hidden="true" tabindex="-1"></a><span class="fu">### An ordinal trend</span></span>
-<span id="cb11-145"><a href="#cb11-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-146"><a href="#cb11-146" aria-hidden="true" tabindex="-1"></a>Entering an ordered exposure as a numeric *score* gives a single per-step trend</span>
-<span id="cb11-147"><a href="#cb11-147" aria-hidden="true" tabindex="-1"></a>OR instead of per-level contrasts:</span>
-<span id="cb11-148"><a href="#cb11-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-151"><a href="#cb11-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-152"><a href="#cb11-152" aria-hidden="true" tabindex="-1"></a>esoph_long<span class="sc">$</span>alc_score <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">factor</span>(</span>
-<span id="cb11-153"><a href="#cb11-153" aria-hidden="true" tabindex="-1"></a>  esoph_long<span class="sc">$</span>alcgp,</span>
-<span id="cb11-154"><a href="#cb11-154" aria-hidden="true" tabindex="-1"></a>  <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"0-39g/day"</span>, <span class="st">"40-79"</span>, <span class="st">"80-119"</span>, <span class="st">"120+"</span>)</span>
-<span id="cb11-155"><a href="#cb11-155" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb11-156"><a href="#cb11-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-157"><a href="#cb11-157" aria-hidden="true" tabindex="-1"></a>fit_trend <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb11-158"><a href="#cb11-158" aria-hidden="true" tabindex="-1"></a>  esoph_long,</span>
-<span id="cb11-159"><a href="#cb11-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"alc_score"</span>,</span>
-<span id="cb11-160"><a href="#cb11-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
-<span id="cb11-161"><a href="#cb11-161" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> agegp <span class="sc">+</span> tobgp, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
-<span id="cb11-162"><a href="#cb11-162" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-163"><a href="#cb11-163" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_trend, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-164"><a href="#cb11-164" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-165"><a href="#cb11-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-166"><a href="#cb11-166" aria-hidden="true" tabindex="-1"></a><span class="fu">### Smooth confounder adjustment with `model_fn`</span></span>
-<span id="cb11-167"><a href="#cb11-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-168"><a href="#cb11-168" aria-hidden="true" tabindex="-1"></a>The logistic fitter is pluggable. Pass <span class="in">`model_fn = mgcv::gam`</span> and a smooth term</span>
-<span id="cb11-169"><a href="#cb11-169" aria-hidden="true" tabindex="-1"></a>in <span class="in">`confounders`</span> to adjust for a confounder flexibly while keeping the exposure</span>
-<span id="cb11-170"><a href="#cb11-170" aria-hidden="true" tabindex="-1"></a>parametric (so it still has an interpretable OR). The smooth-basis coefficients</span>
-<span id="cb11-171"><a href="#cb11-171" aria-hidden="true" tabindex="-1"></a>are not reported as odds ratios.</span>
-<span id="cb11-172"><a href="#cb11-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-175"><a href="#cb11-175" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-176"><a href="#cb11-176" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: !expr requireNamespace("mgcv", quietly = TRUE)</span></span>
-<span id="cb11-177"><a href="#cb11-177" aria-hidden="true" tabindex="-1"></a>fit_gam <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb11-178"><a href="#cb11-178" aria-hidden="true" tabindex="-1"></a>  cc,</span>
-<span id="cb11-179"><a href="#cb11-179" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb11-180"><a href="#cb11-180" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
-<span id="cb11-181"><a href="#cb11-181" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> <span class="fu">s</span>(age), <span class="at">model_fn =</span> mgcv<span class="sc">::</span>gam, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
-<span id="cb11-182"><a href="#cb11-182" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-183"><a href="#cb11-183" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_gam, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-184"><a href="#cb11-184" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-185"><a href="#cb11-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-186"><a href="#cb11-186" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mantel-Haenszel stratified OR</span></span>
-<span id="cb11-187"><a href="#cb11-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-188"><a href="#cb11-188" aria-hidden="true" tabindex="-1"></a>When confounding is controlled by *stratification* rather than a model, the</span>
-<span id="cb11-189"><a href="#cb11-189" aria-hidden="true" tabindex="-1"></a>Mantel-Haenszel estimator pools the per-stratum 2×2 odds ratios in closed form.</span>
-<span id="cb11-190"><a href="#cb11-190" aria-hidden="true" tabindex="-1"></a>Declare the stratifying variable(s) on the design and select <span class="in">`estimator = "mh"`</span>.</span>
-<span id="cb11-191"><a href="#cb11-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-194"><a href="#cb11-194" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-195"><a href="#cb11-195" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3</span>)</span>
-<span id="cb11-196"><a href="#cb11-196" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8000</span></span>
-<span id="cb11-197"><a href="#cb11-197" aria-hidden="true" tabindex="-1"></a>agegrp <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"30s"</span>, <span class="st">"40s"</span>, <span class="st">"50s"</span>, <span class="st">"60s"</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-198"><a href="#cb11-198" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb11-199"><a href="#cb11-199" aria-hidden="true" tabindex="-1"></a><span class="co"># True OR for x is 3, with an age-group main effect (confounding).</span></span>
-<span id="cb11-200"><a href="#cb11-200" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">3</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> <span class="fu">as.integer</span>(<span class="fu">factor</span>(agegrp))</span>
-<span id="cb11-201"><a href="#cb11-201" aria-hidden="true" tabindex="-1"></a>case <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(lp))</span>
-<span id="cb11-202"><a href="#cb11-202" aria-hidden="true" tabindex="-1"></a>d_mh <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> case, <span class="at">x =</span> x, <span class="at">agegrp =</span> agegrp)</span>
-<span id="cb11-203"><a href="#cb11-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-204"><a href="#cb11-204" aria-hidden="true" tabindex="-1"></a>fit_mh <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb11-205"><a href="#cb11-205" aria-hidden="true" tabindex="-1"></a>  d_mh,</span>
-<span id="cb11-206"><a href="#cb11-206" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb11-207"><a href="#cb11-207" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">strata =</span> <span class="st">"agegrp"</span>), <span class="at">estimator =</span> <span class="st">"mh"</span></span>
-<span id="cb11-208"><a href="#cb11-208" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-209"><a href="#cb11-209" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_mh, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb11-210"><a href="#cb11-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-211"><a href="#cb11-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-212"><a href="#cb11-212" aria-hidden="true" tabindex="-1"></a>The reported interval is the Robins-Breslow-Greenland (1986) variance, valid in</span>
-<span id="cb11-213"><a href="#cb11-213" aria-hidden="true" tabindex="-1"></a>both the sparse-data and large-stratum limits. The MH estimator needs a 2×2</span>
-<span id="cb11-214"><a href="#cb11-214" aria-hidden="true" tabindex="-1"></a>table per stratum, so the exposure must be binary; a categorical (k &gt; 2) or</span>
-<span id="cb11-215"><a href="#cb11-215" aria-hidden="true" tabindex="-1"></a>continuous exposure is routed to <span class="in">`estimator = "logistic"`</span> with a classed error.</span>
-<span id="cb11-216"><a href="#cb11-216" aria-hidden="true" tabindex="-1"></a>With no <span class="in">`strata`</span>, <span class="in">`"mh"`</span> reduces to the crude single-table OR.</span>
-<span id="cb11-217"><a href="#cb11-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-218"><a href="#cb11-218" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the design does and does not identify</span></span>
-<span id="cb11-219"><a href="#cb11-219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-220"><a href="#cb11-220" aria-hidden="true" tabindex="-1"></a>Only the odds ratio is identified from an unmatched case-control sample. Risk</span>
-<span id="cb11-221"><a href="#cb11-221" aria-hidden="true" tabindex="-1"></a>differences and risk ratios require the source-population prevalence q0 and a</span>
-<span id="cb11-222"><a href="#cb11-222" aria-hidden="true" tabindex="-1"></a>case-control-weighted estimator:</span>
-<span id="cb11-223"><a href="#cb11-223" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-226"><a href="#cb11-226" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb11-227"><a href="#cb11-227" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb11-228"><a href="#cb11-228" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)</span>
-<span id="cb11-229"><a href="#cb11-229" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb11-230"><a href="#cb11-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-231"><a href="#cb11-231" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
-<span id="cb11-232"><a href="#cb11-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-233"><a href="#cb11-233" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
-<span id="cb11-234"><a href="#cb11-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-235"><a href="#cb11-235" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Exposure <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Variance <span class="pp">|</span> Status <span class="pp">|</span></span>
-<span id="cb11-236"><a href="#cb11-236" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
-<span id="cb11-237"><a href="#cb11-237" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Binary <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> conditional OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb11-238"><a href="#cb11-238" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Continuous <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> per-unit OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb11-239"><a href="#cb11-239" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Categorical (k&gt;2) <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> per-level OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb11-240"><a href="#cb11-240" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ordinal score <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> per-step trend OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb11-241"><a href="#cb11-241" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Any (GAM-adjusted) <span class="pp">|</span> <span class="in">`logistic`</span> + <span class="in">`model_fn`</span> <span class="pp">|</span> conditional OR <span class="pp">|</span> model <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb11-242"><a href="#cb11-242" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Binary <span class="pp">|</span> <span class="in">`mh`</span> <span class="pp">|</span> Mantel-Haenszel OR <span class="pp">|</span> Robins-Breslow-Greenland <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb11-243"><a href="#cb11-243" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ordered factor <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ use a numeric score <span class="pp">|</span></span>
-<span id="cb11-244"><a href="#cb11-244" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Categorical / continuous <span class="pp">|</span> <span class="in">`mh`</span> <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`logistic`</span> <span class="pp">|</span></span>
-<span id="cb11-245"><a href="#cb11-245" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Any <span class="pp">|</span> <span class="in">`logistic`</span> / <span class="in">`mh`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> — <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
-<span id="cb11-246"><a href="#cb11-246" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-247"><a href="#cb11-247" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
-<span id="cb11-248"><a href="#cb11-248" aria-hidden="true" tabindex="-1"></a>combination.</span>
-<span id="cb11-249"><a href="#cb11-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-250"><a href="#cb11-250" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb11-251"><a href="#cb11-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-252"><a href="#cb11-252" aria-hidden="true" tabindex="-1"></a>Breslow NE, Day NE (1980). *Statistical Methods in Cancer Research, Volume 1:</span>
-<span id="cb11-253"><a href="#cb11-253" aria-hidden="true" tabindex="-1"></a>The Analysis of Case-Control Studies*. IARC.</span>
-<span id="cb11-254"><a href="#cb11-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-255"><a href="#cb11-255" aria-hidden="true" tabindex="-1"></a>Prentice RL, Pyke R (1979). Logistic disease incidence models and case-control</span>
-<span id="cb11-256"><a href="#cb11-256" aria-hidden="true" tabindex="-1"></a>studies. *Biometrika* 66(3):403-411.</span>
-<span id="cb11-257"><a href="#cb11-257" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-258"><a href="#cb11-258" aria-hidden="true" tabindex="-1"></a>Robins J, Breslow N, Greenland S (1986). Estimators of the Mantel-Haenszel</span>
-<span id="cb11-259"><a href="#cb11-259" aria-hidden="true" tabindex="-1"></a>variance consistent in both sparse data and large-strata limiting models.</span>
-<span id="cb11-260"><a href="#cb11-260" aria-hidden="true" tabindex="-1"></a>*Biometrics* 42(2):311-323.</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>In an *unmatched* case-control study, cases and controls are sampled</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>independently from the source population — no individual or frequency matching.</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>The classical analysis is the **conditional odds ratio**, identified from the</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>case-control sample even though the marginal disease frequency is fixed by the</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>sampling design. matchatr provides two engines on <span class="in">`unmatched_cc()`</span>:</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "logistic"`</span> — logistic regression</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  (<span class="in">`outcome ~ exposure + confounders`</span>), the conditional OR for any exposure</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  type. Because case-control sampling shifts only the intercept</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>  <span class="co">[</span><span class="ot">@prentice1979logistic</span><span class="co">]</span>, the slope ORs equal the source-population ORs.</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimator = "mh"`</span> — the closed-form Mantel-Haenszel stratified OR with a</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  Robins-Breslow-Greenland confidence interval.</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a><span class="fu">## Logistic conditional OR</span></span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a><span class="fu">### A binary exposure</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>We simulate a cohort with a known log odds ratio, then draw an unmatched</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>case-control sample (all cases plus an equal number of controls). The conditional</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>OR should recover the cohort log-OR.</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8000</span></span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>age <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">50</span>, <span class="dv">10</span>)</span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a><span class="co"># True conditional log-OR for x is log(2.5).</span></span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="fl">2.5</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.03</span> <span class="sc">*</span> (age <span class="sc">-</span> <span class="dv">50</span>)</span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>case <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(lp))</span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>cohort <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> case, <span class="at">x =</span> x, <span class="at">age =</span> age)</span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Unmatched case-control sample: every case + an equal random sample of controls.</span></span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a>cases <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">rbind</span>(cases, controls[<span class="fu">sample</span>(<span class="fu">nrow</span>(controls), <span class="fu">nrow</span>(cases)), ])</span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a>  cc,</span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-71"><a href="#cb11-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-72"><a href="#cb11-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-73"><a href="#cb11-73" aria-hidden="true" tabindex="-1"></a>The recovered OR is close to the true 2.5 even though the sample is roughly 50%</span>
+<span id="cb11-74"><a href="#cb11-74" aria-hidden="true" tabindex="-1"></a>cases — the odds ratio is invariant to the case / control sampling fractions.</span>
+<span id="cb11-75"><a href="#cb11-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-76"><a href="#cb11-76" aria-hidden="true" tabindex="-1"></a>The full coefficient table is available through <span class="in">`tidy()`</span> (the intercept is</span>
+<span id="cb11-77"><a href="#cb11-77" aria-hidden="true" tabindex="-1"></a>*not* an interpretable baseline risk under case-control sampling, so treat it as</span>
+<span id="cb11-78"><a href="#cb11-78" aria-hidden="true" tabindex="-1"></a>a nuisance):</span>
+<span id="cb11-79"><a href="#cb11-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-82"><a href="#cb11-82" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-83"><a href="#cb11-83" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(fit, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-84"><a href="#cb11-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-85"><a href="#cb11-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-86"><a href="#cb11-86" aria-hidden="true" tabindex="-1"></a><span class="fu">### A continuous exposure</span></span>
+<span id="cb11-87"><a href="#cb11-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-88"><a href="#cb11-88" aria-hidden="true" tabindex="-1"></a>A continuous exposure yields a single per-unit OR:</span>
+<span id="cb11-89"><a href="#cb11-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-92"><a href="#cb11-92" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-93"><a href="#cb11-93" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
+<span id="cb11-94"><a href="#cb11-94" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
+<span id="cb11-95"><a href="#cb11-95" aria-hidden="true" tabindex="-1"></a>dose <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb11-96"><a href="#cb11-96" aria-hidden="true" tabindex="-1"></a>case <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> dose))</span>
+<span id="cb11-97"><a href="#cb11-97" aria-hidden="true" tabindex="-1"></a>d_cont <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> case, <span class="at">dose =</span> dose)</span>
+<span id="cb11-98"><a href="#cb11-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-99"><a href="#cb11-99" aria-hidden="true" tabindex="-1"></a>fit_cont <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb11-100"><a href="#cb11-100" aria-hidden="true" tabindex="-1"></a>  d_cont,</span>
+<span id="cb11-101"><a href="#cb11-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"dose"</span>,</span>
+<span id="cb11-102"><a href="#cb11-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
+<span id="cb11-103"><a href="#cb11-103" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-104"><a href="#cb11-104" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_cont, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-105"><a href="#cb11-105" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-106"><a href="#cb11-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-107"><a href="#cb11-107" aria-hidden="true" tabindex="-1"></a><span class="fu">### A categorical exposure: the `esoph` dose-response</span></span>
+<span id="cb11-108"><a href="#cb11-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-109"><a href="#cb11-109" aria-hidden="true" tabindex="-1"></a>The built-in <span class="in">`esoph`</span> data is the Ille-et-Vilaine case-control study of</span>
+<span id="cb11-110"><a href="#cb11-110" aria-hidden="true" tabindex="-1"></a>oesophageal cancer <span class="co">[</span><span class="ot">@breslow1980statistical</span><span class="co">]</span>, stored as per-cell case / control</span>
+<span id="cb11-111"><a href="#cb11-111" aria-hidden="true" tabindex="-1"></a>counts. We expand it to one row per subject so it can enter the logistic engine.</span>
+<span id="cb11-112"><a href="#cb11-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-115"><a href="#cb11-115" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-116"><a href="#cb11-116" aria-hidden="true" tabindex="-1"></a>esoph_long <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(esoph)), <span class="cf">function</span>(i) {</span>
+<span id="cb11-117"><a href="#cb11-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(esoph[i, ], <span class="fu">data.frame</span>(</span>
+<span id="cb11-118"><a href="#cb11-118" aria-hidden="true" tabindex="-1"></a>    <span class="at">case  =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>L, ncases), <span class="fu">rep</span>(<span class="dv">0</span>L, ncontrols)),</span>
+<span id="cb11-119"><a href="#cb11-119" aria-hidden="true" tabindex="-1"></a>    <span class="at">agegp =</span> agegp, <span class="at">alcgp =</span> alcgp, <span class="at">tobgp =</span> tobgp</span>
+<span id="cb11-120"><a href="#cb11-120" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb11-121"><a href="#cb11-121" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb11-122"><a href="#cb11-122" aria-hidden="true" tabindex="-1"></a><span class="co"># Use alcohol as an unordered factor so we get one OR per consumption band.</span></span>
+<span id="cb11-123"><a href="#cb11-123" aria-hidden="true" tabindex="-1"></a>esoph_long<span class="sc">$</span>alcgp <span class="ot">&lt;-</span> <span class="fu">factor</span>(esoph_long<span class="sc">$</span>alcgp, <span class="at">ordered =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb11-124"><a href="#cb11-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-125"><a href="#cb11-125" aria-hidden="true" tabindex="-1"></a>fit_alc <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb11-126"><a href="#cb11-126" aria-hidden="true" tabindex="-1"></a>  esoph_long,</span>
+<span id="cb11-127"><a href="#cb11-127" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"alcgp"</span>,</span>
+<span id="cb11-128"><a href="#cb11-128" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
+<span id="cb11-129"><a href="#cb11-129" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> agegp <span class="sc">+</span> tobgp, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
+<span id="cb11-130"><a href="#cb11-130" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-131"><a href="#cb11-131" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_alc, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-132"><a href="#cb11-132" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-133"><a href="#cb11-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-134"><a href="#cb11-134" aria-hidden="true" tabindex="-1"></a>A factor exposure reports one OR per non-reference level versus the baseline</span>
+<span id="cb11-135"><a href="#cb11-135" aria-hidden="true" tabindex="-1"></a>(here <span class="in">`0-39g/day`</span>), recovering the canonical monotone alcohol dose-response.</span>
+<span id="cb11-136"><a href="#cb11-136" aria-hidden="true" tabindex="-1"></a>The reference level used is recorded on the result:</span>
+<span id="cb11-137"><a href="#cb11-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-140"><a href="#cb11-140" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-141"><a href="#cb11-141" aria-hidden="true" tabindex="-1"></a>fit_alc_result <span class="ot">&lt;-</span> <span class="fu">contrast</span>(fit_alc, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-142"><a href="#cb11-142" aria-hidden="true" tabindex="-1"></a>fit_alc_result<span class="sc">$</span>reference</span>
+<span id="cb11-143"><a href="#cb11-143" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-144"><a href="#cb11-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-145"><a href="#cb11-145" aria-hidden="true" tabindex="-1"></a><span class="fu">### An ordinal trend</span></span>
+<span id="cb11-146"><a href="#cb11-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-147"><a href="#cb11-147" aria-hidden="true" tabindex="-1"></a>Entering an ordered exposure as a numeric *score* gives a single per-step trend</span>
+<span id="cb11-148"><a href="#cb11-148" aria-hidden="true" tabindex="-1"></a>OR instead of per-level contrasts:</span>
+<span id="cb11-149"><a href="#cb11-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-152"><a href="#cb11-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-153"><a href="#cb11-153" aria-hidden="true" tabindex="-1"></a>esoph_long<span class="sc">$</span>alc_score <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">factor</span>(</span>
+<span id="cb11-154"><a href="#cb11-154" aria-hidden="true" tabindex="-1"></a>  esoph_long<span class="sc">$</span>alcgp,</span>
+<span id="cb11-155"><a href="#cb11-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"0-39g/day"</span>, <span class="st">"40-79"</span>, <span class="st">"80-119"</span>, <span class="st">"120+"</span>)</span>
+<span id="cb11-156"><a href="#cb11-156" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb11-157"><a href="#cb11-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-158"><a href="#cb11-158" aria-hidden="true" tabindex="-1"></a>fit_trend <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb11-159"><a href="#cb11-159" aria-hidden="true" tabindex="-1"></a>  esoph_long,</span>
+<span id="cb11-160"><a href="#cb11-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"alc_score"</span>,</span>
+<span id="cb11-161"><a href="#cb11-161" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
+<span id="cb11-162"><a href="#cb11-162" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> agegp <span class="sc">+</span> tobgp, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
+<span id="cb11-163"><a href="#cb11-163" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-164"><a href="#cb11-164" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_trend, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-165"><a href="#cb11-165" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-166"><a href="#cb11-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-167"><a href="#cb11-167" aria-hidden="true" tabindex="-1"></a><span class="fu">### Smooth confounder adjustment with `model_fn`</span></span>
+<span id="cb11-168"><a href="#cb11-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-169"><a href="#cb11-169" aria-hidden="true" tabindex="-1"></a>The logistic fitter is pluggable. Pass <span class="in">`model_fn = mgcv::gam`</span> and a smooth term</span>
+<span id="cb11-170"><a href="#cb11-170" aria-hidden="true" tabindex="-1"></a>in <span class="in">`confounders`</span> to adjust for a confounder flexibly while keeping the exposure</span>
+<span id="cb11-171"><a href="#cb11-171" aria-hidden="true" tabindex="-1"></a>parametric (so it still has an interpretable OR). The smooth-basis coefficients</span>
+<span id="cb11-172"><a href="#cb11-172" aria-hidden="true" tabindex="-1"></a>are not reported as odds ratios.</span>
+<span id="cb11-173"><a href="#cb11-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-176"><a href="#cb11-176" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-177"><a href="#cb11-177" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: !expr requireNamespace("mgcv", quietly = TRUE)</span></span>
+<span id="cb11-178"><a href="#cb11-178" aria-hidden="true" tabindex="-1"></a>fit_gam <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb11-179"><a href="#cb11-179" aria-hidden="true" tabindex="-1"></a>  cc,</span>
+<span id="cb11-180"><a href="#cb11-180" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb11-181"><a href="#cb11-181" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
+<span id="cb11-182"><a href="#cb11-182" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> <span class="fu">s</span>(age), <span class="at">model_fn =</span> mgcv<span class="sc">::</span>gam, <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
+<span id="cb11-183"><a href="#cb11-183" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-184"><a href="#cb11-184" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_gam, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-185"><a href="#cb11-185" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-186"><a href="#cb11-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-187"><a href="#cb11-187" aria-hidden="true" tabindex="-1"></a><span class="fu">## Mantel-Haenszel stratified OR</span></span>
+<span id="cb11-188"><a href="#cb11-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-189"><a href="#cb11-189" aria-hidden="true" tabindex="-1"></a>When confounding is controlled by *stratification* rather than a model, the</span>
+<span id="cb11-190"><a href="#cb11-190" aria-hidden="true" tabindex="-1"></a>Mantel-Haenszel estimator pools the per-stratum 2×2 odds ratios in closed form.</span>
+<span id="cb11-191"><a href="#cb11-191" aria-hidden="true" tabindex="-1"></a>Declare the stratifying variable(s) on the design and select <span class="in">`estimator = "mh"`</span>.</span>
+<span id="cb11-192"><a href="#cb11-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-195"><a href="#cb11-195" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-196"><a href="#cb11-196" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3</span>)</span>
+<span id="cb11-197"><a href="#cb11-197" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">8000</span></span>
+<span id="cb11-198"><a href="#cb11-198" aria-hidden="true" tabindex="-1"></a>agegrp <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"30s"</span>, <span class="st">"40s"</span>, <span class="st">"50s"</span>, <span class="st">"60s"</span>), n, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-199"><a href="#cb11-199" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb11-200"><a href="#cb11-200" aria-hidden="true" tabindex="-1"></a><span class="co"># True OR for x is 3, with an age-group main effect (confounding).</span></span>
+<span id="cb11-201"><a href="#cb11-201" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">3</span>) <span class="sc">*</span> x <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> <span class="fu">as.integer</span>(<span class="fu">factor</span>(agegrp))</span>
+<span id="cb11-202"><a href="#cb11-202" aria-hidden="true" tabindex="-1"></a>case <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(lp))</span>
+<span id="cb11-203"><a href="#cb11-203" aria-hidden="true" tabindex="-1"></a>d_mh <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> case, <span class="at">x =</span> x, <span class="at">agegrp =</span> agegrp)</span>
+<span id="cb11-204"><a href="#cb11-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-205"><a href="#cb11-205" aria-hidden="true" tabindex="-1"></a>fit_mh <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb11-206"><a href="#cb11-206" aria-hidden="true" tabindex="-1"></a>  d_mh,</span>
+<span id="cb11-207"><a href="#cb11-207" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb11-208"><a href="#cb11-208" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">strata =</span> <span class="st">"agegrp"</span>), <span class="at">estimator =</span> <span class="st">"mh"</span></span>
+<span id="cb11-209"><a href="#cb11-209" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-210"><a href="#cb11-210" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_mh, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb11-211"><a href="#cb11-211" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-212"><a href="#cb11-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-213"><a href="#cb11-213" aria-hidden="true" tabindex="-1"></a>The reported interval is the Robins-Breslow-Greenland variance</span>
+<span id="cb11-214"><a href="#cb11-214" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@robins1986estimators</span><span class="co">]</span>, valid in both the sparse-data and large-stratum limits. The MH estimator needs a 2×2</span>
+<span id="cb11-215"><a href="#cb11-215" aria-hidden="true" tabindex="-1"></a>table per stratum, so the exposure must be binary; a categorical (k &gt; 2) or</span>
+<span id="cb11-216"><a href="#cb11-216" aria-hidden="true" tabindex="-1"></a>continuous exposure is routed to <span class="in">`estimator = "logistic"`</span> with a classed error.</span>
+<span id="cb11-217"><a href="#cb11-217" aria-hidden="true" tabindex="-1"></a>With no <span class="in">`strata`</span>, <span class="in">`"mh"`</span> reduces to the crude single-table OR.</span>
+<span id="cb11-218"><a href="#cb11-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-219"><a href="#cb11-219" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the design does and does not identify</span></span>
+<span id="cb11-220"><a href="#cb11-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-221"><a href="#cb11-221" aria-hidden="true" tabindex="-1"></a>Only the odds ratio is identified from an unmatched case-control sample. Risk</span>
+<span id="cb11-222"><a href="#cb11-222" aria-hidden="true" tabindex="-1"></a>differences and risk ratios require the source-population prevalence q0 and a</span>
+<span id="cb11-223"><a href="#cb11-223" aria-hidden="true" tabindex="-1"></a>case-control-weighted estimator:</span>
+<span id="cb11-224"><a href="#cb11-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-227"><a href="#cb11-227" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb11-228"><a href="#cb11-228" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb11-229"><a href="#cb11-229" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)</span>
+<span id="cb11-230"><a href="#cb11-230" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb11-231"><a href="#cb11-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-232"><a href="#cb11-232" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
+<span id="cb11-233"><a href="#cb11-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-234"><a href="#cb11-234" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
+<span id="cb11-235"><a href="#cb11-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-236"><a href="#cb11-236" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Exposure <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Variance <span class="pp">|</span> Status <span class="pp">|</span></span>
+<span id="cb11-237"><a href="#cb11-237" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
+<span id="cb11-238"><a href="#cb11-238" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Binary <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> conditional OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb11-239"><a href="#cb11-239" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Continuous <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> per-unit OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb11-240"><a href="#cb11-240" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Categorical (k&gt;2) <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> per-level OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb11-241"><a href="#cb11-241" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ordinal score <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> per-step trend OR <span class="pp">|</span> model / sandwich <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb11-242"><a href="#cb11-242" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Any (GAM-adjusted) <span class="pp">|</span> <span class="in">`logistic`</span> + <span class="in">`model_fn`</span> <span class="pp">|</span> conditional OR <span class="pp">|</span> model <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb11-243"><a href="#cb11-243" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Binary <span class="pp">|</span> <span class="in">`mh`</span> <span class="pp">|</span> Mantel-Haenszel OR <span class="pp">|</span> Robins-Breslow-Greenland <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb11-244"><a href="#cb11-244" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ordered factor <span class="pp">|</span> <span class="in">`logistic`</span> <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ use a numeric score <span class="pp">|</span></span>
+<span id="cb11-245"><a href="#cb11-245" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Categorical / continuous <span class="pp">|</span> <span class="in">`mh`</span> <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`logistic`</span> <span class="pp">|</span></span>
+<span id="cb11-246"><a href="#cb11-246" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Any <span class="pp">|</span> <span class="in">`logistic`</span> / <span class="in">`mh`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> — <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
+<span id="cb11-247"><a href="#cb11-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-248"><a href="#cb11-248" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
+<span id="cb11-249"><a href="#cb11-249" aria-hidden="true" tabindex="-1"></a>combination.</span>
+<span id="cb11-250"><a href="#cb11-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-251"><a href="#cb11-251" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb11-252"><a href="#cb11-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-253"><a href="#cb11-253" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb11-254"><a href="#cb11-254" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

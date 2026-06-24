@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -655,7 +674,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A small p-value is evidence the exposure odds ratio differs across subtypes.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Here the exposure doubles the odds of subtype A but quadruples them for subtype B, so the test returns a small p-value — evidence the effect is <em>not</em> homogeneous. The pooled odds ratio is the minimum-variance (inverse-variance / GLS) combination of the subtype odds ratios — the restricted estimator under homogeneity, asymptotically equal to the constrained maximum-likelihood fit — so it is more efficient than any single subtype odds ratio. It is the canonical etiologic- heterogeneity Wald test (Begg &amp; Gray, 1984), computed on the already-fitted model, so it needs no refit and handles continuous confounders directly:</p>
+<p>Here the exposure doubles the odds of subtype A but quadruples them for subtype B, so the test returns a small p-value — evidence the effect is <em>not</em> homogeneous. The pooled odds ratio is the minimum-variance (inverse-variance / GLS) combination of the subtype odds ratios — the restricted estimator under homogeneity, asymptotically equal to the constrained maximum-likelihood fit — so it is more efficient than any single subtype odds ratio. It is the canonical etiologic- heterogeneity Wald test <span class="citation" data-cites="begg1984calculation">(<a href="#ref-begg1984calculation" role="doc-biblioref">Begg and Gray 1984</a>)</span>, computed on the already-fitted model, so it needs no refit and handles continuous confounders directly:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -763,9 +782,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
-<p>Begg CB, Gray R (1984). Calculation of polytomous logistic regression parameters using individualized regressions. <em>Biometrika</em> 71(1), 11-18.</p>
-<p>Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). <em>Handbook of Statistical Methods for Case-Control Studies</em>, Chapter 5. Chapman &amp; Hall/CRC.</p>
-<p>Venables WN, Ripley BD (2002). <em>Modern Applied Statistics with S</em>, 4th ed. Springer. (The <code>nnet::multinom</code> fitter.)</p>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-begg1984calculation" class="csl-entry" role="listitem">
+Begg, Colin B., and Robert Gray. 1984. <span>“Calculation of Polychotomous Logistic Regression Parameters Using Individualized Regressions.”</span> <em>Biometrika</em> 71 (1): 11–18. <a href="https://doi.org/10.1093/biomet/71.1.11">https://doi.org/10.1093/biomet/71.1.11</a>.
+</div>
+<div id="ref-borgan2018handbook" class="csl-entry" role="listitem">
+Borgan, Ørnulf, Norman Breslow, Nilanjan Chatterjee, Mitchell H. Gail, Alastair Scott, and Chris J. Wild, eds. 2018. <em>Handbook of Statistical Methods for Case-Control Studies</em>. Chapman &amp; Hall/CRC. <a href="https://doi.org/10.1201/9781315154084">https://doi.org/10.1201/9781315154084</a>.
+</div>
+<div id="ref-venables2002modern" class="csl-entry" role="listitem">
+Venables, William N., and Brian D. Ripley. 2002. <em>Modern Applied Statistics with s</em>. Fourth. Springer. <a href="https://doi.org/10.1007/978-0-387-21706-2">https://doi.org/10.1007/978-0-387-21706-2</a>.
+</div>
+</div>
 
 
 <!-- -->
@@ -1232,178 +1259,175 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Multiple case / control groups}</span></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>Some case-control studies have more than two outcome groups: several *disease</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>subtypes* (does the exposure act differently on each?), or several *control</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>groups*. The design-faithful analysis is **baseline-category multinomial</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>logistic regression**, fit by <span class="in">`nnet::multinom`</span>. Each non-reference equation's</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>exposure coefficient is that subtype's log odds ratio versus the reference, so</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast(type = "or")`</span> reports one OR per (subtype, exposure coefficient).</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="fu">## A three-group outcome</span></span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>We simulate an outcome with a control group and two disease subtypes, where the</span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>binary exposure raises the odds of subtype A by a factor of 2 and subtype B by a</span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>factor of 4 (versus control).</span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Baseline-category logits relative to "control": OR_A = 2, OR_B = 4.</span></span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="dv">0</span>,</span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>  <span class="at">A       =</span> <span class="sc">-</span><span class="fl">1.0</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x,</span>
-<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>  <span class="at">B       =</span> <span class="sc">-</span><span class="fl">1.5</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">4</span>) <span class="sc">*</span> x</span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta) <span class="sc">/</span> <span class="fu">rowSums</span>(<span class="fu">exp</span>(eta))</span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>subtype <span class="ot">&lt;-</span> <span class="fu">apply</span>(prob, <span class="dv">1</span>, <span class="cf">function</span>(p) <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>), <span class="dv">1</span>, <span class="at">prob =</span> p))</span>
-<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>d_poly <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">subtype =</span> subtype, <span class="at">x =</span> x)</span>
-<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(d_poly<span class="sc">$</span>subtype)</span>
-<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>Select <span class="in">`estimator = "polytomous"`</span> and name the baseline group with <span class="in">`reference`</span>.</span>
-<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>The outcome must be a factor or character column with three or more groups (a</span>
-<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>two-group, numeric, or logical outcome is routed back to the binary estimators).</span>
-<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>  d_poly,</span>
-<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"subtype"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
-<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"polytomous"</span>, <span class="at">reference =</span> <span class="st">"control"</span></span>
-<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>fit</span>
-<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>The fit prints the per-group counts and flags the reference group. The contrast</span>
-<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>reports each subtype's exposure OR versus the reference, recovering the true 2</span>
-<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>and 4:</span>
-<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a><span class="fu">## The full per-equation table</span></span>
-<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a><span class="in">`tidy()`</span> renders the whole multinomial model, one equation per non-reference</span>
-<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>group, with a leading <span class="in">`y.level`</span> column naming the group each row contrasts</span>
-<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>against the reference:</span>
-<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(fit, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>The interval is the multinomial information matrix; the Huber-White sandwich is</span>
-<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>not defined for this fit, so <span class="in">`robust = TRUE`</span> / <span class="in">`ci_method = "sandwich"`</span> are</span>
-<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>declined.</span>
-<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a><span class="fu">## Choosing the reference and adjusting for confounders</span></span>
-<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>The <span class="in">`reference`</span> group is releveled to the front before fitting, so it can be any</span>
-<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>observed group. Confounders enter the same way as in the binary engines, holding</span>
-<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>the exposure ORs adjusted:</span>
-<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">6</span>)</span>
-<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>d_poly<span class="sc">$</span>age <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">50</span>, <span class="dv">10</span>)</span>
-<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>fit_adj <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>  d_poly,</span>
-<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"subtype"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
-<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age,</span>
-<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"polytomous"</span>, <span class="at">reference =</span> <span class="st">"control"</span></span>
-<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_adj, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a><span class="fu">## Does the exposure act the same way on every subtype?</span></span>
-<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>The central question of a subtype analysis is *etiologic heterogeneity*: is the</span>
-<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>exposure odds ratio the same across the disease subtypes, or does the exposure</span>
-<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>act through different mechanisms on different subtypes? <span class="in">`test_homogeneity()`</span></span>
-<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>answers it. For each exposure term it runs a Wald test of the null that the</span>
-<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>exposure log odds ratio is equal across the non-reference subtypes</span>
-<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>(H~0~: β~1~ = … = β~M~) and reports the efficient pooled ("common") odds ratio</span>
-<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>that holds under homogeneity.</span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a><span class="fu">test_homogeneity</span>(fit)</span>
-<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>Here the exposure doubles the odds of subtype A but quadruples them for subtype</span>
-<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>B, so the test returns a small p-value — evidence the effect is *not* homogeneous.</span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>The pooled odds ratio is the minimum-variance (inverse-variance / GLS) combination</span>
-<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>of the subtype odds ratios — the restricted estimator under homogeneity,</span>
-<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>asymptotically equal to the constrained maximum-likelihood fit — so it is more</span>
-<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>efficient than any single subtype odds ratio. It is the canonical etiologic-</span>
-<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>heterogeneity Wald test (Begg &amp; Gray, 1984), computed on the already-fitted</span>
-<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>model, so it needs no refit and handles continuous confounders directly:</span>
-<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a><span class="fu">test_homogeneity</span>(fit_adj)</span>
-<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a><span class="in">`tidy()`</span> returns the per-term table (the common odds ratio, its interval, and the</span>
-<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>homogeneity χ², degrees of freedom, and p-value), one row per exposure term:</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="an">nocite:</span><span class="co"> |</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">  @borgan2018handbook, @venables2002modern</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>Some case-control studies have more than two outcome groups: several *disease</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>subtypes* (does the exposure act differently on each?), or several *control</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>groups*. The design-faithful analysis is **baseline-category multinomial</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>logistic regression**, fit by <span class="in">`nnet::multinom`</span>. Each non-reference equation's</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>exposure coefficient is that subtype's log odds ratio versus the reference, so</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="in">`contrast(type = "or")`</span> reports one OR per (subtype, exposure coefficient).</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## A three-group outcome</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>We simulate an outcome with a control group and two disease subtypes, where the</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>binary exposure raises the odds of subtype A by a factor of 2 and subtype B by a</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>factor of 4 (versus control).</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fl">0.4</span>)</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Baseline-category logits relative to "control": OR_A = 2, OR_B = 4.</span></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="fu">cbind</span>(</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="dv">0</span>,</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>  <span class="at">A       =</span> <span class="sc">-</span><span class="fl">1.0</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">2</span>) <span class="sc">*</span> x,</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>  <span class="at">B       =</span> <span class="sc">-</span><span class="fl">1.5</span> <span class="sc">+</span> <span class="fu">log</span>(<span class="dv">4</span>) <span class="sc">*</span> x</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta) <span class="sc">/</span> <span class="fu">rowSums</span>(<span class="fu">exp</span>(eta))</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>subtype <span class="ot">&lt;-</span> <span class="fu">apply</span>(prob, <span class="dv">1</span>, <span class="cf">function</span>(p) <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>), <span class="dv">1</span>, <span class="at">prob =</span> p))</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>d_poly <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">subtype =</span> subtype, <span class="at">x =</span> x)</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(d_poly<span class="sc">$</span>subtype)</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>Select <span class="in">`estimator = "polytomous"`</span> and name the baseline group with <span class="in">`reference`</span>.</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>The outcome must be a factor or character column with three or more groups (a</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>two-group, numeric, or logical outcome is routed back to the binary estimators).</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>  d_poly,</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"subtype"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"polytomous"</span>, <span class="at">reference =</span> <span class="st">"control"</span></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>fit</span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>The fit prints the per-group counts and flags the reference group. The contrast</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>reports each subtype's exposure OR versus the reference, recovering the true 2</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>and 4:</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a><span class="fu">## The full per-equation table</span></span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a><span class="in">`tidy()`</span> renders the whole multinomial model, one equation per non-reference</span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>group, with a leading <span class="in">`y.level`</span> column naming the group each row contrasts</span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>against the reference:</span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(fit, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>The interval is the multinomial information matrix; the Huber-White sandwich is</span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>not defined for this fit, so <span class="in">`robust = TRUE`</span> / <span class="in">`ci_method = "sandwich"`</span> are</span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>declined.</span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## Choosing the reference and adjusting for confounders</span></span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>The <span class="in">`reference`</span> group is releveled to the front before fitting, so it can be any</span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>observed group. Confounders enter the same way as in the binary engines, holding</span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>the exposure ORs adjusted:</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">6</span>)</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>d_poly<span class="sc">$</span>age <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="dv">50</span>, <span class="dv">10</span>)</span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>fit_adj <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>  d_poly,</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"subtype"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),</span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age,</span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"polytomous"</span>, <span class="at">reference =</span> <span class="st">"control"</span></span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_adj, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a><span class="fu">## Does the exposure act the same way on every subtype?</span></span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>The central question of a subtype analysis is *etiologic heterogeneity*: is the</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>exposure odds ratio the same across the disease subtypes, or does the exposure</span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>act through different mechanisms on different subtypes? <span class="in">`test_homogeneity()`</span></span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>answers it. For each exposure term it runs a Wald test of the null that the</span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>exposure log odds ratio is equal across the non-reference subtypes</span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>(H~0~: β~1~ = … = β~M~) and reports the efficient pooled ("common") odds ratio</span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>that holds under homogeneity.</span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a><span class="fu">test_homogeneity</span>(fit)</span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>Here the exposure doubles the odds of subtype A but quadruples them for subtype</span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>B, so the test returns a small p-value — evidence the effect is *not* homogeneous.</span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>The pooled odds ratio is the minimum-variance (inverse-variance / GLS) combination</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>of the subtype odds ratios — the restricted estimator under homogeneity,</span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>asymptotically equal to the constrained maximum-likelihood fit — so it is more</span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>efficient than any single subtype odds ratio. It is the canonical etiologic-</span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>heterogeneity Wald test <span class="co">[</span><span class="ot">@begg1984calculation</span><span class="co">]</span>, computed on the already-fitted</span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>model, so it needs no refit and handles continuous confounders directly:</span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a><span class="fu">test_homogeneity</span>(fit_adj)</span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">test_homogeneity</span>(fit_adj))</span>
-<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>An unordered factor exposure is tested one level at a time (one "risk factor"</span>
-<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>per level). A small p-value points to distinct etiologic mechanisms; a large one</span>
-<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>licenses reporting the single pooled odds ratio.</span>
-<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a><span class="fu">## A note on collinearity</span></span>
-<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a>Unlike <span class="in">`stats::glm`</span>, <span class="in">`nnet::multinom`</span> does not alias a rank-deficient exposure</span>
-<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a>column to <span class="in">`NA`</span> — it splits the coefficient across the outcome equations, which</span>
-<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a>would silently attenuate the OR. matchatr guards against this by checking the</span>
-<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a>design-matrix rank up front: an exposure that is constant, or collinear with a</span>
-<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a>confounder, is rejected with a classed <span class="in">`matchatr_unestimable_exposure`</span> error</span>
-<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a>rather than returning a misleading number. Collinearity confined to the</span>
-<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>confounders leaves the exposure estimable and is not rejected.</span>
-<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
-<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
-<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Outcome <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Status <span class="pp">|</span></span>
-<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ≥3-group factor / character <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> per-subtype OR vs reference <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ≥3-group (confounder-adjusted) <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> adjusted per-subtype OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ≥3-group <span class="pp">|</span> <span class="in">`polytomous`</span> + <span class="in">`test_homogeneity()`</span> <span class="pp">|</span> homogeneity Wald test + pooled common OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2-group / numeric / logical <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`logistic`</span> / <span class="in">`clogit`</span> <span class="pp">|</span></span>
-<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> matched design <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ unsupported <span class="pp">|</span></span>
-<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
-<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> sandwich / bootstrap variance <span class="pp">|</span> ⛔ information matrix only <span class="pp">|</span></span>
-<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
-<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a>combination.</span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a><span class="in">`tidy()`</span> returns the per-term table (the common odds ratio, its interval, and the</span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>homogeneity χ², degrees of freedom, and p-value), one row per exposure term:</span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(<span class="fu">test_homogeneity</span>(fit_adj))</span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>An unordered factor exposure is tested one level at a time (one "risk factor"</span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a>per level). A small p-value points to distinct etiologic mechanisms; a large one</span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a>licenses reporting the single pooled odds ratio.</span>
+<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a><span class="fu">## A note on collinearity</span></span>
+<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a>Unlike <span class="in">`stats::glm`</span>, <span class="in">`nnet::multinom`</span> does not alias a rank-deficient exposure</span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a>column to <span class="in">`NA`</span> — it splits the coefficient across the outcome equations, which</span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a>would silently attenuate the OR. matchatr guards against this by checking the</span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>design-matrix rank up front: an exposure that is constant, or collinear with a</span>
+<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a>confounder, is rejected with a classed <span class="in">`matchatr_unestimable_exposure`</span> error</span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a>rather than returning a misleading number. Collinearity confined to the</span>
+<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a>confounders leaves the exposure estimable and is not rejected.</span>
+<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
+<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
+<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Outcome <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Status <span class="pp">|</span></span>
+<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ≥3-group factor / character <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> per-subtype OR vs reference <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ≥3-group (confounder-adjusted) <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> adjusted per-subtype OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ≥3-group <span class="pp">|</span> <span class="in">`polytomous`</span> + <span class="in">`test_homogeneity()`</span> <span class="pp">|</span> homogeneity Wald test + pooled common OR <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2-group / numeric / logical <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ use <span class="in">`logistic`</span> / <span class="in">`clogit`</span> <span class="pp">|</span></span>
+<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> matched design <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> — <span class="pp">|</span> ⛔ unsupported <span class="pp">|</span></span>
+<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need q0 <span class="pp">|</span></span>
+<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any <span class="pp">|</span> <span class="in">`polytomous`</span> <span class="pp">|</span> sandwich / bootstrap variance <span class="pp">|</span> ⛔ information matrix only <span class="pp">|</span></span>
 <span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a>Begg CB, Gray R (1984). Calculation of polytomous logistic regression parameters</span>
-<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a>using individualized regressions. *Biometrika* 71(1), 11-18.</span>
+<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every</span>
+<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a>combination.</span>
+<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
 <span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a>Borgan Ø, Breslow N, Chatterjee N, Gail MH, Scott A, Wild CJ (2018). *Handbook</span>
-<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a>of Statistical Methods for Case-Control Studies*, Chapter 5. Chapman &amp; Hall/CRC.</span>
-<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a>Venables WN, Ripley BD (2002). *Modern Applied Statistics with S*, 4th ed.</span>
-<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a>Springer. (The <span class="in">`nnet::multinom`</span> fitter.)</span>
+<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -476,6 +476,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
@@ -557,6 +558,11 @@ A single character string naming the secondary endpoint’s binary indicator col
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A <code>data.table</code> with the same columns as <code>ncc</code>: the original NCC rows followed by one augmented row per previously unsampled secondary-endpoint case (weight 1, <code>case = 1</code>, its own <code>set</code> id beyond the sampled sets). The secondary cases’ <code>ipw_weight</code> is set to 1 throughout. Ready for <code>matcha(design = nested_cc(strata = “set”, time = time), estimator = “ipw_cox”)</code> with <code>outcome = event</code>.</p>
+</section>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References</h3>
+<p>Saarela O, Kulathinal S, Arjas E, Läärä E (2008). Nested case-control data utilized for multiple outcomes: a likelihood approach and alternatives. <em>Statistics in Medicine</em> 27(28):5991-6008.</p>
+<p>Støer NC, Samuelsen SO (2012). Comparison of estimators in nested case-control studies with multiple outcomes. <em>Lifetime Data Analysis</em> 18(3):261-283.</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>

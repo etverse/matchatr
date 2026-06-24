@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -513,7 +532,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="the-wilms-tumour-data" class="level2">
 <h2 class="anchored" data-anchor-id="the-wilms-tumour-data">The Wilms tumour data</h2>
-<p>We use <code>survival::nwtco</code>, the standard case-cohort example from the <em>Handbook of Statistical Methods for Case-Control Studies</em>. A random subcohort of 668 subjects was drawn from 4 028 children enrolled in the National Wilms Tumour Study. The endpoint is relapse (<code>rel</code>); the exposure of interest is histological type (<code>histol</code>: 1 = unfavourable). The subcohort indicator is <code>in.subcohort</code>.</p>
+<p>We use <code>survival::nwtco</code>, the standard case-cohort example from the <em>Handbook of Statistical Methods for Case-Control Studies</em> <span class="citation" data-cites="borgan2018handbook">(<a href="#ref-borgan2018handbook" role="doc-biblioref">Borgan et al. 2018</a>)</span>. A random subcohort of 668 subjects was drawn from 4 028 children enrolled in the National Wilms Tumour Study. The endpoint is relapse (<code>rel</code>); the exposure of interest is histological type (<code>histol</code>: 1 = unfavourable). The subcohort indicator is <code>in.subcohort</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -534,7 +553,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="hazard-ratio-prentice-pseudo-likelihood" class="level2">
 <h2 class="anchored" data-anchor-id="hazard-ratio-prentice-pseudo-likelihood">Hazard ratio: Prentice pseudo-likelihood</h2>
-<p>The Prentice (1986) pseudo-likelihood augments each risk set with the case if the case falls outside the subcohort. <code>contrast()</code> reports the hazard ratio with the Self-Prentice corrected asymptotic variance (the naive information-matrix SE is not valid here because controls are reused across failure times).</p>
+<p>The <span class="citation" data-cites="prentice1986casecohort">Prentice (<a href="#ref-prentice1986casecohort" role="doc-biblioref">1986</a>)</span> pseudo-likelihood augments each risk set with the case if the case falls outside the subcohort. <code>contrast()</code> reports the hazard ratio with the Self-Prentice corrected asymptotic variance (the naive information-matrix SE is not valid here because controls are reused across failure times).</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -573,7 +592,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="alternative-pseudo-likelihoods" class="level2">
 <h2 class="anchored" data-anchor-id="alternative-pseudo-likelihoods">Alternative pseudo-likelihoods</h2>
-<p>Three further methods are supported. <code>"SelfPrentice"</code> uses the subcohort alone at each failure time (slightly more efficient); <code>"LinYing"</code> uses the full subcohort plus all failures (Lin &amp; Ying 1993).</p>
+<p>Three further methods are supported. <code>"SelfPrentice"</code> uses the subcohort alone at each failure time (slightly more efficient); <code>"LinYing"</code> uses the full subcohort plus all failures <span class="citation" data-cites="lin1993cox">(<a href="#ref-lin1993cox" role="doc-biblioref">Lin and Ying 1993</a>)</span>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -601,7 +620,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="stratified-subcohorts-borgan-iii" class="level2">
 <h2 class="anchored" data-anchor-id="stratified-subcohorts-borgan-iii">Stratified subcohorts: Borgan I/II</h2>
-<p>When the subcohort is drawn by stratified sampling (e.g.&nbsp;oversampling a rare exposure group), the Borgan (2000) IPW estimators weight each risk-set contribution by the inverse of its stratum-specific subcohort sampling fraction <code>N_s / n_sub_s</code>. Provide the stratification column via <code>stratum =</code>.</p>
+<p>When the subcohort is drawn by stratified sampling (e.g.&nbsp;oversampling a rare exposure group), the <span class="citation" data-cites="borgan2000exposure">Borgan et al. (<a href="#ref-borgan2000exposure" role="doc-biblioref">2000</a>)</span> IPW estimators weight each risk-set contribution by the inverse of its stratum-specific subcohort sampling fraction <code>N_s / n_sub_s</code>. Provide the stratification column via <code>stratum =</code>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -643,7 +662,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="absolute-risk-ipw-breslow-cumulative-baseline-hazard" class="level2">
 <h2 class="anchored" data-anchor-id="absolute-risk-ipw-breslow-cumulative-baseline-hazard">Absolute risk: IPW Breslow cumulative baseline hazard</h2>
-<p><code>absolute_risk()</code> evaluates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) at specified times, where Λ̂₀(t) is the IPW Breslow estimator. The subcohort-only risk-set denominator at each event time is scaled by the inverse sampling fraction <code>N / n_sub</code> (or per-stratum <code>N_s / n_sub_s</code> for Borgan methods) so the estimate targets the full-cohort baseline hazard. Pointwise confidence intervals use the delta method on the complementary log-log scale.</p>
+<p><code>absolute_risk()</code> evaluates the cumulative incidence F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) at specified times, where Λ̂₀(t) is the IPW Breslow estimator. The subcohort-only risk-set denominator at each event time is scaled by the inverse sampling fraction <code>N / n_sub</code> (or per-stratum <code>N_s / n_sub_s</code> for Borgan methods) so the estimate targets the full-cohort baseline hazard. Pointwise confidence intervals use the delta method on the complementary log-log scale <span class="citation" data-cites="borgan1990note">(<a href="#ref-borgan1990note" role="doc-biblioref">Borgan and Liestøl 1990</a>)</span>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -798,11 +817,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
-<p>Prentice RL (1986). A case-cohort design for epidemiologic cohort studies and disease prevention trials. <em>Biometrika</em> 73(1):1-11.</p>
-<p>Self SG, Prentice RL (1988). Asymptotic distribution theory and efficiency results for case-cohort studies. <em>Annals of Statistics</em> 16(1):64-81.</p>
-<p>Lin DY, Ying Z (1993). Cox regression with incomplete covariate measurements. <em>Journal of the American Statistical Association</em> 88(422):1341-1349.</p>
-<p>Borgan Ø, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure stratified case-cohort designs. <em>Lifetime Data Analysis</em> 6(1):39-58.</p>
-<p>Borgan Ø, Liestøl K (1990). A note on confidence intervals and bands for the survival function based on transformations. <em>Scandinavian Journal of Statistics</em> 17(1):35-41.</p>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-borgan2018handbook" class="csl-entry" role="listitem">
+Borgan, Ørnulf, Norman Breslow, Nilanjan Chatterjee, Mitchell H. Gail, Alastair Scott, and Chris J. Wild, eds. 2018. <em>Handbook of Statistical Methods for Case-Control Studies</em>. Chapman &amp; Hall/CRC. <a href="https://doi.org/10.1201/9781315154084">https://doi.org/10.1201/9781315154084</a>.
+</div>
+<div id="ref-borgan2000exposure" class="csl-entry" role="listitem">
+Borgan, Ørnulf, Bryan Langholz, Sven Ove Samuelsen, Larry Goldstein, and Janice Pogoda. 2000. <span>“Exposure Stratified Case-Cohort Designs.”</span> <em>Lifetime Data Analysis</em> 6 (1): 39–58. <a href="https://doi.org/10.1023/A:1009661900674">https://doi.org/10.1023/A:1009661900674</a>.
+</div>
+<div id="ref-borgan1990note" class="csl-entry" role="listitem">
+Borgan, Ørnulf, and Knut Liestøl. 1990. <span>“A Note on Confidence Intervals and Bands for the Survival Function Based on Transformations.”</span> <em>Scandinavian Journal of Statistics</em> 17 (1): 35–41.
+</div>
+<div id="ref-lin1993cox" class="csl-entry" role="listitem">
+Lin, Danyu Y., and Zhiliang Ying. 1993. <span>“Cox Regression with Incomplete Covariate Measurements.”</span> <em>Journal of the American Statistical Association</em> 88 (424): 1341–49. <a href="https://doi.org/10.1080/01621459.1993.10476416">https://doi.org/10.1080/01621459.1993.10476416</a>.
+</div>
+<div id="ref-prentice1986casecohort" class="csl-entry" role="listitem">
+Prentice, Ross L. 1986. <span>“A Case-Cohort Design for Epidemiologic Cohort Studies and Disease Prevention Trials.”</span> <em>Biometrika</em> 73 (1): 1–11. <a href="https://doi.org/10.1093/biomet/73.1.1">https://doi.org/10.1093/biomet/73.1.1</a>.
+</div>
+<div id="ref-self1988asymptotic" class="csl-entry" role="listitem">
+Self, Steven G., and Ross L. Prentice. 1988. <span>“Asymptotic Distribution Theory and Efficiency Results for Case-Cohort Studies.”</span> <em>The Annals of Statistics</em> 16 (1): 64–81. <a href="https://doi.org/10.1214/aos/1176350691">https://doi.org/10.1214/aos/1176350691</a>.
+</div>
+</div>
 
 
 <!-- -->
@@ -1269,224 +1303,215 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Case-cohort hazard ratios and absolute risk}</span></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>A *case-cohort* study draws a random **subcohort** from the full cohort at</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>baseline and augments it with every case (regardless of subcohort membership).</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>The key advantage over nested case-control sampling is that the subcohort serves</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>as a control group simultaneously for all endpoints of interest — even endpoints</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>ascertained years apart — because selection happens once, at the start. Controls</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>are reused across failure times, which is what makes the pseudo-likelihood</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>analysis necessary.</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>matchatr wraps <span class="in">`survival::cch()`</span>, which implements the Prentice, Self-Prentice,</span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>Lin-Ying, and Borgan I/II pseudo-likelihoods with their correct asymptotic</span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>variances. The additional absolute-risk layer (IPW Breslow cumulative baseline</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>hazard) is matchatr's own.</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Wilms tumour data</span></span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>We use <span class="in">`survival::nwtco`</span>, the standard case-cohort example from the</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>*Handbook of Statistical Methods for Case-Control Studies*. A random subcohort</span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>of 668 subjects was drawn from 4 028 children enrolled in the National Wilms</span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>Tumour Study. The endpoint is relapse (<span class="in">`rel`</span>); the exposure of interest is</span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>histological type (<span class="in">`histol`</span>: 1 = unfavourable). The subcohort indicator is</span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a><span class="in">`in.subcohort`</span>.</span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>nwtco2 <span class="ot">&lt;-</span> nwtco</span>
-<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>nwtco2<span class="sc">$</span>subcohort <span class="ot">&lt;-</span> <span class="fu">as.logical</span>(nwtco2<span class="sc">$</span>in.subcohort)</span>
-<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>nwtco2<span class="sc">$</span>stage     <span class="ot">&lt;-</span> <span class="fu">factor</span>(nwtco2<span class="sc">$</span>stage)</span>
-<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Cohort size: "</span>, <span class="fu">nrow</span>(nwtco2), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Subcohort:   "</span>, <span class="fu">sum</span>(nwtco2<span class="sc">$</span>subcohort), <span class="st">" (~"</span>,</span>
-<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> <span class="fu">mean</span>(nwtco2<span class="sc">$</span>subcohort)), <span class="st">"%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Relapses:    "</span>, <span class="fu">sum</span>(nwtco2<span class="sc">$</span>rel), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a><span class="in">`matcha()`</span> takes the **full cohort** — it subsets internally to</span>
-<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>cases + subcohort members before calling <span class="in">`cch()`</span>, so the denominators for the</span>
-<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>per-stratum cohort sizes are computed correctly.</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="an">nocite:</span><span class="co"> |</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">  @self1988asymptotic</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>A *case-cohort* study draws a random **subcohort** from the full cohort at</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>baseline and augments it with every case (regardless of subcohort membership).</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>The key advantage over nested case-control sampling is that the subcohort serves</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>as a control group simultaneously for all endpoints of interest — even endpoints</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>ascertained years apart — because selection happens once, at the start. Controls</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>are reused across failure times, which is what makes the pseudo-likelihood</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>analysis necessary.</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>matchatr wraps <span class="in">`survival::cch()`</span>, which implements the Prentice, Self-Prentice,</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>Lin-Ying, and Borgan I/II pseudo-likelihoods with their correct asymptotic</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>variances. The additional absolute-risk layer (IPW Breslow cumulative baseline</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>hazard) is matchatr's own.</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Wilms tumour data</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>We use <span class="in">`survival::nwtco`</span>, the standard case-cohort example from the</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>*Handbook of Statistical Methods for Case-Control Studies* <span class="co">[</span><span class="ot">@borgan2018handbook</span><span class="co">]</span>.</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>A random subcohort</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>of 668 subjects was drawn from 4 028 children enrolled in the National Wilms</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>Tumour Study. The endpoint is relapse (<span class="in">`rel`</span>); the exposure of interest is</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>histological type (<span class="in">`histol`</span>: 1 = unfavourable). The subcohort indicator is</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a><span class="in">`in.subcohort`</span>.</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>nwtco2 <span class="ot">&lt;-</span> nwtco</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>nwtco2<span class="sc">$</span>subcohort <span class="ot">&lt;-</span> <span class="fu">as.logical</span>(nwtco2<span class="sc">$</span>in.subcohort)</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>nwtco2<span class="sc">$</span>stage     <span class="ot">&lt;-</span> <span class="fu">factor</span>(nwtco2<span class="sc">$</span>stage)</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Cohort size: "</span>, <span class="fu">nrow</span>(nwtco2), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Subcohort:   "</span>, <span class="fu">sum</span>(nwtco2<span class="sc">$</span>subcohort), <span class="st">" (~"</span>,</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> <span class="fu">mean</span>(nwtco2<span class="sc">$</span>subcohort)), <span class="st">"%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Relapses:    "</span>, <span class="fu">sum</span>(nwtco2<span class="sc">$</span>rel), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="fu">## Hazard ratio: Prentice pseudo-likelihood</span></span>
-<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>The Prentice (1986) pseudo-likelihood augments each risk set with the case if</span>
-<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>the case falls outside the subcohort. <span class="in">`contrast()`</span> reports the hazard ratio with</span>
-<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>the Self-Prentice corrected asymptotic variance (the naive information-matrix SE</span>
-<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>is not valid here because controls are reused across failure times).</span>
-<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>  nwtco2,</span>
-<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"rel"</span>,</span>
-<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"histol"</span>,</span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"subcohort"</span>, <span class="at">time =</span> <span class="st">"edrel"</span>,</span>
-<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>                            <span class="at">method =</span> <span class="st">"Prentice"</span>),</span>
-<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age,</span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"cch"</span></span>
-<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>fit</span>
-<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)       <span class="co"># type = "hr" is the default for a case-cohort design</span></span>
-<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>Unfavourable histology roughly doubles the relapse hazard conditional on stage</span>
-<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>and age at diagnosis.</span>
-<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## Alternative pseudo-likelihoods</span></span>
-<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>Three further methods are supported. <span class="in">`"SelfPrentice"`</span> uses the subcohort alone</span>
-<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>at each failure time (slightly more efficient); <span class="in">`"LinYing"`</span> uses the full</span>
-<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>subcohort plus all failures (Lin &amp; Ying 1993).</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="in">`matcha()`</span> takes the **full cohort** — it subsets internally to</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>cases + subcohort members before calling <span class="in">`cch()`</span>, so the denominators for the</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>per-stratum cohort sizes are computed correctly.</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a><span class="fu">## Hazard ratio: Prentice pseudo-likelihood</span></span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>The @prentice1986casecohort pseudo-likelihood augments each risk set with the case if</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>the case falls outside the subcohort. <span class="in">`contrast()`</span> reports the hazard ratio with</span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>the Self-Prentice corrected asymptotic variance (the naive information-matrix SE</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>is not valid here because controls are reused across failure times).</span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>  nwtco2,</span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"rel"</span>,</span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"histol"</span>,</span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"subcohort"</span>, <span class="at">time =</span> <span class="st">"edrel"</span>,</span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>                            <span class="at">method =</span> <span class="st">"Prentice"</span>),</span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age,</span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"cch"</span></span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>fit</span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit)       <span class="co"># type = "hr" is the default for a case-cohort design</span></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a>Unfavourable histology roughly doubles the relapse hazard conditional on stage</span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>and age at diagnosis.</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a><span class="fu">## Alternative pseudo-likelihoods</span></span>
 <span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>fit_sp <span class="ot">&lt;-</span> <span class="fu">matcha</span>(nwtco2, <span class="st">"rel"</span>, <span class="st">"histol"</span>,</span>
-<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">case_cohort</span>(<span class="st">"subcohort"</span>, <span class="st">"edrel"</span>,</span>
-<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">method =</span> <span class="st">"SelfPrentice"</span>),</span>
-<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age, <span class="at">estimator =</span> <span class="st">"cch"</span>)</span>
-<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>fit_ly <span class="ot">&lt;-</span> <span class="fu">matcha</span>(nwtco2, <span class="st">"rel"</span>, <span class="st">"histol"</span>,</span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>Three further methods are supported. <span class="in">`"SelfPrentice"`</span> uses the subcohort alone</span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>at each failure time (slightly more efficient); <span class="in">`"LinYing"`</span> uses the full</span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>subcohort plus all failures <span class="co">[</span><span class="ot">@lin1993cox</span><span class="co">]</span>.</span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>fit_sp <span class="ot">&lt;-</span> <span class="fu">matcha</span>(nwtco2, <span class="st">"rel"</span>, <span class="st">"histol"</span>,</span>
 <span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">case_cohort</span>(<span class="st">"subcohort"</span>, <span class="st">"edrel"</span>,</span>
-<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">method =</span> <span class="st">"LinYing"</span>),</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">method =</span> <span class="st">"SelfPrentice"</span>),</span>
 <span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age, <span class="at">estimator =</span> <span class="st">"cch"</span>)</span>
-<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(</span>
-<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>  <span class="at">Prentice    =</span> <span class="fu">unlist</span>(<span class="fu">contrast</span>(fit)<span class="sc">$</span>contrasts[<span class="dv">1</span>, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)]),</span>
-<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>  <span class="at">SelfPrentice =</span> <span class="fu">unlist</span>(<span class="fu">contrast</span>(fit_sp)<span class="sc">$</span>contrasts[<span class="dv">1</span>, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)]),</span>
-<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>  <span class="at">LinYing     =</span> <span class="fu">unlist</span>(<span class="fu">contrast</span>(fit_ly)<span class="sc">$</span>contrasts[<span class="dv">1</span>, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)])</span>
-<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>All three methods agree closely; differences reflect the distinct variance</span>
-<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>estimators rather than the point estimates.</span>
-<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a><span class="fu">## Stratified subcohorts: Borgan I/II</span></span>
-<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>When the subcohort is drawn by stratified sampling (e.g. oversampling a rare</span>
-<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>exposure group), the Borgan (2000) IPW estimators weight each risk-set</span>
-<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>contribution by the inverse of its stratum-specific subcohort sampling fraction</span>
-<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a><span class="in">`N_s / n_sub_s`</span>. Provide the stratification column via <span class="in">`stratum =`</span>.</span>
-<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>fit_b2 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>  nwtco2,</span>
-<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"rel"</span>,</span>
-<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"histol"</span>,</span>
-<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"subcohort"</span>, <span class="at">time =</span> <span class="st">"edrel"</span>,</span>
-<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>                            <span class="at">method =</span> <span class="st">"II.Borgan"</span>, <span class="at">stratum =</span> <span class="st">"stage"</span>),</span>
-<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age,</span>
-<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"cch"</span></span>
-<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_b2)</span>
-<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>Requesting a Borgan method without supplying <span class="in">`stratum`</span> is declined:</span>
-<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(nwtco2, <span class="st">"rel"</span>, <span class="st">"histol"</span>,</span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>       <span class="at">design =</span> <span class="fu">case_cohort</span>(<span class="st">"subcohort"</span>, <span class="st">"edrel"</span>, <span class="at">method =</span> <span class="st">"I.Borgan"</span>),</span>
-<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>       <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age, <span class="at">estimator =</span> <span class="st">"cch"</span>)</span>
-<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a><span class="fu">## Absolute risk: IPW Breslow cumulative baseline hazard</span></span>
-<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a><span class="in">`absolute_risk()`</span> evaluates the cumulative incidence</span>
-<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) at specified times, where Λ̂₀(t) is the</span>
-<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>IPW Breslow estimator. The subcohort-only risk-set denominator at each event</span>
-<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>time is scaled by the inverse sampling fraction <span class="in">`N / n_sub`</span> (or per-stratum</span>
-<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a><span class="in">`N_s / n_sub_s`</span> for Borgan methods) so the estimate targets the full-cohort</span>
-<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>baseline hazard. Pointwise confidence intervals use the delta method on the</span>
-<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>complementary log-log scale.</span>
-<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a><span class="co"># Two covariate profiles: favourable vs unfavourable histology, median age</span></span>
-<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a>  <span class="at">histol =</span> <span class="fu">c</span>(<span class="dv">0</span>L, <span class="dv">1</span>L),</span>
-<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a>  <span class="at">stage  =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">levels =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a>  <span class="at">age    =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>)</span>
-<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>ar <span class="ot">&lt;-</span> <span class="fu">absolute_risk</span>(fit, <span class="at">newdata =</span> nd, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>))</span>
-<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(ar)</span>
-<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>fit_ly <span class="ot">&lt;-</span> <span class="fu">matcha</span>(nwtco2, <span class="st">"rel"</span>, <span class="st">"histol"</span>,</span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>                 <span class="at">design =</span> <span class="fu">case_cohort</span>(<span class="st">"subcohort"</span>, <span class="st">"edrel"</span>,</span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">method =</span> <span class="st">"LinYing"</span>),</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>                 <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age, <span class="at">estimator =</span> <span class="st">"cch"</span>)</span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(</span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>  <span class="at">Prentice    =</span> <span class="fu">unlist</span>(<span class="fu">contrast</span>(fit)<span class="sc">$</span>contrasts[<span class="dv">1</span>, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)]),</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">SelfPrentice =</span> <span class="fu">unlist</span>(<span class="fu">contrast</span>(fit_sp)<span class="sc">$</span>contrasts[<span class="dv">1</span>, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)]),</span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">LinYing     =</span> <span class="fu">unlist</span>(<span class="fu">contrast</span>(fit_ly)<span class="sc">$</span>contrasts[<span class="dv">1</span>, <span class="fu">c</span>(<span class="st">"estimate"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>)])</span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>All three methods agree closely; differences reflect the distinct variance</span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>estimators rather than the point estimates.</span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a><span class="fu">## Stratified subcohorts: Borgan I/II</span></span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>When the subcohort is drawn by stratified sampling (e.g. oversampling a rare</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>exposure group), the @borgan2000exposure IPW estimators weight each risk-set</span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>contribution by the inverse of its stratum-specific subcohort sampling fraction</span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a><span class="in">`N_s / n_sub_s`</span>. Provide the stratification column via <span class="in">`stratum =`</span>.</span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>fit_b2 <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>  nwtco2,</span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome     =</span> <span class="st">"rel"</span>,</span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>  <span class="at">exposure    =</span> <span class="st">"histol"</span>,</span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>  <span class="at">design      =</span> <span class="fu">case_cohort</span>(<span class="at">subcohort =</span> <span class="st">"subcohort"</span>, <span class="at">time =</span> <span class="st">"edrel"</span>,</span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>                            <span class="at">method =</span> <span class="st">"II.Borgan"</span>, <span class="at">stratum =</span> <span class="st">"stage"</span>),</span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> age,</span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator   =</span> <span class="st">"cch"</span></span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit_b2)</span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>Requesting a Borgan method without supplying <span class="in">`stratum`</span> is declined:</span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(nwtco2, <span class="st">"rel"</span>, <span class="st">"histol"</span>,</span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>       <span class="at">design =</span> <span class="fu">case_cohort</span>(<span class="st">"subcohort"</span>, <span class="st">"edrel"</span>, <span class="at">method =</span> <span class="st">"I.Borgan"</span>),</span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>       <span class="at">confounders =</span> <span class="sc">~</span> stage <span class="sc">+</span> age, <span class="at">estimator =</span> <span class="st">"cch"</span>)</span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a><span class="fu">## Absolute risk: IPW Breslow cumulative baseline hazard</span></span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a><span class="in">`absolute_risk()`</span> evaluates the cumulative incidence</span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>F_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t)) at specified times, where Λ̂₀(t) is the</span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>IPW Breslow estimator. The subcohort-only risk-set denominator at each event</span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>time is scaled by the inverse sampling fraction <span class="in">`N / n_sub`</span> (or per-stratum</span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a><span class="in">`N_s / n_sub_s`</span> for Borgan methods) so the estimate targets the full-cohort</span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>baseline hazard. Pointwise confidence intervals use the delta method on the</span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a>complementary log-log scale <span class="co">[</span><span class="ot">@borgan1990note</span><span class="co">]</span>.</span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a><span class="co"># Two covariate profiles: favourable vs unfavourable histology, median age</span></span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a>  <span class="at">histol =</span> <span class="fu">c</span>(<span class="dv">0</span>L, <span class="dv">1</span>L),</span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>  <span class="at">stage  =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">levels =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a>  <span class="at">age    =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>)</span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a>We can compare the case-cohort absolute risk against the full-cohort Kaplan-Meier</span>
-<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a>/ Cox curves. Because the subcohort is only ~17% of the cohort, individual-run</span>
-<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a>sampling variability is visible, but the estimates track the full-cohort curve</span>
-<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a>closely.</span>
-<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a>cox_full <span class="ot">&lt;-</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(edrel, rel) <span class="sc">~</span> histol <span class="sc">+</span> stage <span class="sc">+</span> age, <span class="at">data =</span> nwtco2)</span>
-<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a>sf_full  <span class="ot">&lt;-</span> <span class="fu">survfit</span>(cox_full, <span class="at">newdata =</span> nd)</span>
-<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a>f_full   <span class="ot">&lt;-</span> <span class="fu">summary</span>(sf_full, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>))<span class="sc">$</span>surv</span>
-<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a>f_full   <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> f_full</span>
-<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Full-cohort F_x(t) [histol=0, histol=1]:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(f_full, <span class="dv">3</span>))</span>
-<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">IPW Breslow F_x(t) [histol=0, histol=1]:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a>est_wide <span class="ot">&lt;-</span> <span class="fu">matrix</span>(ar<span class="sc">$</span>estimates<span class="sc">$</span>estimate, <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(est_wide, <span class="dv">3</span>))</span>
-<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a><span class="fu">## One scale per design</span></span>
-<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a>A case-cohort fit identifies the **hazard ratio**. Requesting an odds ratio</span>
-<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a>(appropriate for matched case-control data) is declined:</span>
-<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
-<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a>A marginal risk difference / risk ratio also requires a source-population</span>
-<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a>prevalence <span class="in">`q0`</span> that the standard case-cohort analysis does not supply.</span>
-<span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
-<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
+<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a>ar <span class="ot">&lt;-</span> <span class="fu">absolute_risk</span>(fit, <span class="at">newdata =</span> nd, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>))</span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(ar)</span>
+<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a>We can compare the case-cohort absolute risk against the full-cohort Kaplan-Meier</span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a>/ Cox curves. Because the subcohort is only ~17% of the cohort, individual-run</span>
+<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a>sampling variability is visible, but the estimates track the full-cohort curve</span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a>closely.</span>
+<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a>cox_full <span class="ot">&lt;-</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(edrel, rel) <span class="sc">~</span> histol <span class="sc">+</span> stage <span class="sc">+</span> age, <span class="at">data =</span> nwtco2)</span>
+<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a>sf_full  <span class="ot">&lt;-</span> <span class="fu">survfit</span>(cox_full, <span class="at">newdata =</span> nd)</span>
+<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a>f_full   <span class="ot">&lt;-</span> <span class="fu">summary</span>(sf_full, <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>))<span class="sc">$</span>surv</span>
+<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a>f_full   <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> f_full</span>
+<span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Full-cohort F_x(t) [histol=0, histol=1]:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(f_full, <span class="dv">3</span>))</span>
+<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">IPW Breslow F_x(t) [histol=0, histol=1]:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a>est_wide <span class="ot">&lt;-</span> <span class="fu">matrix</span>(ar<span class="sc">$</span>estimates<span class="sc">$</span>estimate, <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">round</span>(est_wide, <span class="dv">3</span>))</span>
+<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a><span class="fu">## One scale per design</span></span>
+<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a>A case-cohort fit identifies the **hazard ratio**. Requesting an odds ratio</span>
+<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a>(appropriate for matched case-control data) is declined:</span>
+<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)</span>
+<span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a>A marginal risk difference / risk ratio also requires a source-population</span>
+<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a>prevalence <span class="in">`q0`</span> that the standard case-cohort analysis does not supply.</span>
 <span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Method <span class="pp">|</span> Subcohort <span class="pp">|</span> Estimand <span class="pp">|</span> Variance <span class="pp">|</span> Status <span class="pp">|</span></span>
-<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
-<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Prentice <span class="pp">|</span> simple <span class="pp">|</span> HR <span class="pp">|</span> Self-Prentice asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> SelfPrentice / LinYing <span class="pp">|</span> simple <span class="pp">|</span> HR <span class="pp">|</span> asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> I.Borgan <span class="pp">|</span> stratified <span class="pp">|</span> HR <span class="pp">|</span> Borgan asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> II.Borgan <span class="pp">|</span> stratified <span class="pp">|</span> HR <span class="pp">|</span> plug-in asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> absolute risk F_x(t) <span class="pp">|</span> IPW Breslow + delta log-log CI <span class="pp">|</span> ✅ <span class="pp">|</span></span>
-<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Borgan I/II, no <span class="in">`stratum`</span> <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ <span class="in">`matchatr_bad_design`</span> <span class="pp">|</span></span>
-<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> odds ratio <span class="pp">|</span> ⛔ use <span class="in">`type = "hr"`</span> <span class="pp">|</span></span>
-<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need <span class="in">`q0`</span> <span class="pp">|</span></span>
-<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> sandwich / bootstrap CI <span class="pp">|</span> ⛔ <span class="in">`matchatr_unsupported_variance`</span> <span class="pp">|</span></span>
-<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the full combination table.</span>
-<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-230"><a href="#cb10-230" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a><span class="fu">## Covered combinations</span></span>
+<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a>**Legend.** ✅ truth-pinned in tests · ⛔ rejected with an informative error.</span>
+<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Method <span class="pp">|</span> Subcohort <span class="pp">|</span> Estimand <span class="pp">|</span> Variance <span class="pp">|</span> Status <span class="pp">|</span></span>
+<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
+<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Prentice <span class="pp">|</span> simple <span class="pp">|</span> HR <span class="pp">|</span> Self-Prentice asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> SelfPrentice / LinYing <span class="pp">|</span> simple <span class="pp">|</span> HR <span class="pp">|</span> asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> I.Borgan <span class="pp">|</span> stratified <span class="pp">|</span> HR <span class="pp">|</span> Borgan asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> II.Borgan <span class="pp">|</span> stratified <span class="pp">|</span> HR <span class="pp">|</span> plug-in asymptotic <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> absolute risk F_x(t) <span class="pp">|</span> IPW Breslow + delta log-log CI <span class="pp">|</span> ✅ <span class="pp">|</span></span>
+<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Borgan I/II, no <span class="in">`stratum`</span> <span class="pp">|</span> — <span class="pp">|</span> — <span class="pp">|</span> ⛔ <span class="in">`matchatr_bad_design`</span> <span class="pp">|</span></span>
+<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> odds ratio <span class="pp">|</span> ⛔ use <span class="in">`type = "hr"`</span> <span class="pp">|</span></span>
+<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> RD / RR <span class="pp">|</span> ⛔ need <span class="in">`q0`</span> <span class="pp">|</span></span>
+<span id="cb10-230"><a href="#cb10-230" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> any method <span class="pp">|</span> — <span class="pp">|</span> sandwich / bootstrap CI <span class="pp">|</span> ⛔ <span class="in">`matchatr_unsupported_variance`</span> <span class="pp">|</span></span>
 <span id="cb10-231"><a href="#cb10-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a>Prentice RL (1986). A case-cohort design for epidemiologic cohort studies and</span>
-<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a>disease prevention trials. *Biometrika* 73(1):1-11.</span>
-<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a>Self SG, Prentice RL (1988). Asymptotic distribution theory and efficiency</span>
-<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a>results for case-cohort studies. *Annals of Statistics* 16(1):64-81.</span>
-<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-238"><a href="#cb10-238" aria-hidden="true" tabindex="-1"></a>Lin DY, Ying Z (1993). Cox regression with incomplete covariate measurements.</span>
-<span id="cb10-239"><a href="#cb10-239" aria-hidden="true" tabindex="-1"></a>*Journal of the American Statistical Association* 88(422):1341-1349.</span>
-<span id="cb10-240"><a href="#cb10-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-241"><a href="#cb10-241" aria-hidden="true" tabindex="-1"></a>Borgan Ø, Langholz B, Samuelsen SO, Goldstein L, Pogoda J (2000). Exposure</span>
-<span id="cb10-242"><a href="#cb10-242" aria-hidden="true" tabindex="-1"></a>stratified case-cohort designs. *Lifetime Data Analysis* 6(1):39-58.</span>
-<span id="cb10-243"><a href="#cb10-243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-244"><a href="#cb10-244" aria-hidden="true" tabindex="-1"></a>Borgan Ø, Liestøl K (1990). A note on confidence intervals and bands for the</span>
-<span id="cb10-245"><a href="#cb10-245" aria-hidden="true" tabindex="-1"></a>survival function based on transformations. *Scandinavian Journal of Statistics*</span>
-<span id="cb10-246"><a href="#cb10-246" aria-hidden="true" tabindex="-1"></a>17(1):35-41.</span>
+<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a>See <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the full combination table.</span>
+<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

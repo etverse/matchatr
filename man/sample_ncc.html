@@ -476,6 +476,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
@@ -578,6 +579,12 @@ Logical; if <code>TRUE</code>, compute Samuelsen (1997) Kaplan-Meier inclusion p
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
 <p>A <code>data.table</code> with one row per sampled subject: the selected rows of <code>cohort</code> (all original columns) plus <code>set</code> (integer matched-set id), <code>case</code> (per-set 0/1 indicator, 1 for the case), and <code>risk_time</code> (the set’s failure time). When <code>incl_prob = TRUE</code>, also <code>.cohort_row</code> (integer, 1-indexed row index in the original <code>cohort</code>) and <code>ipw_weight</code> (numeric, 1/pi_j). Aborts with <code>matchatr_empty_risk_set</code> when any case has no eligible control.</p>
+</section>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References</h3>
+<p>Thomas DC (1977). Addendum to "Methods of cohort analysis: appraisal by application to asbestos mining" (Liddell FDK, McDonald JC, Thomas DC). <em>Journal of the Royal Statistical Society, Series A</em> 140(4):469-491.</p>
+<p>Prentice RL, Breslow NE (1978). Retrospective studies and failure time models. <em>Biometrika</em> 65(1):153-158.</p>
+<p>Samuelsen SO (1997). A pseudolikelihood approach to analysis of nested case-control studies. <em>Biometrika</em> 84(2):379-394. (Kaplan-Meier inclusion probabilities returned when <code>incl_prob = TRUE</code>.)</p>
 </section>
 <section id="see-also" class="level3">
 <h3 class="anchored" data-anchor-id="see-also">See Also</h3>

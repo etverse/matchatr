@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -477,6 +496,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#four-estimators-one-weighting-concept" id="toc-four-estimators-one-weighting-concept" class="nav-link" data-scroll-target="#four-estimators-one-weighting-concept">Four estimators, one weighting concept</a></li>
   <li><a href="#double-robustness-of-ccw-aipw" id="toc-double-robustness-of-ccw-aipw" class="nav-link" data-scroll-target="#double-robustness-of-ccw-aipw">Double robustness of CCW-AIPW</a></li>
   <li><a href="#where-this-sits" id="toc-where-this-sits" class="nav-link" data-scroll-target="#where-this-sits">Where this sits</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="undefined"><i class="bi bi-link-45deg"></i></a></li></ul></div></nav>
     </div>
@@ -507,7 +527,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>it is <strong>non-collapsible</strong> — it changes when you add or drop a covariate, even with no confounding, so the “adjusted OR” is not a marginal effect;</li>
 <li>it is on the <strong>odds-ratio scale</strong> only — there is no risk difference or risk ratio, and no absolute risk, because a case-control sample fixes the outcome margin by design and so carries no information about baseline risk.</li>
 </ul>
-<p>A <strong>marginal</strong> causal effect — the average treatment effect as a risk difference (RD), risk ratio (RR), or marginal odds ratio (mOR) — needs one extra ingredient: the source-population outcome prevalence <strong>q₀ = P(Y = 1)</strong>. With q₀ we can undo the case-oversampling and recover the marginal effect by <strong>case-control weighting</strong> (Rose &amp; van der Laan, 2008).</p>
+<p>A <strong>marginal</strong> causal effect — the average treatment effect as a risk difference (RD), risk ratio (RR), or marginal odds ratio (mOR) — needs one extra ingredient: the source-population outcome prevalence <strong>q₀ = P(Y = 1)</strong>. With q₀ we can undo the case-oversampling and recover the marginal effect by <strong>case-control weighting</strong> <span class="citation" data-cites="rose2008simple">(<a href="#ref-rose2008simple" role="doc-biblioref">Rose and Laan 2008</a>)</span>.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -705,7 +725,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="four-estimators-one-weighting-concept" class="level2">
 <h2 class="anchored" data-anchor-id="four-estimators-one-weighting-concept">Four estimators, one weighting concept</h2>
-<p>The same q₀ weights drive a whole family of cohort estimators on the weighted sample. <code>estimator = "ccw_ipw"</code> weights by an inverse-propensity model instead of standardizing an outcome model; <code>estimator = "ccw_aipw"</code> combines both into the <strong>augmented</strong> (doubly-robust) estimator; and <code>estimator = "ccw_tmle"</code> is the <strong>targeted</strong> maximum likelihood estimator — also doubly robust, and the one engine matchatr builds itself (the etverse has no targeted-learning code to delegate to). All four report the same marginal effect when their models are correct:</p>
+<p>The same q₀ weights drive a whole family of cohort estimators on the weighted sample. <code>estimator = "ccw_ipw"</code> weights by an inverse-propensity model instead of standardizing an outcome model; <code>estimator = "ccw_aipw"</code> combines both into the <strong>augmented</strong> (doubly-robust) estimator; and <code>estimator = "ccw_tmle"</code> is the <strong>targeted</strong> maximum likelihood estimator <span class="citation" data-cites="vanderlaan2006targeted">(<a href="#ref-vanderlaan2006targeted" role="doc-biblioref">Laan and Rubin 2006</a>)</span> — also doubly robust, and the one engine matchatr builds itself (the etverse has no targeted-learning code to delegate to). All four report the same marginal effect when their models are correct:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -725,7 +745,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="double-robustness-of-ccw-aipw" class="level2">
 <h2 class="anchored" data-anchor-id="double-robustness-of-ccw-aipw">Double robustness of CCW-AIPW</h2>
-<p>CCW-AIPW’s appeal is that it is consistent if <strong>either</strong> the outcome model <strong>or</strong> the propensity model is correct — you get two chances to be right. We can see this directly. Build a cohort where the outcome truly depends on <code>w</code> non-linearly but the propensity is linear in <code>w</code>; fitting both working models as <code>~ w</code> (linear) then misspecifies the <strong>outcome</strong> model while the <strong>propensity</strong> model is correct:</p>
+<p>CCW-AIPW’s appeal is that it is consistent if <strong>either</strong> the outcome model <strong>or</strong> the propensity model is correct — you get two chances to be right <span class="citation" data-cites="rose2014doublerobust">(<a href="#ref-rose2014doublerobust" role="doc-biblioref">Rose and Laan 2014</a>)</span>. We can see this directly. Build a cohort where the outcome truly depends on <code>w</code> non-linearly but the propensity is linear in <code>w</code>; fitting both working models as <code>~ w</code> (linear) then misspecifies the <strong>outcome</strong> model while the <strong>propensity</strong> model is correct:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -758,6 +778,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="where-this-sits" class="level2">
 <h2 class="anchored" data-anchor-id="where-this-sits">Where this sits</h2>
 <p>The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW, and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance correction, a design-respecting bootstrap, and matched / nested case-control support — all built on the same one weighting concept.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-vanderlaan2006targeted" class="csl-entry" role="listitem">
+Laan, Mark J. van der, and Daniel Rubin. 2006. <span>“Targeted Maximum Likelihood Learning.”</span> <em>The International Journal of Biostatistics</em> 2 (1): Article 11. <a href="https://doi.org/10.2202/1557-4679.1043">https://doi.org/10.2202/1557-4679.1043</a>.
+</div>
+<div id="ref-rose2008simple" class="csl-entry" role="listitem">
+Rose, Sherri, and Mark J. van der Laan. 2008. <span>“Simple Optimal Weighting of Cases and Controls in Case-Control Studies.”</span> <em>The International Journal of Biostatistics</em> 4 (1): Article 19. <a href="https://doi.org/10.2202/1557-4679.1115">https://doi.org/10.2202/1557-4679.1115</a>.
+</div>
+<div id="ref-rose2014doublerobust" class="csl-entry" role="listitem">
+Rose, Sherri, and Mark J. van der Laan. 2014. <span>“A Double Robust Approach to Causal Effects in Case-Control Studies.”</span> <em>American Journal of Epidemiology</em> 179 (6): 663–69. <a href="https://doi.org/10.1093/aje/kwt318">https://doi.org/10.1093/aje/kwt318</a>.
+</div>
+</div>
 
 
 <!-- -->
@@ -1224,242 +1258,250 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteIndexEntry{Marginal causal effects from a case-control sample}</span></span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEngine{quarto::html}</span></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">  %\VignetteEncoding{UTF-8}</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>Every estimator in the previous articles reports a **conditional odds ratio** (or</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>a conditional hazard ratio). That is a perfectly good *within-stratum* effect, but</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>it is not what a population decision usually needs:</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>it is **non-collapsible** — it changes when you add or drop a covariate, even</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  with no confounding, so the "adjusted OR" is not a marginal effect;</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>it is on the **odds-ratio scale** only — there is no risk difference or risk</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  ratio, and no absolute risk, because a case-control sample fixes the outcome</span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  margin by design and so carries no information about baseline risk.</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>A **marginal** causal effect — the average treatment effect as a risk difference</span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>(RD), risk ratio (RR), or marginal odds ratio (mOR) — needs one extra ingredient:</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>the source-population outcome prevalence **q₀ = P(Y = 1)**. With q₀ we can undo the</span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>case-oversampling and recover the marginal effect by **case-control weighting**</span>
-<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>(Rose &amp; van der Laan, 2008).</span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="fu">## The idea: reweight the sample back to the population</span></span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>A case-control study oversamples cases. If we weight each case by</span>
-<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>q₀ / (sample case fraction) and each control by (1 − q₀) / (sample control</span>
-<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>fraction), the *weighted* sample has outcome margin q₀ again — its weighted</span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>empirical distribution mimics the source cohort. A cohort estimator applied to the</span>
-<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>weighted sample (here g-computation: fit a weighted outcome model and standardize</span>
-<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>over the covariates) then targets the **marginal** estimand. matchatr builds these</span>
-<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>weights internally; you only supply q₀ on the design via</span>
-<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a><span class="in">`unmatched_cc(prevalence = q0)`</span>.</span>
-<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>The point estimate and its variance are delegated to the etverse causal engine</span>
-<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`causatr`</span><span class="co">](https://github.com/etverse/causatr)</span>; matchatr owns the weighting and</span>
-<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>sampling-design layer.</span>
-<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a><span class="fu">## A cohort with a known marginal effect</span></span>
-<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>We simulate a cohort with a binary exposure <span class="in">`x`</span> confounded by a continuous <span class="in">`w`</span>, so</span>
-<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>the conditional and marginal effects genuinely differ. Because we know the true</span>
-<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>outcome model, we can compute the marginal truth analytically by the g-formula:</span>
-<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>average the counterfactual risks under "everyone exposed" and "everyone</span>
-<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>unexposed" over the cohort.</span>
-<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">13</span>)</span>
-<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="fl">1e5</span></span>
-<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>alpha  <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">3</span></span>
-<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>beta_x <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="fl">2.5</span>)        <span class="co"># the CONDITIONAL log odds ratio for x</span></span>
-<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>gamma  <span class="ot">&lt;-</span> <span class="fl">1.0</span></span>
-<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>w  <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.2</span> <span class="sc">*</span> w))                 <span class="co"># x confounded by w</span></span>
-<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>y  <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(alpha <span class="sc">+</span> beta_x <span class="sc">*</span> x <span class="sc">+</span> gamma <span class="sc">*</span> w))</span>
-<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a><span class="co"># g-formula truth on the full cohort (true model): mean counterfactual risks.</span></span>
-<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">plogis</span>(alpha <span class="sc">+</span> beta_x <span class="sc">+</span> gamma <span class="sc">*</span> w))      <span class="co"># treat-all</span></span>
-<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">plogis</span>(alpha <span class="sc">+</span> gamma <span class="sc">*</span> w))               <span class="co"># treat-none</span></span>
-<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>truth <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>  <span class="at">RD  =</span> m1 <span class="sc">-</span> m0,</span>
-<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>  <span class="at">RR  =</span> m1 <span class="sc">/</span> m0,</span>
-<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>  <span class="at">mOR =</span> (m1 <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> m1)) <span class="sc">/</span> (m0 <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> m0)),</span>
-<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>  <span class="at">conditional_OR =</span> <span class="fu">exp</span>(beta_x)</span>
-<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(truth, <span class="dv">4</span>)</span>
-<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a>Note the marginal OR (<span class="in">`mOR`</span>) is **not** the conditional OR <span class="in">`exp(beta_x) = 2.5`</span>:</span>
-<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a>non-collapsibility pulls the marginal OR toward the null.</span>
-<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>Now draw an unmatched case-control sample — every case plus a 5:1 random sample of</span>
-<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>controls — and record the source prevalence q₀ = P(Y = 1).</span>
-<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a>q0 <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
-<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>cohort   <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> y, <span class="at">x =</span> x, <span class="at">w =</span> w)</span>
-<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>cases    <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">1</span>, ]</span>
-<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">0</span>, ]</span>
-<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> controls[<span class="fu">sample.int</span>(<span class="fu">nrow</span>(controls), <span class="dv">5</span> <span class="sc">*</span> <span class="fu">nrow</span>(cases)), ]</span>
-<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">rbind</span>(cases, controls)</span>
-<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cc) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">q0 =</span> <span class="fu">round</span>(q0, <span class="dv">4</span>), <span class="at">n_cases =</span> <span class="fu">nrow</span>(cases), <span class="at">n_controls =</span> <span class="fu">nrow</span>(controls))</span>
-<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a><span class="fu">## The marginal effect via case-control weighting</span></span>
-<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a><span class="in">`matcha()`</span> with <span class="in">`estimator = "ccw_gformula"`</span> and a design carrying q₀ fits the</span>
-<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>case-control-weighted g-formula. <span class="in">`contrast()`</span> then reports the marginal effect on</span>
-<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>the requested scale — the **risk difference is the default**.</span>
-<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a>  cc,</span>
-<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> q0),</span>
-<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> w,</span>
-<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"ccw_gformula"</span></span>
-<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)   <span class="co"># marginal risk difference (default)</span></span>
-<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"ratio"</span>)        <span class="co"># marginal risk ratio</span></span>
-<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)           <span class="co"># marginal odds ratio</span></span>
-<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a>Each estimate recovers its analytical marginal truth:</span>
-<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a>  <span class="at">RD  =</span> <span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate,</span>
-<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a>  <span class="at">RR  =</span> <span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"ratio"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate,</span>
-<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>  <span class="at">mOR =</span> <span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
-<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="at">estimate =</span> est, <span class="at">truth =</span> truth[<span class="fu">c</span>(<span class="st">"RD"</span>, <span class="st">"RR"</span>, <span class="st">"mOR"</span>)]), <span class="dv">4</span>)</span>
-<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a><span class="fu">## Marginal is not conditional</span></span>
-<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a>The same sample analysed with the plain conditional logistic estimator returns the</span>
-<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>**conditional** odds ratio <span class="in">`exp(beta_x) = 2.5`</span> — a different number from the</span>
-<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>marginal OR above. This is the non-collapsibility distinction that motivates</span>
-<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a>case-control weighting: the two estimators answer different questions.</span>
-<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a>cond <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
-<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a>  cc,</span>
-<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),     <span class="co"># no q0: only the conditional OR is identified</span></span>
-<span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> w,</span>
-<span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
-<span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(</span>
-<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">conditional_OR =</span> <span class="fu">contrast</span>(cond, <span class="at">type =</span> <span class="st">"or"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate,</span>
-<span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a>  <span class="at">marginal_OR    =</span> <span class="fu">contrast</span>(fit,  <span class="at">type =</span> <span class="st">"or"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
-<span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-164"><a href="#cb12-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-165"><a href="#cb12-165" aria-hidden="true" tabindex="-1"></a><span class="fu">## What is declined</span></span>
-<span id="cb12-166"><a href="#cb12-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-167"><a href="#cb12-167" aria-hidden="true" tabindex="-1"></a>Case-control weighting needs q₀ and targets a marginal effect, so a few requests</span>
-<span id="cb12-168"><a href="#cb12-168" aria-hidden="true" tabindex="-1"></a>are declined with informative, classed errors:</span>
-<span id="cb12-169"><a href="#cb12-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-172"><a href="#cb12-172" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-173"><a href="#cb12-173" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb12-174"><a href="#cb12-174" aria-hidden="true" tabindex="-1"></a><span class="co"># No q0 on the design: the sample cannot be reweighted to the population.</span></span>
-<span id="cb12-175"><a href="#cb12-175" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(</span>
-<span id="cb12-176"><a href="#cb12-176" aria-hidden="true" tabindex="-1"></a>  cc, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb12-177"><a href="#cb12-177" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"ccw_gformula"</span></span>
-<span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-179"><a href="#cb12-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-180"><a href="#cb12-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-183"><a href="#cb12-183" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a><span class="co"># The CCW g-formula reports a marginal effect, not a hazard ratio.</span></span>
-<span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"hr"</span>)</span>
-<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-188"><a href="#cb12-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-191"><a href="#cb12-191" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a><span class="co"># A bootstrap interval must resample within case / control strata and recompute</span></span>
-<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a><span class="co"># the q0 weights each replicate (a later chunk); only the sandwich is wired here.</span></span>
-<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>, <span class="at">ci_method =</span> <span class="st">"bootstrap"</span>)</span>
-<span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a>A non-binary exposure is also declined: this estimator reports the binary average</span>
-<span id="cb12-199"><a href="#cb12-199" aria-hidden="true" tabindex="-1"></a>treatment effect (treat-all versus treat-none), so a continuous or multi-level</span>
-<span id="cb12-200"><a href="#cb12-200" aria-hidden="true" tabindex="-1"></a>exposure is routed to a conditional estimator instead.</span>
-<span id="cb12-201"><a href="#cb12-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-202"><a href="#cb12-202" aria-hidden="true" tabindex="-1"></a><span class="fu">## Four estimators, one weighting concept</span></span>
-<span id="cb12-203"><a href="#cb12-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a>The same q₀ weights drive a whole family of cohort estimators on the weighted</span>
-<span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a>sample. <span class="in">`estimator = "ccw_ipw"`</span> weights by an inverse-propensity model instead of</span>
-<span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a>standardizing an outcome model; <span class="in">`estimator = "ccw_aipw"`</span> combines both into the</span>
-<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a>**augmented** (doubly-robust) estimator; and <span class="in">`estimator = "ccw_tmle"`</span> is the</span>
-<span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a>**targeted** maximum likelihood estimator — also doubly robust, and the one engine</span>
-<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a>matchatr builds itself (the etverse has no targeted-learning code to delegate to).</span>
-<span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a>All four report the same marginal effect when their models are correct:</span>
-<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-215"><a href="#cb12-215" aria-hidden="true" tabindex="-1"></a>ests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ccw_gformula"</span>, <span class="st">"ccw_ipw"</span>, <span class="st">"ccw_aipw"</span>, <span class="st">"ccw_tmle"</span>)</span>
-<span id="cb12-216"><a href="#cb12-216" aria-hidden="true" tabindex="-1"></a>rd <span class="ot">&lt;-</span> <span class="fu">sapply</span>(ests, <span class="cf">function</span>(e) {</span>
-<span id="cb12-217"><a href="#cb12-217" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">matcha</span>(cc, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb12-218"><a href="#cb12-218" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> q0),</span>
-<span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a>              <span class="at">confounders =</span> <span class="sc">~</span> w, <span class="at">estimator =</span> e)</span>
-<span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contrast</span>(f, <span class="at">type =</span> <span class="st">"difference"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
-<span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="at">marginal_RD =</span> rd, <span class="at">truth =</span> truth[<span class="st">"RD"</span>]), <span class="dv">4</span>)</span>
-<span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a><span class="fu">## Double robustness of CCW-AIPW</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">collapse =</span> <span class="cn">TRUE</span>, <span class="at">comment =</span> <span class="st">"#&gt;"</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>Every estimator in the previous articles reports a **conditional odds ratio** (or</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>a conditional hazard ratio). That is a perfectly good *within-stratum* effect, but</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>it is not what a population decision usually needs:</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>it is **non-collapsible** — it changes when you add or drop a covariate, even</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  with no confounding, so the "adjusted OR" is not a marginal effect;</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>it is on the **odds-ratio scale** only — there is no risk difference or risk</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  ratio, and no absolute risk, because a case-control sample fixes the outcome</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  margin by design and so carries no information about baseline risk.</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>A **marginal** causal effect — the average treatment effect as a risk difference</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>(RD), risk ratio (RR), or marginal odds ratio (mOR) — needs one extra ingredient:</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>the source-population outcome prevalence **q₀ = P(Y = 1)**. With q₀ we can undo the</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>case-oversampling and recover the marginal effect by **case-control weighting**</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@rose2008simple</span><span class="co">]</span>.</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(matchatr)</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## The idea: reweight the sample back to the population</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>A case-control study oversamples cases. If we weight each case by</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>q₀ / (sample case fraction) and each control by (1 − q₀) / (sample control</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>fraction), the *weighted* sample has outcome margin q₀ again — its weighted</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>empirical distribution mimics the source cohort. A cohort estimator applied to the</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>weighted sample (here g-computation: fit a weighted outcome model and standardize</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>over the covariates) then targets the **marginal** estimand. matchatr builds these</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>weights internally; you only supply q₀ on the design via</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a><span class="in">`unmatched_cc(prevalence = q0)`</span>.</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>The point estimate and its variance are delegated to the etverse causal engine</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`causatr`</span><span class="co">](https://github.com/etverse/causatr)</span>; matchatr owns the weighting and</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>sampling-design layer.</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a><span class="fu">## A cohort with a known marginal effect</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>We simulate a cohort with a binary exposure <span class="in">`x`</span> confounded by a continuous <span class="in">`w`</span>, so</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>the conditional and marginal effects genuinely differ. Because we know the true</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>outcome model, we can compute the marginal truth analytically by the g-formula:</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>average the counterfactual risks under "everyone exposed" and "everyone</span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>unexposed" over the cohort.</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">13</span>)</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>n      <span class="ot">&lt;-</span> <span class="fl">1e5</span></span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>alpha  <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">3</span></span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>beta_x <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="fl">2.5</span>)        <span class="co"># the CONDITIONAL log odds ratio for x</span></span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>gamma  <span class="ot">&lt;-</span> <span class="fl">1.0</span></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>w  <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>x  <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fl">0.2</span> <span class="sc">*</span> w))                 <span class="co"># x confounded by w</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a>y  <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(alpha <span class="sc">+</span> beta_x <span class="sc">*</span> x <span class="sc">+</span> gamma <span class="sc">*</span> w))</span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a><span class="co"># g-formula truth on the full cohort (true model): mean counterfactual risks.</span></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">plogis</span>(alpha <span class="sc">+</span> beta_x <span class="sc">+</span> gamma <span class="sc">*</span> w))      <span class="co"># treat-all</span></span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">plogis</span>(alpha <span class="sc">+</span> gamma <span class="sc">*</span> w))               <span class="co"># treat-none</span></span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>truth <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>  <span class="at">RD  =</span> m1 <span class="sc">-</span> m0,</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>  <span class="at">RR  =</span> m1 <span class="sc">/</span> m0,</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>  <span class="at">mOR =</span> (m1 <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> m1)) <span class="sc">/</span> (m0 <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> m0)),</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>  <span class="at">conditional_OR =</span> <span class="fu">exp</span>(beta_x)</span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(truth, <span class="dv">4</span>)</span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a>Note the marginal OR (<span class="in">`mOR`</span>) is **not** the conditional OR <span class="in">`exp(beta_x) = 2.5`</span>:</span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>non-collapsibility pulls the marginal OR toward the null.</span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>Now draw an unmatched case-control sample — every case plus a 5:1 random sample of</span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a>controls — and record the source prevalence q₀ = P(Y = 1).</span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>q0 <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>cohort   <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> y, <span class="at">x =</span> x, <span class="at">w =</span> w)</span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>cases    <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> cohort[cohort<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> controls[<span class="fu">sample.int</span>(<span class="fu">nrow</span>(controls), <span class="dv">5</span> <span class="sc">*</span> <span class="fu">nrow</span>(cases)), ]</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">rbind</span>(cases, controls)</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cc) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">q0 =</span> <span class="fu">round</span>(q0, <span class="dv">4</span>), <span class="at">n_cases =</span> <span class="fu">nrow</span>(cases), <span class="at">n_controls =</span> <span class="fu">nrow</span>(controls))</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a><span class="fu">## The marginal effect via case-control weighting</span></span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a><span class="in">`matcha()`</span> with <span class="in">`estimator = "ccw_gformula"`</span> and a design carrying q₀ fits the</span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>case-control-weighted g-formula. <span class="in">`contrast()`</span> then reports the marginal effect on</span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>the requested scale — the **risk difference is the default**.</span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a>  cc,</span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> q0),</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> w,</span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"ccw_gformula"</span></span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)   <span class="co"># marginal risk difference (default)</span></span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"ratio"</span>)        <span class="co"># marginal risk ratio</span></span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)           <span class="co"># marginal odds ratio</span></span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a>Each estimate recovers its analytical marginal truth:</span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a>  <span class="at">RD  =</span> <span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate,</span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>  <span class="at">RR  =</span> <span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"ratio"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate,</span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>  <span class="at">mOR =</span> <span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"or"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="at">estimate =</span> est, <span class="at">truth =</span> truth[<span class="fu">c</span>(<span class="st">"RD"</span>, <span class="st">"RR"</span>, <span class="st">"mOR"</span>)]), <span class="dv">4</span>)</span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a><span class="fu">## Marginal is not conditional</span></span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>The same sample analysed with the plain conditional logistic estimator returns the</span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>**conditional** odds ratio <span class="in">`exp(beta_x) = 2.5`</span> — a different number from the</span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a>marginal OR above. This is the non-collapsibility distinction that motivates</span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a>case-control weighting: the two estimators answer different questions.</span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a>cond <span class="ot">&lt;-</span> <span class="fu">matcha</span>(</span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a>  cc,</span>
+<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(),     <span class="co"># no q0: only the conditional OR is identified</span></span>
+<span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="sc">~</span> w,</span>
+<span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator =</span> <span class="st">"logistic"</span></span>
+<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(</span>
+<span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a>  <span class="at">conditional_OR =</span> <span class="fu">contrast</span>(cond, <span class="at">type =</span> <span class="st">"or"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate,</span>
+<span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a>  <span class="at">marginal_OR    =</span> <span class="fu">contrast</span>(fit,  <span class="at">type =</span> <span class="st">"or"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
+<span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-164"><a href="#cb12-164" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-165"><a href="#cb12-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-166"><a href="#cb12-166" aria-hidden="true" tabindex="-1"></a><span class="fu">## What is declined</span></span>
+<span id="cb12-167"><a href="#cb12-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-168"><a href="#cb12-168" aria-hidden="true" tabindex="-1"></a>Case-control weighting needs q₀ and targets a marginal effect, so a few requests</span>
+<span id="cb12-169"><a href="#cb12-169" aria-hidden="true" tabindex="-1"></a>are declined with informative, classed errors:</span>
+<span id="cb12-170"><a href="#cb12-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-173"><a href="#cb12-173" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-174"><a href="#cb12-174" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb12-175"><a href="#cb12-175" aria-hidden="true" tabindex="-1"></a><span class="co"># No q0 on the design: the sample cannot be reweighted to the population.</span></span>
+<span id="cb12-176"><a href="#cb12-176" aria-hidden="true" tabindex="-1"></a><span class="fu">matcha</span>(</span>
+<span id="cb12-177"><a href="#cb12-177" aria-hidden="true" tabindex="-1"></a>  cc, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="fu">unmatched_cc</span>(), <span class="at">estimator =</span> <span class="st">"ccw_gformula"</span></span>
+<span id="cb12-179"><a href="#cb12-179" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-180"><a href="#cb12-180" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-181"><a href="#cb12-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a><span class="co"># The CCW g-formula reports a marginal effect, not a hazard ratio.</span></span>
+<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"hr"</span>)</span>
+<span id="cb12-188"><a href="#cb12-188" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
+<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a><span class="co"># A bootstrap interval must resample within case / control strata and recompute</span></span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="co"># the q0 weights each replicate (a later chunk); only the sandwich is wired here.</span></span>
+<span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>, <span class="at">ci_method =</span> <span class="st">"bootstrap"</span>)</span>
+<span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-199"><a href="#cb12-199" aria-hidden="true" tabindex="-1"></a>A non-binary exposure is also declined: this estimator reports the binary average</span>
+<span id="cb12-200"><a href="#cb12-200" aria-hidden="true" tabindex="-1"></a>treatment effect (treat-all versus treat-none), so a continuous or multi-level</span>
+<span id="cb12-201"><a href="#cb12-201" aria-hidden="true" tabindex="-1"></a>exposure is routed to a conditional estimator instead.</span>
+<span id="cb12-202"><a href="#cb12-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-203"><a href="#cb12-203" aria-hidden="true" tabindex="-1"></a><span class="fu">## Four estimators, one weighting concept</span></span>
+<span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a>The same q₀ weights drive a whole family of cohort estimators on the weighted</span>
+<span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a>sample. <span class="in">`estimator = "ccw_ipw"`</span> weights by an inverse-propensity model instead of</span>
+<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a>standardizing an outcome model; <span class="in">`estimator = "ccw_aipw"`</span> combines both into the</span>
+<span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a>**augmented** (doubly-robust) estimator; and <span class="in">`estimator = "ccw_tmle"`</span> is the</span>
+<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a>**targeted** maximum likelihood estimator <span class="co">[</span><span class="ot">@vanderlaan2006targeted</span><span class="co">]</span> — also doubly</span>
+<span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a>robust, and the one engine matchatr builds itself (the etverse has no</span>
+<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a>targeted-learning code to delegate to).</span>
+<span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a>All four report the same marginal effect when their models are correct:</span>
+<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-216"><a href="#cb12-216" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-217"><a href="#cb12-217" aria-hidden="true" tabindex="-1"></a>ests <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ccw_gformula"</span>, <span class="st">"ccw_ipw"</span>, <span class="st">"ccw_aipw"</span>, <span class="st">"ccw_tmle"</span>)</span>
+<span id="cb12-218"><a href="#cb12-218" aria-hidden="true" tabindex="-1"></a>rd <span class="ot">&lt;-</span> <span class="fu">sapply</span>(ests, <span class="cf">function</span>(e) {</span>
+<span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">matcha</span>(cc, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> q0),</span>
+<span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a>              <span class="at">confounders =</span> <span class="sc">~</span> w, <span class="at">estimator =</span> e)</span>
+<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contrast</span>(f, <span class="at">type =</span> <span class="st">"difference"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
+<span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="at">marginal_RD =</span> rd, <span class="at">truth =</span> truth[<span class="st">"RD"</span>]), <span class="dv">4</span>)</span>
+<span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb12-226"><a href="#cb12-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-227"><a href="#cb12-227" aria-hidden="true" tabindex="-1"></a>CCW-AIPW's appeal is that it is consistent if **either** the outcome model **or**</span>
-<span id="cb12-228"><a href="#cb12-228" aria-hidden="true" tabindex="-1"></a>the propensity model is correct — you get two chances to be right. We can see this</span>
-<span id="cb12-229"><a href="#cb12-229" aria-hidden="true" tabindex="-1"></a>directly. Build a cohort where the outcome truly depends on <span class="in">`w`</span> non-linearly but</span>
-<span id="cb12-230"><a href="#cb12-230" aria-hidden="true" tabindex="-1"></a>the propensity is linear in <span class="in">`w`</span>; fitting both working models as <span class="in">`~ w`</span> (linear)</span>
-<span id="cb12-231"><a href="#cb12-231" aria-hidden="true" tabindex="-1"></a>then misspecifies the **outcome** model while the **propensity** model is correct:</span>
-<span id="cb12-232"><a href="#cb12-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-235"><a href="#cb12-235" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb12-236"><a href="#cb12-236" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20</span>)</span>
-<span id="cb12-237"><a href="#cb12-237" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e5</span>; w <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="dv">2</span> <span class="sc">*</span> w))                          <span class="co"># propensity linear in w: CORRECT</span></span>
-<span id="cb12-239"><a href="#cb12-239" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="cf">function</span>(av) <span class="sc">-</span><span class="fl">2.3</span> <span class="sc">+</span> <span class="fl">0.7</span> <span class="sc">*</span> av <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> w <span class="sc">-</span> <span class="fl">2.5</span> <span class="sc">*</span> w<span class="sc">^</span><span class="dv">2</span>    <span class="co"># outcome non-linear: a ~w model is WRONG</span></span>
-<span id="cb12-240"><a href="#cb12-240" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fu">lp</span>(a)))</span>
-<span id="cb12-241"><a href="#cb12-241" aria-hidden="true" tabindex="-1"></a>truth_rd <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">plogis</span>(<span class="fu">lp</span>(<span class="dv">1</span>)) <span class="sc">-</span> <span class="fu">plogis</span>(<span class="fu">lp</span>(<span class="dv">0</span>)))           <span class="co"># g-formula truth</span></span>
-<span id="cb12-242"><a href="#cb12-242" aria-hidden="true" tabindex="-1"></a>q0b <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
-<span id="cb12-243"><a href="#cb12-243" aria-hidden="true" tabindex="-1"></a>co <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> y, <span class="at">x =</span> a, <span class="at">w =</span> w)</span>
-<span id="cb12-244"><a href="#cb12-244" aria-hidden="true" tabindex="-1"></a>ca <span class="ot">&lt;-</span> co[co<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">1</span>, ]; ct <span class="ot">&lt;-</span> co[co<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">0</span>, ]</span>
-<span id="cb12-245"><a href="#cb12-245" aria-hidden="true" tabindex="-1"></a>ct <span class="ot">&lt;-</span> ct[<span class="fu">sample.int</span>(<span class="fu">nrow</span>(ct), <span class="dv">5</span> <span class="sc">*</span> <span class="fu">nrow</span>(ca)), ]</span>
-<span id="cb12-246"><a href="#cb12-246" aria-hidden="true" tabindex="-1"></a>ccb <span class="ot">&lt;-</span> <span class="fu">rbind</span>(ca, ct); <span class="fu">rownames</span>(ccb) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb12-247"><a href="#cb12-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-248"><a href="#cb12-248" aria-hidden="true" tabindex="-1"></a>rd2 <span class="ot">&lt;-</span> <span class="fu">sapply</span>(ests, <span class="cf">function</span>(e) {</span>
-<span id="cb12-249"><a href="#cb12-249" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ccb, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
-<span id="cb12-250"><a href="#cb12-250" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> q0b),</span>
-<span id="cb12-251"><a href="#cb12-251" aria-hidden="true" tabindex="-1"></a>              <span class="at">confounders =</span> <span class="sc">~</span> w, <span class="at">estimator =</span> e)</span>
-<span id="cb12-252"><a href="#cb12-252" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contrast</span>(f, <span class="at">type =</span> <span class="st">"difference"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
-<span id="cb12-253"><a href="#cb12-253" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb12-254"><a href="#cb12-254" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="at">marginal_RD =</span> rd2, <span class="at">truth =</span> truth_rd), <span class="dv">4</span>)</span>
-<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-256"><a href="#cb12-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-257"><a href="#cb12-257" aria-hidden="true" tabindex="-1"></a>With the outcome model misspecified, <span class="in">`ccw_gformula`</span> is biased, but <span class="in">`ccw_ipw`</span> (correct</span>
-<span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a>propensity), <span class="in">`ccw_aipw`</span>, and <span class="in">`ccw_tmle`</span> recover the truth. Swap the misspecification</span>
-<span id="cb12-259"><a href="#cb12-259" aria-hidden="true" tabindex="-1"></a>to the propensity model and it is <span class="in">`ccw_ipw`</span> that fails while <span class="in">`ccw_gformula`</span>,</span>
-<span id="cb12-260"><a href="#cb12-260" aria-hidden="true" tabindex="-1"></a><span class="in">`ccw_aipw`</span>, and <span class="in">`ccw_tmle`</span> stay on target — AIPW and TMLE are robust to either.</span>
-<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-262"><a href="#cb12-262" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this sits</span></span>
-<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a>The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW,</span>
-<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a>and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a</span>
-<span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a>known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance</span>
-<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>correction, a design-respecting bootstrap, and matched / nested case-control</span>
-<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a>support — all built on the same one weighting concept.</span>
+<span id="cb12-227"><a href="#cb12-227" aria-hidden="true" tabindex="-1"></a><span class="fu">## Double robustness of CCW-AIPW</span></span>
+<span id="cb12-228"><a href="#cb12-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-229"><a href="#cb12-229" aria-hidden="true" tabindex="-1"></a>CCW-AIPW's appeal is that it is consistent if **either** the outcome model **or**</span>
+<span id="cb12-230"><a href="#cb12-230" aria-hidden="true" tabindex="-1"></a>the propensity model is correct — you get two chances to be right</span>
+<span id="cb12-231"><a href="#cb12-231" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">@rose2014doublerobust</span><span class="co">]</span>. We can see this</span>
+<span id="cb12-232"><a href="#cb12-232" aria-hidden="true" tabindex="-1"></a>directly. Build a cohort where the outcome truly depends on <span class="in">`w`</span> non-linearly but</span>
+<span id="cb12-233"><a href="#cb12-233" aria-hidden="true" tabindex="-1"></a>the propensity is linear in <span class="in">`w`</span>; fitting both working models as <span class="in">`~ w`</span> (linear)</span>
+<span id="cb12-234"><a href="#cb12-234" aria-hidden="true" tabindex="-1"></a>then misspecifies the **outcome** model while the **propensity** model is correct:</span>
+<span id="cb12-235"><a href="#cb12-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-239"><a href="#cb12-239" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20</span>)</span>
+<span id="cb12-240"><a href="#cb12-240" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e5</span>; w <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb12-241"><a href="#cb12-241" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="dv">2</span> <span class="sc">*</span> w))                          <span class="co"># propensity linear in w: CORRECT</span></span>
+<span id="cb12-242"><a href="#cb12-242" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="cf">function</span>(av) <span class="sc">-</span><span class="fl">2.3</span> <span class="sc">+</span> <span class="fl">0.7</span> <span class="sc">*</span> av <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> w <span class="sc">-</span> <span class="fl">2.5</span> <span class="sc">*</span> w<span class="sc">^</span><span class="dv">2</span>    <span class="co"># outcome non-linear: a ~w model is WRONG</span></span>
+<span id="cb12-243"><a href="#cb12-243" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fu">lp</span>(a)))</span>
+<span id="cb12-244"><a href="#cb12-244" aria-hidden="true" tabindex="-1"></a>truth_rd <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">plogis</span>(<span class="fu">lp</span>(<span class="dv">1</span>)) <span class="sc">-</span> <span class="fu">plogis</span>(<span class="fu">lp</span>(<span class="dv">0</span>)))           <span class="co"># g-formula truth</span></span>
+<span id="cb12-245"><a href="#cb12-245" aria-hidden="true" tabindex="-1"></a>q0b <span class="ot">&lt;-</span> <span class="fu">mean</span>(y)</span>
+<span id="cb12-246"><a href="#cb12-246" aria-hidden="true" tabindex="-1"></a>co <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">case =</span> y, <span class="at">x =</span> a, <span class="at">w =</span> w)</span>
+<span id="cb12-247"><a href="#cb12-247" aria-hidden="true" tabindex="-1"></a>ca <span class="ot">&lt;-</span> co[co<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">1</span>, ]; ct <span class="ot">&lt;-</span> co[co<span class="sc">$</span>case <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb12-248"><a href="#cb12-248" aria-hidden="true" tabindex="-1"></a>ct <span class="ot">&lt;-</span> ct[<span class="fu">sample.int</span>(<span class="fu">nrow</span>(ct), <span class="dv">5</span> <span class="sc">*</span> <span class="fu">nrow</span>(ca)), ]</span>
+<span id="cb12-249"><a href="#cb12-249" aria-hidden="true" tabindex="-1"></a>ccb <span class="ot">&lt;-</span> <span class="fu">rbind</span>(ca, ct); <span class="fu">rownames</span>(ccb) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb12-250"><a href="#cb12-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-251"><a href="#cb12-251" aria-hidden="true" tabindex="-1"></a>rd2 <span class="ot">&lt;-</span> <span class="fu">sapply</span>(ests, <span class="cf">function</span>(e) {</span>
+<span id="cb12-252"><a href="#cb12-252" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">matcha</span>(ccb, <span class="at">outcome =</span> <span class="st">"case"</span>, <span class="at">exposure =</span> <span class="st">"x"</span>,</span>
+<span id="cb12-253"><a href="#cb12-253" aria-hidden="true" tabindex="-1"></a>              <span class="at">design =</span> <span class="fu">unmatched_cc</span>(<span class="at">prevalence =</span> q0b),</span>
+<span id="cb12-254"><a href="#cb12-254" aria-hidden="true" tabindex="-1"></a>              <span class="at">confounders =</span> <span class="sc">~</span> w, <span class="at">estimator =</span> e)</span>
+<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">contrast</span>(f, <span class="at">type =</span> <span class="st">"difference"</span>)<span class="sc">$</span>contrasts<span class="sc">$</span>estimate</span>
+<span id="cb12-256"><a href="#cb12-256" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb12-257"><a href="#cb12-257" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">rbind</span>(<span class="at">marginal_RD =</span> rd2, <span class="at">truth =</span> truth_rd), <span class="dv">4</span>)</span>
+<span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-259"><a href="#cb12-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-260"><a href="#cb12-260" aria-hidden="true" tabindex="-1"></a>With the outcome model misspecified, <span class="in">`ccw_gformula`</span> is biased, but <span class="in">`ccw_ipw`</span> (correct</span>
+<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a>propensity), <span class="in">`ccw_aipw`</span>, and <span class="in">`ccw_tmle`</span> recover the truth. Swap the misspecification</span>
+<span id="cb12-262"><a href="#cb12-262" aria-hidden="true" tabindex="-1"></a>to the propensity model and it is <span class="in">`ccw_ipw`</span> that fails while <span class="in">`ccw_gformula`</span>,</span>
+<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a><span class="in">`ccw_aipw`</span>, and <span class="in">`ccw_tmle`</span> stay on target — AIPW and TMLE are robust to either.</span>
+<span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this sits</span></span>
+<span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW,</span>
+<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a>and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a</span>
+<span id="cb12-269"><a href="#cb12-269" aria-hidden="true" tabindex="-1"></a>known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance</span>
+<span id="cb12-270"><a href="#cb12-270" aria-hidden="true" tabindex="-1"></a>correction, a design-respecting bootstrap, and matched / nested case-control</span>
+<span id="cb12-271"><a href="#cb12-271" aria-hidden="true" tabindex="-1"></a>support — all built on the same one weighting concept.</span>
+<span id="cb12-272"><a href="#cb12-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-273"><a href="#cb12-273" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb12-274"><a href="#cb12-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-275"><a href="#cb12-275" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb12-276"><a href="#cb12-276" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
