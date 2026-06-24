@@ -221,6 +221,34 @@ test_that("the marginalized risk equals the absolute_risk() average per subject"
   expect_equal(mr$f1, f1_ref, tolerance = 1e-8)
 })
 
+test_that("the RMST integral equals a dense-grid integral of marginal survival", {
+  skip_if_not_installed("survival")
+  co <- make_surv_cohort(n = 1500L, sub_frac = 0.5, seed = 14L)
+  fit <- matcha(co, outcome = "d", exposure = "x",
+                design = case_cohort(subcohort = "sub", time = "t"),
+                confounders = ~ z, estimator = "surv_gcomp")
+  std <- surv_gcomp_std_sample(fit)
+  fview <- fit
+  fview$engine <- std$engine
+  horizon <- as.numeric(stats::quantile(co$t[co$d == 1], 0.6, names = FALSE))
+
+  eng <- surv_gcomp_rmst_diff(fview, std, "x", horizon)
+
+  # Independent arbiter: a near-continuous left-Riemann sum of S^a over [0, H],
+  # blind to the engine's event-time grid. The marginal survival is a step, so
+  # the engine's left-Riemann on the failure-time grid is the exact area; a
+  # trapezoidal rule (the prior bug) would disagree by ~1%.
+  ug <- seq(0, horizon, length.out = 5000L)
+  mr <- surv_gcomp_marginal_risk(fview, std, "x", ug[-1])
+  s1 <- c(1, 1 - mr$f1)
+  s0 <- c(1, 1 - mr$f0)
+  fine1 <- sum(diff(ug) * utils::head(s1, -1L))
+  fine0 <- sum(diff(ug) * utils::head(s0, -1L))
+  expect_equal(eng[1], fine1, tolerance = 5e-3)
+  expect_equal(eng[2], fine0, tolerance = 5e-3)
+  expect_equal(eng[3], fine1 - fine0, tolerance = 5e-3)
+})
+
 # --- result structure ---------------------------------------------------------
 
 test_that("the result carries per-time contrasts, intervention risks, and tidies", {

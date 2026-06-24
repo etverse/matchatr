@@ -244,11 +244,13 @@ surv_gcomp_breslow <- function(fit_view, beta) {
 
 #' Marginal RMST difference up to a horizon
 #'
-#' Integrates the marginal survival S^a = 1 − F^a over the interval from 0 to the horizon under
+#' Integrates the marginal survival S^a = 1 − F^a from 0 to the horizon under
 #' treat-all and treat-none and returns both RMSTs and their difference. The
-#' integration grid is the fit's failure times up to the horizon (the marginal
-#' survival is a step function on the Breslow jumps), so the trapezoidal sum is
-#' the exact area under the step curve.
+#' marginal survival is a function of the Breslow cumulative hazard, hence a
+#' right-continuous step that is flat on [t_k, t_{k+1}) at its post-jump value
+#' S^a(t_k); the exact area is therefore the left-Riemann sum
+#' Σ_k S^a(t_k) (t_{k+1} − t_k) over the failure-time grid (a trapezoidal rule
+#' would assume a piecewise-linear curve and bias the integral).
 #'
 #' @param fit_view A `matchatr_fit` keyed to the underlying weighted-Cox engine.
 #' @param std The list from `surv_gcomp_std_sample()`.
@@ -262,12 +264,13 @@ surv_gcomp_rmst_diff <- function(fit_view, std, exposure, horizon) {
   ev <- surv_event_times(fit_view)
   grid <- sort(unique(c(ev[ev > 0 & ev <= horizon], horizon)))
   mr <- surv_gcomp_marginal_risk(fit_view, std, exposure, grid)
-  # Prepend t = 0 where S = 1 under both interventions.
+  # Prepend t = 0, where S = 1 under both interventions, then left-Riemann sum:
+  # S^a is constant at its left-endpoint (post-jump) value across each interval.
   tt <- c(0, grid)
   s1 <- c(1, 1 - mr$f1)
   s0 <- c(1, 1 - mr$f0)
-  rmst1 <- sum(diff(tt) * (utils::head(s1, -1L) + utils::tail(s1, -1L)) / 2)
-  rmst0 <- sum(diff(tt) * (utils::head(s0, -1L) + utils::tail(s0, -1L)) / 2)
+  rmst1 <- sum(diff(tt) * utils::head(s1, -1L))
+  rmst0 <- sum(diff(tt) * utils::head(s0, -1L))
   c(rmst1, rmst0, rmst1 - rmst0)
 }
 
