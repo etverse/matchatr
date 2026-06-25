@@ -65,10 +65,16 @@ design-preserving cohort-resample bootstrap. Files: `R/causal_survival_sampled.R
 g-computation truth oracle + per-subject `absolute_risk()` agreement + an independent
 dense-grid RMST oracle.
 
-**Planned (see the Chunk plan):** the nested case-control engine (Chunk 2), two more
-marginal scales (Chunk 3: RMST ratio + quantile survival difference), categorical /
-ordinal exposures (Chunk 4), continuous / shift exposures via causatr's intervention DSL
-(Chunk 5), and an opt-in analytic sandwich SE (Chunk 6).
+**Near-term (active) — Chunks 2–6 (see the Chunk plan):** the nested case-control engine
+(2), two more marginal scales (3: RMST ratio + quantile survival difference), categorical /
+ordinal exposures (4), continuous / shift exposures via causatr's intervention DSL (5), and
+an opt-in analytic sandwich SE (6).
+
+**Deferred-on-effort — Chunk 7:** the doubly-robust `surv_aipw` (the DR version of this
+phase's own estimand). The larger extensions that surfaced in the rejection review live in
+**other phase docs**, not here — efficient stochastic-MTP survival in `PHASE_8` (scope),
+competing-risks / CIF in `PHASE_7` (its classical foundation), weight calibration in
+`PHASE_12` — see *Where the larger extensions live*.
 
 **Settled rejections (a 2026-06-24 literature review confirmed these stay):** the
 conditional/marginal **hazard ratio** (`type = "hr"`) — a g-standardized marginal HR is
@@ -206,30 +212,39 @@ average of the per-subject gradient.
    exports its internal `apply_intervention()` so matchatr reuses the application logic
    rather than `:::` or re-implementing it. Ships with a **positivity / out-of-support
    warning** and a documented Cox-linearity caveat (the dose-response shape inherits the
-   `β̂ᵀx` form). This is the deterministic-plug-in estimand; the efficient stochastic-MTP
-   estimator is Deferred.
+   `β̂ᵀx` form). This is the deterministic-plug-in estimand; the **efficient**
+   stochastic-MTP estimator is a scope decision recorded in `PHASE_8` (it needs the
+   sibling packages' MTP machinery, not matchatr's design layer).
 6. **Opt-in analytic sandwich SE** (`ci_method = "sandwich"`): NCC first (moderate — reuse
    robust `vcov(β̂)` + survfit IJ baseline + standardization IF, conservative re weight
    estimation), case-cohort second (substantial — the two-phase term, or delegate to
    `CaseCohortCoxSurvival` / `riskRegression::ate`). Documented as approximate; the
-   bootstrap stays the default. See **Variance / inference notes**.
+   bootstrap stays the default. See **Variance / inference notes**. Independent of Chunks
+   2–5; can land any time after Chunk 1.
+7. **(Deferred) Doubly-robust `surv_aipw`.** The DR version of *this phase's* estimand, so
+   it lives here: matchatr's own g-computation + augmentation on the weighted Cox (no longer
+   a survatr delegation), consistent if **either** the hazard model **or** the propensity
+   (+ censoring) models is correct, with the augmentation IF as the variance. Builds on
+   Chunks 1–2 (the singly-robust path) + Chunk 6 (the same standardization IF machinery).
+   Substantial. Refs: Robins & Rotnitzky 1992; Zhang & Schaubel 2012; Bai, Tsiatis & O'Brien
+   2013 (stratified sampling).
 
-## Deferred items (future engines / phases)
+## Where the larger extensions live (not PHASE_10 chunks)
 
-- **Doubly-robust `surv_aipw`**: a DR treatment-specific survival estimator (Zhang &
-  Schaubel 2012; Bai, Tsiatis & O'Brien 2013) — matchatr's own g-computation +
-  augmentation on the weighted Cox (no longer a survatr delegation). Well-established but a
-  substantial build.
-- **Efficient stochastic-MTP survival**: the positivity-respecting modified-treatment-policy
-  / incremental-propensity estimand for continuous exposures, with the generalized
-  propensity / density-ratio reweighting and a TMLE update for valid inference
-  (Muñoz & van der Laan 2012; Kennedy 2019; Díaz, Williams, Hoffman & Schenck 2023;
-  Hejazi et al. 2021 under two-phase sampling; `lmtp` / `txshift`). Chunk 5 ships the
-  deterministic-plug-in version; this is the efficient counterpart, a separate engine.
-- **Competing risks / CIF under sampling**: cause-specific CIF difference/ratio, and the
-  RMTL and years-of-life-lost that follow from it (Andersen 2013; Conner & Trinquart 2021).
-  The natural next *engine*, not a `type` on the single-endpoint one.
-- Weight calibration for efficiency (Phase 12), transportability.
+These came up in the 2026-06-24 rejection review but belong to other phase docs, not here:
+
+- **Efficient stochastic-MTP survival** (the positivity-respecting modified-treatment-policy
+  estimand for continuous exposures, with density-ratio / TMLE inference) → a scope decision
+  in `PHASE_8` ("Rejected / deferred alternatives"): matchatr ships the deterministic
+  plug-in (Chunk 5) by reusing causatr's intervention DSL; the efficient estimator is the
+  sibling packages' (causatr / survatr) concern, with matchatr supplying the design weights.
+- **Competing-risks / CIF under sampling** → `PHASE_7`, which already owns the classical
+  cause-specific / multiple-endpoint NCC analysis. A causal marginal-CIF engine (CIF
+  difference / ratio, and the RMTL / years-of-life-lost that follow) extends *that*
+  infrastructure; it is a candidate future phase, not a contrast scale on this
+  single-endpoint engine.
+- **Weight calibration** → `PHASE_12`; **transportability** → a separate future direction.
+  Both compose with this engine's contrasts but are built elsewhere.
 
 ## References (verified 2026-06-24 — author / title / venue confirmed; some page spans not digit-checked)
 
@@ -257,5 +272,7 @@ average of the per-subject gradient.
   69(4):830–839 — locally efficient / doubly-robust treatment-specific survival
   (`surv_aipw`): consistent if either the outcome (hazard) model or the propensity
   (+ censoring) models is correct.
-- Andersen (2013), *Stat Med* 32(30):5278–5285; Conner & Trinquart (2021), *Stat Med*
-  40(9):2177–2196 — RMTL / years-of-life-lost under competing risks.
+
+(The MTP references above support Chunk 5's deterministic plug-in, which is this phase's;
+the *efficient* MTP scope decision is recorded in `PHASE_8` and the competing-risks / CIF
+extension in `PHASE_7`, where those larger items are owned.)

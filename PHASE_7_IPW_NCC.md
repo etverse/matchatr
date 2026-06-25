@@ -216,3 +216,16 @@ estimators than alternatives (Ch19 §19.3).
 Weight calibration (Phase 12), marginal causal contrasts under NCC sampling
 (Phase 10), quota-matching weights, counter-matching weighted analysis (cross-ref
 Phase 5).
+
+### A causal competing-risks / CIF engine (candidate future phase)
+
+Phase 7 Chunk 4 already built the **classical** competing-risks / multiple-endpoint
+NCC analysis: one control set reused across cause-specific endpoints, validated on a
+competing-risks truth DGP (cause-specific Cox HRs). The **causal** extension — marginal
+cumulative-incidence-function contrasts under sampling (CIF difference / ratio, and the
+restricted-mean-time-lost and years-of-life-lost that follow once a competing-risks
+estimand exists) — is the natural successor engine. It builds on *this* phase's
+cause-specific infrastructure plus Phase 10's design-weighted standardization, and is large
+enough to be a candidate future phase rather than a contrast scale on either single-endpoint
+engine. Surfaced in the 2026-06-24 Phase 10 rejection review. Refs: Andersen (2013),
+*Stat Med* 32(30):5278–5285; Conner & Trinquart (2021), *Stat Med* 40(9):2177–2196.

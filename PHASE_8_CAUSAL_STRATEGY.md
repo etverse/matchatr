@@ -85,6 +85,15 @@ missing-by-design covariate. Layers on top of Tracks 2–3.
 - *Building a general targeted-learning engine in matchatr* — deferred: only the CCW
   fluctuation step is needed now; a full TL framework is out of scope (and arguably an
   etverse-wide concern, not matchatr's).
+- *An efficient continuous-exposure / modified-treatment-policy (MTP) estimator* — deferred,
+  for the same reason. matchatr's design layer can ship the **deterministic** dose / shift
+  plug-in for survival by reusing causatr's intervention DSL (`shift` / `scale_by` /
+  `threshold` / `dynamic`) — that is `PHASE_10` Chunk 5. The **efficient** estimand
+  (positivity-respecting stochastic / incremental-propensity interventions with
+  density-ratio or TMLE inference; Muñoz & van der Laan 2012; Kennedy 2019; Díaz et al.
+  2023; Hejazi et al. 2021 under two-phase sampling; `lmtp` / `txshift`) is a sibling-package
+  (causatr / survatr) capability that matchatr would compose with the design weights, not
+  build itself.
 - *Conflating q₀ weights with Samuelsen design weights* — rejected by design (distinct
   objects, distinct variance).
 
