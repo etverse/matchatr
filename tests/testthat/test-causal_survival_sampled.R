@@ -224,9 +224,14 @@ test_that("the marginalized risk equals the absolute_risk() average per subject"
 test_that("the RMST integral equals a dense-grid integral of marginal survival", {
   skip_if_not_installed("survival")
   co <- make_surv_cohort(n = 1500L, sub_frac = 0.5, seed = 14L)
-  fit <- matcha(co, outcome = "d", exposure = "x",
-                design = case_cohort(subcohort = "sub", time = "t"),
-                confounders = ~ z, estimator = "surv_gcomp")
+  fit <- matcha(
+    co,
+    outcome = "d",
+    exposure = "x",
+    design = case_cohort(subcohort = "sub", time = "t"),
+    confounders = ~z,
+    estimator = "surv_gcomp"
+  )
   std <- surv_gcomp_std_sample(fit)
   fview <- fit
   fview$engine <- std$engine
