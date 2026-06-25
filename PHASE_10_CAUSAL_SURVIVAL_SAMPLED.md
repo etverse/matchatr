@@ -65,28 +65,32 @@ design-preserving cohort-resample bootstrap. Files: `R/causal_survival_sampled.R
 g-computation truth oracle + per-subject `absolute_risk()` agreement + an independent
 dense-grid RMST oracle.
 
-**Pending — Chunk 2 (nested case-control):** wire the `nested_cc` dispatch row (the
-`fit_ipw_cox()` / `ipw_breslow_ncc()` branches already exist in the engine helpers) and a
-**design-aware Samuelsen bootstrap** (resample the cohort, redraw the risk sets, recompute
-the KM inclusion weights, refit). Not started.
+**Planned (see the Chunk plan):** the nested case-control engine (Chunk 2), two more
+marginal scales (Chunk 3: RMST ratio + quantile survival difference), categorical /
+ordinal exposures (Chunk 4), continuous / shift exposures via causatr's intervention DSL
+(Chunk 5), and an opt-in analytic sandwich SE (Chunk 6).
 
-**Deferred — Chunk 3 (doubly-robust `surv_aipw`):** see the Chunk 3 references below.
-
-**Open questions (the current rejection paths, under literature review):** whether to
-support a non-binary exposure (modified-treatment-policy / dose-response standardization),
-which additional marginal survival scales to add (RMTL, survival-difference, CIF, quantile
-survival), and whether an analytic influence-function / sandwich SE can replace or augment
-the bootstrap. The unmatched/matched-CC rejection (no time-to-event structure) and the
-`times` input validation are settled.
+**Settled rejections (a 2026-06-24 literature review confirmed these stay):** the
+conditional/marginal **hazard ratio** (`type = "hr"`) — a g-standardized marginal HR is
+time-varying and non-collapsible, properly a separate marginal-structural-Cox engine
+(Hernán 2010; Aalen, Cook & Røysland 2015; Martinussen, Vansteelandt & Andersen 2020); the
+**survival difference / ratio at t** — algebraically `−RD(t)`, redundant; the
+**unmatched / matched-CC designs** — no time-to-event structure to standardize; and the
+`times` input validation (NA / non-positive). RMTL and years-of-life-lost reduce to a sign
+flip of the RMST in a single-endpoint analysis and become distinct only with a
+competing-risks engine (Deferred).
 
 ## Scope
 
 **In:** marginal causal-survival estimands (absolute risk F_x(t), risk difference, risk
-ratio, RMST difference) under case-cohort (Chunk 1) and nested case-control (Chunk 2)
-sampling, g-computed on the design's inclusion-weighted Cox.
+ratio, RMST difference and ratio, quantile survival difference) under case-cohort and
+nested case-control sampling, g-computed on the design's inclusion-weighted Cox; binary,
+categorical/ordinal, and continuous/shift exposures (the last via causatr's intervention
+DSL); a design-preserving bootstrap with an opt-in analytic sandwich.
 
 **Out:** classical HR estimation (Phases 5–7), the non-survival CCW family (Phase 9),
-weight calibration (Phase 12), competing risks under sampling.
+weight calibration (Phase 12); the efficient stochastic-MTP survival estimator and the
+competing-risks / CIF engine (both Deferred — future engines, not this one).
 
 ## API
 
@@ -107,17 +111,20 @@ is recoded to 0/1.
 
 ## Support matrix
 
-| Design | Engine | Estimand | Contrast | Variance | Status |
+| Design / input | Engine | Estimand | Contrast | Variance | Status |
 |---|---|---|---|---|---|
 | case-cohort | `cch` | marginal F_x(t) | difference / ratio | bootstrap | ✅ Chunk 1 |
 | case-cohort | `cch` | marginal RMST | rmst | bootstrap | ✅ Chunk 1 |
 | nested CC | `ipw_cox` | marginal F_x(t) / RMST | difference / ratio / rmst | design-aware bootstrap | ⏳ Chunk 2 |
-| case-cohort / NCC | DR | marginal RD (DR) | difference | — | ⏳ Chunk 3 (deferred) |
+| case-cohort / NCC | `cch` / `ipw_cox` | marginal RMST ratio, quantile survival diff | rmst_ratio / quantile | bootstrap | ⏳ Chunk 3 |
+| categorical / ordinal exposure | `cch` / `ipw_cox` | marginal F_x(t) per level | difference / ratio | bootstrap | ⏳ Chunk 4 (each-vs-reference) |
+| continuous / shift exposure | `cch` / `ipw_cox` | dose-response / shift F^a(t) | difference / ratio / rmst | bootstrap | ⏳ Chunk 5 (causatr DSL; positivity warning) |
+| any | `cch` / `ipw_cox` | marginal contrast | — | analytic IF / sandwich | ⏳ Chunk 6 (opt-in, approximate) |
+| case-cohort / NCC | DR | marginal RD (DR) | difference | bootstrap | ⏳ Deferred (`surv_aipw`) |
 | unmatched / matched CC | — | — | — | — | ⛔ `matchatr_bad_estimator` (no time-to-event) |
-| non-binary exposure | — | — | — | — | ⛔ `matchatr_bad_input` (under review) |
-| off-scale `type` (or/hr/af/excess) | — | — | — | — | ⛔ `matchatr_unidentified_estimand` |
-| `ci_method = "sandwich"` | — | — | — | — | ⛔ `matchatr_unsupported_variance` (under review) |
-| missing / non-positive `times` | — | — | — | — | ⛔ `matchatr_bad_input` |
+| off-scale `type` (or / hr / af / excess) | — | — | — | — | ⛔ `matchatr_unidentified_estimand` (settled — HR is a separate MSM-Cox estimand) |
+| `ci_method = "sandwich"` (until Chunk 6) | — | — | — | — | ⛔ `matchatr_unsupported_variance` |
+| missing / non-positive `times` | — | — | — | — | ⛔ `matchatr_bad_input` (settled — input validation) |
 
 ## Implementation
 
@@ -132,29 +139,27 @@ is recoded to 0/1.
 
 ## Variance / inference notes
 
-The shipped variance is the design-preserving bootstrap (cohort resample for case-cohort;
-a Samuelsen risk-set redraw for NCC in Chunk 2). An analytic influence-function / sandwich
-SE for the design-weighted standardized survival is an open question (under review) — it
-must account for both the marginalization (coupling subjects) and the sampling variability
-of the inclusion weights, so the bootstrap is the correct default for now; an explicit
-`ci_method = "sandwich"` request is rejected rather than silently substituted.
+The **bootstrap stays the principled default** — it is the only method that, without
+caveat, captures the full sampling variability (the subcohort redraw for case-cohort; the
+Samuelsen weight estimation for NCC). An analytic influence-function / sandwich SE is the
+**Chunk 6** opt-in, documented as an approximate fast alternative:
 
-## Chunk 3 references — doubly-robust treatment-specific survival
+- **NCC (`ipw_cox`): moderate.** Reuse the robust Lin-Wei `vcov(β̂)` the engine already
+  returns + the `survfit.coxph` infinitesimal-jackknife baseline SE + a standardization
+  influence function (the `riskRegression::ate` mechanics; Ozenne et al. 2017, 2020). The
+  Samuelsen weights are estimated, but treating them as known is the established
+  conservative practice (Samuelsen 1997; Støer & Samuelsen 2016, `multipleNCC`).
+- **case-cohort (`cch`): substantial.** The correct variance carries a two-phase
+  design/sampling term beyond the model term; it is derived and packaged externally
+  (Etievant & Gail 2024/25, `CaseCohortCoxSurvival`, *IJE* 54(2):dyaf016; Rebora et al.
+  2016; Breslow & Wellner 2007). Native is real work — the alternative is to delegate the
+  pure-risk SE. Until Chunk 6, an explicit `ci_method = "sandwich"` is rejected rather than
+  silently substituting the bootstrap.
 
-A DR estimator is consistent for the treatment-specific survival if **either** the outcome
-(hazard) model **or** the propensity (+ censoring) models is correct. References (verified):
-
-- Robins & Rotnitzky (1992) — AIPW / locally efficient estimating-equation theory.
-- Hubbard, van der Laan & Robins (2000) — locally efficient survival estimation.
-- **Zhang & Schaubel (2012)**, *Statistics in Medicine* 31(30): 4255–4268 — DR for
-  treatment-specific survival **and RMST** (logistic treatment or Cox hazard model).
-- **Bai, Tsiatis & O'Brien (2013)**, *Biometrics* 69(4) — locally efficient AIPWCC for
-  treatment-specific survival **under stratified sampling** — directly relevant to the
-  sampled designs here.
-
-Since the pivot, the DR estimator would be matchatr's own (g-computation + augmentation on
-the weighted Cox), **not** a survatr delegation — so Chunk 3 is deferred on effort, not
-blocked on a survatr addition.
+The standardized-risk gradient the sandwich needs (∂F/∂β = (1−F)Λ_x x, ∂F/∂Λ₀ =
+(1−F)e^{βᵀx}) is already computed in `assemble_absolute_risk()`; the missing piece is the
+Cov(Λ̂₀, β̂) cross-term (the `survfit.coxph` formula) and the weighted standardization
+average of the per-subject gradient.
 
 ## Oracle testing strategy
 
@@ -179,16 +184,78 @@ blocked on a survatr addition.
    `F^a(t)` over the subcohort), `surv_gcomp_boot_ci()` (cohort-resample bootstrap),
    `contrast(type = "rmst")` + `times =`. Full-cohort truth oracle + per-subject
    `absolute_risk()` agreement + the rejection paths.
-2. NCC Samuelsen-weighted `surv_gcomp` (delegates to `fit_ipw_cox()` +
+2. **NCC Samuelsen-weighted `surv_gcomp`** (delegates to `fit_ipw_cox()` +
    `ipw_breslow_ncc()`, marginalize over the deduplicated risk-set sample) + a
    design-aware bootstrap (resample the cohort, redraw the risk sets, recompute the
-   Samuelsen weights, refit).
-3. `surv_aipw` (doubly-robust) — deferred: a DR treatment-specific survival estimator
-   (Zhang & Schaubel 2012; Bai, Tsiatis & O'Brien 2013) is well-established but not
-   yet implemented anywhere in the etverse. The singly-robust path from Chunks 1–2
-   ships regardless.
+   Samuelsen weights, refit). The engine helpers already carry the `nested_cc` branches;
+   this wires the dispatch row and the Samuelsen bootstrap.
+3. **Additional marginal scales**: `contrast(type = "rmst_ratio")` (RMST¹/RMST⁰ from the
+   two areas already integrated, log-scale delta CI; Royston & Parmar 2013) and
+   `type = "quantile"` (the difference of marginal survival-time quantiles, default the
+   median, read off the two standardized curves; needs an out-of-horizon NA guard —
+   Heinzl & Mittlböck 2018).
+4. **Categorical / ordinal exposure**: drop the binary-only restriction. A k-level
+   exposure reports each-vs-reference marginal contrasts `F̂^aₘ(t) − F̂^a₀(t)` (and the
+   ratio), one curve per non-reference level — the same g-formula identification applied
+   level-by-level (Keil et al. 2014; Westreich et al. 2012). Positivity is checked per
+   level. An ordinal exposure may additionally render the ordered (step) dose-response.
+5. **Continuous / shift exposure via causatr's intervention DSL**: `contrast()` accepts a
+   `causatr_intervention` (`shift` / `scale_by` / `threshold` / `dynamic` / `static`),
+   applies it to the exposure column in the standardization, and reports the dose-response
+   / shift `F^a(t)` contrast with the bootstrap CI. **Prerequisite (cross-package):** causatr
+   exports its internal `apply_intervention()` so matchatr reuses the application logic
+   rather than `:::` or re-implementing it. Ships with a **positivity / out-of-support
+   warning** and a documented Cox-linearity caveat (the dose-response shape inherits the
+   `β̂ᵀx` form). This is the deterministic-plug-in estimand; the efficient stochastic-MTP
+   estimator is Deferred.
+6. **Opt-in analytic sandwich SE** (`ci_method = "sandwich"`): NCC first (moderate — reuse
+   robust `vcov(β̂)` + survfit IJ baseline + standardization IF, conservative re weight
+   estimation), case-cohort second (substantial — the two-phase term, or delegate to
+   `CaseCohortCoxSurvival` / `riskRegression::ate`). Documented as approximate; the
+   bootstrap stays the default. See **Variance / inference notes**.
 
-## Deferred items
+## Deferred items (future engines / phases)
 
-Weight calibration for efficiency (Phase 12), competing risks under sampling,
-transportability, and the doubly-robust `surv_aipw` (Chunk 3).
+- **Doubly-robust `surv_aipw`**: a DR treatment-specific survival estimator (Zhang &
+  Schaubel 2012; Bai, Tsiatis & O'Brien 2013) — matchatr's own g-computation +
+  augmentation on the weighted Cox (no longer a survatr delegation). Well-established but a
+  substantial build.
+- **Efficient stochastic-MTP survival**: the positivity-respecting modified-treatment-policy
+  / incremental-propensity estimand for continuous exposures, with the generalized
+  propensity / density-ratio reweighting and a TMLE update for valid inference
+  (Muñoz & van der Laan 2012; Kennedy 2019; Díaz, Williams, Hoffman & Schenck 2023;
+  Hejazi et al. 2021 under two-phase sampling; `lmtp` / `txshift`). Chunk 5 ships the
+  deterministic-plug-in version; this is the efficient counterpart, a separate engine.
+- **Competing risks / CIF under sampling**: cause-specific CIF difference/ratio, and the
+  RMTL and years-of-life-lost that follow from it (Andersen 2013; Conner & Trinquart 2021).
+  The natural next *engine*, not a `type` on the single-endpoint one.
+- Weight calibration for efficiency (Phase 12), transportability.
+
+## References (verified 2026-06-24 — author / title / venue confirmed; some page spans not digit-checked)
+
+- Hernán (2010), *Epidemiology* 21(1):13–15 — the hazards of hazard ratios.
+- Aalen, Cook & Røysland (2015), *Lifetime Data Analysis* 21(4):579–593 — Cox ≠ causal HR.
+- Martinussen, Vansteelandt & Andersen (2020), *Lifetime Data Analysis* 26(4):833–855 —
+  hazard-contrast interpretation.
+- Royston & Parmar (2013), *BMC Med Res Methodol* 13:152 — RMST (difference and ratio).
+- Heinzl & Mittlböck (2018), *J Eval Clin Pract* 24(4):708–712 — quantile survival difference.
+- Keil et al. (2014), *Epidemiology* 25(6):889–897; Westreich et al. (2012), *Stat Med*
+  31(18):2000–2009 — parametric g-formula survival under interventions.
+- Muñoz & van der Laan (2012), *Biometrics* 68(2):541–549; Kennedy (2019), *JASA*
+  114(526):645–656; Díaz, Williams, Hoffman & Schenck (2023), *JASA* 118(542):846–857;
+  Hejazi et al. (2021), *Biometrics* 77(4):1241–1253; Young, Hernán & Robins (2014),
+  *Epidemiol Methods* 3(1):1–19 — stochastic / modified-treatment-policy interventions.
+- Lee, Hudgens, Cai & Cole (2016), *Statistica Sinica* 26(2):509–526 — MSM-Cox under
+  case-cohort sampling.
+- Ozenne et al. (2017), *R Journal* 9(2):440–460; Ozenne et al. (2020), *Biometrical
+  Journal* 62(3):751–763 — `riskRegression::ate` standardized-risk influence function.
+- Etievant & Gail (2024/25), `CaseCohortCoxSurvival`, *IJE* 54(2):dyaf016; Rebora et al.
+  (2016), *BMC Med Res Methodol* 16:5; Breslow & Wellner (2007), *Scand J Stat*
+  34(1):86–102 — two-phase / case-cohort standardized-risk variance.
+- Robins & Rotnitzky (1992); Hubbard, van der Laan & Robins (2000); Zhang & Schaubel
+  (2012), *Stat Med* 31(30):4255–4268; Bai, Tsiatis & O'Brien (2013), *Biometrics*
+  69(4):830–839 — locally efficient / doubly-robust treatment-specific survival
+  (`surv_aipw`): consistent if either the outcome (hazard) model or the propensity
+  (+ censoring) models is correct.
+- Andersen (2013), *Stat Med* 32(30):5278–5285; Conner & Trinquart (2021), *Stat Med*
+  40(9):2177–2196 — RMTL / years-of-life-lost under competing risks.
