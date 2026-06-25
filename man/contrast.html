@@ -498,9 +498,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <pre><code class="language-R">contrast(
   fit,
-  type = c("difference", "ratio", "or", "hr", "af", "excess"),
+  type = c("difference", "ratio", "or", "hr", "af", "excess", "rmst"),
   ci_method = c("model", "sandwich", "bootstrap"),
   conf_level = 0.95,
+  times = NULL,
   ...
 )
 </code></pre>
@@ -521,7 +522,7 @@ A <code>matchatr_fit</code> object returned by <code>matcha()</code>.
 <code id="type">type</code>
 </td>
 <td>
-Character contrast scale: <code>“difference”</code>, <code>“ratio”</code>, <code>“or”</code> (odds ratio), <code>“hr”</code> (hazard ratio, nested case-control risk-set / weighted Cox), <code>“af”</code> (acceleration factor / time ratio, the IPW NCC accelerated failure time model), or <code>“excess”</code> (excess hazard / additive rate difference, the IPW NCC additive-hazards model). When omitted, it defaults to the estimand the design and estimator identify — <code>“or”</code> for the classical odds-ratio engines, <code>“hr”</code> for the risk-set / weighted Cox engines, <code>“af”</code> for <code>ipw_aft</code>, <code>“excess”</code> for <code>ipw_aalen</code>, <code>“difference”</code> otherwise. Each estimator identifies exactly one scale, so an off-scale request aborts with <code>matchatr_unidentified_estimand</code>.
+Character contrast scale: <code>“difference”</code>, <code>“ratio”</code>, <code>“or”</code> (odds ratio), <code>“hr”</code> (hazard ratio, nested case-control risk-set / weighted Cox), <code>“af”</code> (acceleration factor / time ratio, the IPW NCC accelerated failure time model), <code>“excess”</code> (excess hazard / additive rate difference, the IPW NCC additive-hazards model), or <code>“rmst”</code> (restricted mean survival time difference, the design-weighted causal-survival estimator). When omitted, it defaults to the estimand the design and estimator identify — <code>“or”</code> for the classical odds-ratio engines, <code>“hr”</code> for the risk-set / weighted Cox engines, <code>“af”</code> for <code>ipw_aft</code>, <code>“excess”</code> for <code>ipw_aalen</code>, <code>“difference”</code> otherwise. Each estimator identifies exactly one family of scales, so an off-scale request aborts with <code>matchatr_unidentified_estimand</code>.
 </td>
 </tr>
 <tr>
@@ -538,6 +539,14 @@ Character variance source for the interval: <code>“model”</code> (informatio
 </td>
 <td>
 Numeric confidence level for the interval, a single number strictly in (0, 1). Defaults to 0.95.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code id="times">times</code>
+</td>
+<td>
+Numeric vector of follow-up times (risk difference / ratio) or RMST horizons at which to report a marginal causal-survival contrast (the design-weighted <code>surv_gcomp</code> estimator). Required for that estimator; ignored by the non-survival engines. Defaults to <code>NULL</code>.
 </td>
 </tr>
 <tr>
