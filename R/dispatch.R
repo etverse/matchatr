@@ -33,7 +33,9 @@ dispatch_table <- function() {
       ipw_aft = "ipw_aft",
       ipw_aalen = "ipw_aalen"
     ),
-    case_cohort = c(cch = "cch"),
+    # The case-cohort pseudo-likelihood hazard ratio, plus the design-weighted
+    # marginal causal-survival g-computation on that weighted Cox.
+    case_cohort = c(cch = "cch", surv_gcomp = "surv_gcomp"),
     two_phase = c(survey = "survey_twophase"),
     counter_matched = c(weighted_cox = "weighted_cox")
   )
@@ -123,6 +125,9 @@ default_contrast_type <- function(engine, design_type = NULL) {
     # hazard (a rate difference).
     ipw_aft = "af",
     ipw_aalen = "excess",
+    # Design-weighted causal survival targets a marginal effect; default to the
+    # risk difference (reported at the requested follow-up times).
+    surv_gcomp = "difference",
     # Case-control weighting targets a marginal effect; the etverse convention is
     # to default to the risk difference.
     ccw_gformula = "difference",
@@ -240,6 +245,10 @@ run_engine <- function(fit) {
     ipw_aft = fit_ipw_aft(fit),
     ipw_aalen = fit_ipw_aalen(fit),
     cch = fit_cch(fit),
+    # Design-weighted marginal causal survival: g-computation on the design's
+    # weighted Cox model (the inclusion weights enter the partial likelihood and
+    # the Horvitz-Thompson covariate-distribution standardization).
+    surv_gcomp = fit_surv_gcomp(fit),
     # Case-control-weighted causal estimators: reweight to the source population
     # and estimate the marginal effect on the weighted sample. g-computation /
     # IPW / AIPW delegate to causatr through the same fit_ccw() (which reads

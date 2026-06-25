@@ -7,8 +7,10 @@ Self-Prentice / Borgan case-cohort) and marginal causal effects via **case-contr
 weighting** (the Rose & van der Laan g-formula / IPW / AIPW / TMLE family) and
 **design-based inclusion weighting** (Samuelsen, Borgan). Part of the
 [etverse](https://github.com/etverse) ecosystem; delegates estimation to `causatr`
-(g-comp / IPW / AIPW + sandwich/bootstrap variance) and `survatr` (causal survival
-on person-period data) wherever possible.
+(g-comp / IPW / AIPW + sandwich/bootstrap variance) wherever possible. The sibling
+`survatr` covers causal survival on full-cohort person-period data; matchatr's
+design-weighted marginal survival is g-computed on its own weighted Cox instead (the
+survatr pooled-logistic path biases the contrast under sampling — see PHASE_10).
 
 > **Status: classical odds-ratio engines landing.** The PHASE_1 foundation
 > (design taxonomy, unified `matchatr_design` S3 object + six constructors, the
@@ -230,8 +232,38 @@ on person-period data) wherever possible.
 > (risk-set / incidence-density) CC design is rejected — `matcha(design =
 > nested_cc(...), estimator = "ccw_*")` aborts `matchatr_bad_estimator` toward
 > `ipw_cox`, since risk-set sampling is not case-control sampling and the binary q₀
-> reweighting does not identify a marginal estimand. PHASE_10+ remain
-> `Status: DESIGN`.
+> reweighting does not identify a marginal estimand. **PHASE_10 Chunk 1
+> (case-cohort design-weighted causal survival) is complete**: `matcha(design =
+> case_cohort(...), estimator = "surv_gcomp")` reports a **marginal** causal-survival
+> contrast — the risk difference (`contrast(type = "difference", times = )`), risk
+> ratio (`"ratio"`), or restricted mean survival time difference (`"rmst"`) at the
+> requested follow-up times — by g-computation on the design's own weighted Cox.
+> `fit_surv_gcomp()` (`R/causal_survival_sampled.R`) delegates the fit to `fit_cch()`
+> (recoding the exposure to 0/1), and `contrast_surv_gcomp()`
+> (`R/contrast_surv_sampled.R`) standardizes the subject-specific absolute risk
+> F(t|x,W) = 1 − exp(−Λ̂₀(t) exp(β̂ᵀx)) over the subcohort covariate distribution:
+> the marginal risk under do(X=a) is the inclusion-weighted (Horvitz-Thompson)
+> average F^a(t) = Σ_j w_j F(t|X=a,W_j) / Σ_j w_j, with β̂ from `survival::cch`, Λ̂₀
+> from the IPW Breslow baseline (`ipw_breslow_cch()`), per-subject linear predictors
+> from `ar_lp_from_newdata()`, and subcohort members weighted by the inverse
+> (stratum-specific) sampling fraction N_s/n_s (`subcohort_std_weights()`). Variance
+> is the design-preserving cohort-resample bootstrap (`surv_gcomp_boot_ci()`,
+> `R/variance_surv_sampled.R`); `contrast()` gains a `times =` arg and a `"rmst"`
+> scale; `ci_method = "sandwich"`, a non-binary exposure, an off-scale `type`, and
+> missing / non-positive `times` are each rejected. **This deliberately does NOT
+> delegate to `survatr`** (the original PHASE_10 plan): a full-cohort truth oracle
+> showed survatr's pooled-logistic `surv_gcomp` biases the contrast under sampling —
+> it marginalizes the counterfactual survival unweighted, and constant per-subject
+> inclusion weights cannot express the time-varying case-cohort risk-set weighting
+> (cases' pre-event person-time is mis-weighted, attenuating β by ~20–30 MC-SE) — so
+> the Cox-partial-likelihood + IPW-Breslow path (which weights the risk sets
+> correctly) is used instead. `survatr` moved from Imports to Suggests. Oracles: the
+> full-cohort g-computation truth (Monte-Carlo unbiasedness for RD(t)/RR(t)/RMST; the
+> case-cohort sample retains every case so the failure-time grid is identical) and
+> per-subject agreement of the marginalized closed form with `absolute_risk()`.
+> **PHASE_10 Chunk 2 (nested case-control `surv_gcomp` + design-aware bootstrap) and
+> Chunk 3 (doubly-robust `surv_aipw`) are pending / deferred; PHASE_11+ remain
+> `Status: DESIGN`.**
 
 ## Guide files
 
@@ -373,9 +405,20 @@ This is an R package: `R/` (source), `tests/testthat/` (tests, `test-foo.R` mirr
   `ccw_estimated_q0_term()` / `ccw_apply_estimated_q0()`: the design-preserving
   within-stratum percentile bootstrap and the estimated-q₀ delta-method variance
   term, shared by `contrast_ccw()` / `contrast_ccw_tmle()`; `ccw_boot_point()`
-  strips `prevalence_n` to avoid recursion through the variance branches). Still to
-  come:
-  `causal_survival_sampled.R` (design-weighted survatr).
+  strips `prevalence_n` to avoid recursion through the variance branches).
+  `causal_survival_sampled.R` (PHASE_10 Chunk 1 — `fit_surv_gcomp()`: design-weighted
+  marginal causal-survival fit, delegating to `fit_cch()` / `fit_ipw_cox()` after
+  recoding the exposure to 0/1 (`surv_gcomp_recode_exposure()`);
+  `surv_gcomp_std_sample()` / `subcohort_std_weights()` / `cc_inclusion_weights()`:
+  the Horvitz-Thompson standardization sample + inclusion weights),
+  `contrast_surv_sampled.R` (PHASE_10 Chunk 1 — `contrast_surv_gcomp()`: the marginal
+  RD(t) / RR(t) / RMST contrast; `surv_gcomp_marginal_risk()` computes the
+  inclusion-weighted closed-form F^a(t) from the IPW Breslow (`surv_gcomp_breslow()`)
+  and per-subject linear predictors; `surv_gcomp_rmst_diff()` integrates the marginal
+  survival), `variance_surv_sampled.R` (PHASE_10 Chunk 1 — `surv_gcomp_boot_ci()`:
+  the design-preserving cohort-resample bootstrap interval). The earlier survatr
+  pooled-logistic delegation was dropped after a truth oracle showed it biases the
+  contrast under sampling (see the status block / `PHASE_10`).
 - **Inference:** lean on causatr/survatr variance engines; matchatr adds only the
   sampling-variance corrections (`variance_self_prentice.R`, `variance_samuelsen.R`,
   `variance_ccw.R`).
@@ -478,7 +521,7 @@ Shell: `air format .` (format all R files).
 
 matchatr owns the **sampling-design + weighting layer** for case-control-type designs
 and the marginal causal contrasts they support. It **delegates** point estimation and
-variance to `causatr` (g-comp / IPW / AIPW) and `survatr` (causal survival), to
+variance to `causatr` (g-comp / IPW / AIPW), to
 `survival` (clogit / coxph / cch), `nnet` (polytomous), `multipleNCC` (NCC IPW), and
 `survey` (two-phase / calibration). The ONE genuinely new estimator engine is
 **CCW-TMLE** (targeting step), because the etverse has no targeted-learning code.
@@ -490,7 +533,7 @@ NOT in scope: genetics designs (handbook Ch23-28), measurement-error correction
 | Need | Package | Relationship |
 |---|---|---|
 | Causal engine (g-comp/IPW/AIPW + variance) | `causatr` | **Imports** (delegated) |
-| Causal survival (person-period) | `survatr` | **Imports** (delegated) |
+| Causal survival (full-cohort person-period) | `survatr` | **Suggests** (sibling; not used by matchatr's design-weighted survival) |
 | Conditional logistic / weighted Cox / case-cohort | `survival` | **Imports** |
 | Sandwich variance | `sandwich` | **Imports** |
 | Numerical derivatives | `numDeriv` | **Imports** |
@@ -519,7 +562,8 @@ Studies* (Borgan, Breslow, Chatterjee, Gail, Scott, Wild, 2018).
 
 **Causal layer** — `PHASE_8_CAUSAL_STRATEGY` (strategy + Rose & van der Laan) ·
 `PHASE_9_CCW_CONTRASTS` (CCW g-formula/IPW/AIPW/TMLE via causatr + new targeting) ·
-`PHASE_10_CAUSAL_SURVIVAL_SAMPLED` (design-weighted survatr).
+`PHASE_10_CAUSAL_SURVIVAL_SAMPLED` (design-weighted causal survival via weighted-Cox
+g-computation).
 
 **Efficiency & advanced** — `PHASE_11_TWO_PHASE` (Ch12) · `PHASE_12_CALIBRATION` (Ch13) ·
 `PHASE_13_MULTIPLE_IMPUTATION` (Ch20) · `PHASE_14_SEMIPARAMETRIC_MLE` (Ch21) ·

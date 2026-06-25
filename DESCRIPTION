@@ -12,11 +12,13 @@ Description: Classical and causal estimation for (matched) case-control,
     plus marginal causal effects via case-control weighting (the Rose and
     van der Laan g-formula, inverse-probability weighting, augmented IPW,
     and targeted maximum likelihood family) and design-based inclusion
-    weighting (Samuelsen and Borgan). Integrates with the etverse engine
-    (causatr for g-computation / IPW / AIPW with sandwich and bootstrap
-    variance, survatr for causal survival on person-period data) so that
-    case-control and design weights compose directly with existing
-    estimators. Part of the etverse ecosystem.
+    weighting (Samuelsen and Borgan), including marginal causal-survival
+    contrasts (absolute risk, risk difference, risk ratio, and restricted
+    mean survival time) standardized over the cohort from a sampled design.
+    Integrates with the etverse engine causatr (g-computation / IPW / AIPW
+    with sandwich and bootstrap variance) so that case-control and design
+    weights compose directly with existing estimators. Part of the etverse
+    ecosystem.
 License: MIT + file LICENSE
 Depends:
     R (>= 4.1.0)
@@ -30,7 +32,6 @@ Imports:
     rlang (>= 1.0.0),
     sandwich,
     stats,
-    survatr,
     survival
 Suggests:
     Epi,
@@ -42,6 +43,7 @@ Suggests:
     multipleNCC,
     quarto,
     riskclustr,
+    survatr,
     survey,
     testthat (>= 3.0.0),
     timereg,

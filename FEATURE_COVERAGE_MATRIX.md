@@ -512,7 +512,38 @@ so it is cross-checked against `tmle::tmle(obsWeights=)` rather than delicatesse
 
 ## Design-weighted causal survival (PHASE_10)
 
-_Pending implementation._
+Marginal causal-survival contrasts from a sampled design, g-computed on the
+design's own weighted Cox: the inclusion weights enter the partial likelihood
+(via `cch` / `ipw_cox`), the IPW Breslow gives Λ̂₀(t), and the subject-specific
+absolute risk F(t | x, W) is Horvitz-Thompson standardized over the cohort
+covariate distribution to the treat-all / treat-none marginal risks. **Chunk 1
+(case-cohort) is complete.** matchatr does **not** delegate to `survatr` here:
+its `surv_gcomp` (pooled-logistic) marginalizes unweighted and constant
+inclusion weights misrepresent the sampled risk sets, biasing the contrast (a
+full-cohort truth oracle confirmed it) — so the standardization is built on
+matchatr's validated weighted-Cox + IPW-Breslow machinery instead.
+
+| Design | Estimator | Estimand | Contrast | Variance | Status | Test |
+|---|---|---|---|---|---|---|
+| case-cohort | surv_gcomp (cch) | marginal F_x(t) | difference | bootstrap | ✅ MC-unbiased vs full-cohort g-comp truth | `test-causal_survival_sampled.R` |
+| case-cohort | surv_gcomp (cch) | marginal F_x(t) | ratio | bootstrap | ✅ MC-unbiased vs full-cohort truth | `test-causal_survival_sampled.R` |
+| case-cohort | surv_gcomp (cch) | marginal RMST | rmst | bootstrap | ✅ MC-unbiased vs full-cohort truth | `test-causal_survival_sampled.R` |
+| case-cohort (stratified subcohort) | surv_gcomp (cch) | marginal F_x(t) | difference | bootstrap | ✅ stratum-weighted recovery | `test-causal_survival_sampled.R` |
+| case-cohort | surv_gcomp | marginal risk | — | — | ✅ marginalized closed form == `absolute_risk()` per subject | `test-causal_survival_sampled.R` |
+| two-level factor exposure | surv_gcomp | marginal F_x(t) | difference | bootstrap | ✅ runs (recoded to 0/1) | `test-causal_survival_sampled.R` |
+| non-binary exposure | surv_gcomp | — | — | — | ⛔ `matchatr_bad_input` | `test-causal_survival_sampled.R` |
+| surv_gcomp | — | — | or / hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-causal_survival_sampled.R` |
+| surv_gcomp | — | — | — | sandwich | ⛔ `matchatr_unsupported_variance` | `test-causal_survival_sampled.R` |
+| surv_gcomp, missing / non-positive `times` | — | — | — | — | ⛔ `matchatr_bad_input` | `test-causal_survival_sampled.R` |
+| unmatched / nested CC | surv_gcomp | — | — | — | ⛔ `matchatr_bad_estimator` (nested NCC ships in Chunk 2) | `test-causal_survival_sampled.R` |
+
+No Python (`delicatessen`) oracle: a design-weighted marginal survival contrast
+is not among its M-estimator templates; the full-cohort g-computation truth and
+the per-subject `absolute_risk()` agreement are the cross-checks.
+
+**Chunk 2 (nested case-control, Samuelsen-weighted `ipw_cox` g-computation + a
+design-aware bootstrap) is pending.** **Chunk 3 (a doubly-robust `surv_aipw`) is
+deferred** — it needs a DR survival estimator the etverse does not yet ship.
 
 ## Two-phase / calibration (PHASE_11, PHASE_12)
 

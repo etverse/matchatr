@@ -768,3 +768,45 @@ make_matched_cohort_ccw <- function(
     samp
   })
 }
+
+# Truth-based DGP for the design-weighted marginal causal-survival contrasts
+# (PHASE_10). A cohort with a continuous confounder z, a binary exposure x that
+# depends on z (genuine confounding), and a survival time whose hazard is
+# lowered by treatment is generated; the full-cohort survatr g-computation is the
+# marginal-RD(t) truth. Because a case-cohort sample retains EVERY case, the
+# event-time grid is identical between the full cohort and any case-cohort sample
+# of it, so the design-weighted estimate is compared to the full-cohort truth on
+# the same grid. The `all` column (everyone in the subcohort) drives that
+# full-cohort truth through the same code path; `sub` is the random subcohort.
+make_surv_cohort <- function(
+  n = 5000L,
+  sub_frac = 0.5,
+  base_rate = 0.15,
+  beta_x = -0.7,
+  beta_z = 0.5,
+  cens_rate = 0.05,
+  seed = 2026L
+) {
+  withr::with_seed(seed, {
+    z <- stats::rnorm(n)
+    x <- stats::rbinom(n, 1L, stats::plogis(0.5 * z))
+    rate <- base_rate * exp(beta_x * x + beta_z * z)
+    tt <- stats::rexp(n, rate)
+    cc <- stats::rexp(n, cens_rate)
+    t_obs <- pmin(tt, cc)
+    d <- as.integer(tt <= cc)
+    n_sub <- round(n * sub_frac)
+    sub <- integer(n)
+    sub[sample.int(n, n_sub)] <- 1L
+    data.frame(
+      id = seq_len(n),
+      t = t_obs,
+      d = d,
+      x = x,
+      z = z,
+      sub = sub,
+      stratum = factor(sample(c("A", "B"), n, replace = TRUE)),
+      all = 1L
+    )
+  })
+}

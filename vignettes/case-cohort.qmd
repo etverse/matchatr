@@ -190,8 +190,52 @@ A case-cohort fit identifies the **hazard ratio**. Requesting an odds ratio
 contrast(fit, type = "or")
 ```
 
-A marginal risk difference / risk ratio also requires a source-population
-prevalence `q0` that the standard case-cohort analysis does not supply.
+A marginal risk difference / risk ratio from the *classical* case-cohort analysis
+would require a source-population prevalence `q0` that `estimator = "cch"` does not
+supply — but the design-weighted g-computation below gets there a different way.
+
+## Marginal causal survival
+
+The hazard ratio above is a *conditional* effect on the hazard scale. For a
+**marginal** causal contrast — the absolute risk, risk difference, risk ratio, or
+restricted mean survival time (RMST) the whole cohort would show under one exposure
+versus the other — use `estimator = "surv_gcomp"`. It g-computes on the same
+design-weighted Cox: it standardizes the model-based absolute risk
+$F(t \mid x, W) = 1 - \exp(-\hat\Lambda_0(t)\,e^{\hat\beta^\top x})$ over the
+subcohort (a random sample of the cohort, weighted by the inverse subcohort sampling
+fraction) to the treat-all and treat-none marginal risks, then contrasts them. No
+`q0` is needed: a case-cohort *samples the cohort directly*, so the subcohort already
+represents the source-population covariate distribution. Variance is a
+design-preserving bootstrap.
+
+The exposure must be binary, so we code unfavourable histology as a 0/1 indicator:
+
+```{r}
+nwtco2$histol_uh <- as.integer(nwtco2$histol == 2L)
+
+fit_g <- matcha(
+  nwtco2,
+  outcome     = "rel",
+  exposure    = "histol_uh",
+  design      = case_cohort(subcohort = "subcohort", time = "edrel"),
+  confounders = ~ stage + age,
+  estimator   = "surv_gcomp"
+)
+
+# Marginal risk difference at two relapse-free follow-up times (days).
+contrast(fit_g, type = "difference", times = c(1500, 3000), n_boot = 200)
+```
+
+Unfavourable histology raises the marginal relapse risk by roughly 28 percentage
+points — a population-level statement the hazard ratio cannot make directly. The
+restricted mean survival time difference up to a horizon summarises the gap as
+expected relapse-free days lost:
+
+```{r}
+contrast(fit_g, type = "rmst", times = 3000, n_boot = 200)
+```
+
+The risk ratio (`type = "ratio"`) is available on the same fit.
 
 ## Covered combinations
 
@@ -204,10 +248,13 @@ prevalence `q0` that the standard case-cohort analysis does not supply.
 | I.Borgan | stratified | HR | Borgan asymptotic | ✅ |
 | II.Borgan | stratified | HR | plug-in asymptotic | ✅ |
 | any method | — | absolute risk F_x(t) | IPW Breslow + delta log-log CI | ✅ |
+| surv_gcomp | simple / stratified | marginal RD(t) / RR(t) / RMST | design-preserving bootstrap | ✅ |
 | Borgan I/II, no `stratum` | — | — | ⛔ `matchatr_bad_design` |
-| any method | — | odds ratio | ⛔ use `type = "hr"` |
-| any method | — | RD / RR | ⛔ need `q0` |
-| any method | — | sandwich / bootstrap CI | ⛔ `matchatr_unsupported_variance` |
+| cch | — | odds ratio | ⛔ use `type = "hr"` |
+| cch | — | RD / RR | ⛔ need `q0` (use `surv_gcomp`) |
+| cch | — | sandwich / bootstrap CI | ⛔ `matchatr_unsupported_variance` |
+| surv_gcomp | — | conditional OR / HR | ⛔ `matchatr_unidentified_estimand` |
+| surv_gcomp | — | non-binary exposure | ⛔ `matchatr_bad_input` |
 
 See `FEATURE_COVERAGE_MATRIX.md` for the full combination table.
 
