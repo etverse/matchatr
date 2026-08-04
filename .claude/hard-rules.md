@@ -15,17 +15,18 @@ Project-specific rules that override / extend the etverse-wide rules at
 - **Repro-script prefix.** `/tmp/matchatr_repro_<slug>.R`.
 - **Test-log paths.** `/tmp/matchatr-test-<file>.txt` for per-file runs,
   `/tmp/matchatr-test-results.txt` for the full suite.
-- **etverse engine reuse.** matchatr `Imports: causatr, survatr`. Estimation is
+- **etverse engine reuse.** matchatr `Imports: causatr`; `survatr` is **Suggests**
+  (sibling, not a delegation target — see the survatr invariant below). Estimation is
   delegated wherever possible; matchatr owns the *sampling-design + weight* layer,
   not a new variance engine. Do not reimplement g-comp / IPW / AIPW / sandwich /
-  bootstrap that already live in causatr/survatr.
+  bootstrap that already live in causatr.
 
 ## Supported dimensions (for combination audits)
 
 | Dimension | Values |
 |---|---|
 | **Design** | unmatched CC, matched CC, nested CC (NCC), case-cohort, two-phase, counter-matched |
-| **Estimator** | conditional logistic (`survival::clogit`), unconditional logistic / Mantel-Haenszel, polytomous (`nnet::multinom`), risk-set / weighted Cox (`survival::coxph`), case-cohort (`survival::cch`: Prentice / Self-Prentice / Borgan I+II), CCW-g-formula, CCW-IPW, CCW-AIPW, CCW-TMLE, design-weighted survatr |
+| **Estimator** | conditional logistic (`survival::clogit`), unconditional logistic / Mantel-Haenszel, polytomous (`nnet::multinom`), risk-set / weighted Cox (`survival::coxph`), case-cohort (`survival::cch`: Prentice / Self-Prentice / Borgan I+II), CCW-g-formula, CCW-IPW, CCW-AIPW, CCW-TMLE, design-weighted `surv_gcomp` (matchatr's own weighted-Cox g-computation) |
 | **Weight type** | none, case-control weights (q₀-based, Rose & van der Laan), design / inclusion-probability weights (Samuelsen KM / GLM / GAM, Borgan), survey / calibration weights |
 | **Outcome** | binary (case-control), time-to-event (NCC / case-cohort), polytomous (multiple case groups) |
 | **Estimand** | conditional OR, conditional HR, marginal RD, marginal RR, marginal OR, absolute risk F(t), RMST |
@@ -37,6 +38,17 @@ Project-specific rules that override / extend the etverse-wide rules at
 ## Hard rules (appended to the skill's generic rules)
 
 ### Architecture invariants — DO NOT flag these as bugs without a numerical reproducer
+
+- **Design-weighted marginal survival does NOT delegate to `survatr`, by design.**
+  `surv_gcomp` g-computes on matchatr's own weighted Cox (`fit_cch()` /
+  `ipw_breslow_cch()` + a cohort-resample bootstrap), not on survatr's pooled-logistic
+  path. A full-cohort truth oracle showed the survatr route biases the contrast under
+  sampling: it marginalizes counterfactual survival unweighted, and constant
+  per-subject inclusion weights cannot express the time-varying case-cohort risk-set
+  weighting, so cases' pre-event person-time is mis-weighted and β attenuates by
+  ~20–30 Monte-Carlo SE. `survatr` is therefore `Suggests`, not `Imports`. Do NOT
+  propose "reuse survatr here" as a simplification, and do NOT flag the duplication
+  as a bug. Full derivation: `PHASE_10_CAUSAL_SURVIVAL_SAMPLED.md` §"Why not survatr".
 
 - **Case-control weights and design weights are DISTINCT objects with distinct
   variance consequences.** Case-control weights (Rose & van der Laan) reweight a
