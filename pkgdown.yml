@@ -2,7 +2,7 @@ altdoc: 0.7.3
 pandoc: 3.7.0.2
 pkgdown: 2.1.3
 pkgdown_sha: ~
-last_built: 2026-11-24T19:51:26+0000
+last_built: 2026-11-24T20:01:06+0000
 urls:
   reference: https://etverse.github.io/matchatr/man
   article: https://etverse.github.io/matchatr/vignettes
