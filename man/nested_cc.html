@@ -501,7 +501,7 @@ A non-empty character vector naming the column(s) that identify the sampled risk
 <code id="time">time</code>
 </td>
 <td>
-A single character string naming the event/entry time column that defines the risk sets. Carried for the inclusion-probability weight and weighted-Cox estimators built on this design.
+A single character string naming the event/entry time column that defines the risk sets. Carried for the inclusion-probability weight and weighted-Cox estimators built on this design. The time scale (for example age or time since study entry) must be fixed before the controls are selected, because it defines which subjects are in each sampled risk set; the conditional partial likelihood is valid only on that scale.
 </td>
 </tr>
 <tr>

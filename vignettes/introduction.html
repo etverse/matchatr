@@ -650,11 +650,11 @@ div.csl-indent {
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ℹ For a marginal risk difference / ratio, supply `prevalence =` on the design and use a case-control-weighted estimator (e.g. `estimator = "ccw_gformula"`).</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Supplying the source-population prevalence on the design (<code>unmatched_cc(prevalence = 0.02)</code>) unlocks the case-control-weighted marginal contrasts — that layer is on the roadmap below.</p>
+<p>Supplying the source-population prevalence on the design (<code>unmatched_cc(prevalence = 0.02)</code>) unlocks the case-control-weighted marginal contrasts, which the case-control-weighting article covers.</p>
 </section>
 <section id="what-works-today" class="level2">
 <h2 class="anchored" data-anchor-id="what-works-today">What works today</h2>
-<p>matchatr is built phase by phase against the <em>Handbook of Statistical Methods for Case-Control Studies</em> <span class="citation" data-cites="borgan2018handbook">(<a href="#ref-borgan2018handbook" role="doc-biblioref">Borgan et al. 2018</a>)</span>. The classical odds-ratio engines are implemented:</p>
+<p>matchatr follows the <em>Handbook of Statistical Methods for Case-Control Studies</em> <span class="citation" data-cites="borgan2018handbook">(<a href="#ref-borgan2018handbook" role="doc-biblioref">Borgan et al. 2018</a>)</span>. The odds-ratio engines for unmatched, matched and multi-group case-control data are:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -697,7 +697,7 @@ div.csl-indent {
 </tr>
 </tbody>
 </table>
-<p>The time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC) and the marginal causal layer (case-control-weighting g-formula / IPW / AIPW / TMLE, design-weighted causal survival) are designed but not yet implemented; see <code>FEATURE_COVERAGE_MATRIX.md</code> for the authoritative status of every cell.</p>
+<p>The time-to-event sampling designs (nested case-control, case-cohort, inverse-probability-weighted nested case-control) and the marginal causal contrasts (case-control-weighting g-formula / IPW / AIPW / TMLE, design-weighted causal survival) have their own articles. <code>FEATURE_COVERAGE_MATRIX.md</code> records which combinations are tested.</p>
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
@@ -1388,33 +1388,26 @@ Rose, Sherri, and Mark J. van der Laan. 2009. <span>“Why Match? Investigating 
 <span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>)</span>
 <span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a>Supplying the source-population prevalence on the design</span>
-<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a>(<span class="in">`unmatched_cc(prevalence = 0.02)`</span>) unlocks the case-control-weighted marginal</span>
-<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a>contrasts — that layer is on the roadmap below.</span>
+<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a>Supplying the source-population prevalence on the design (<span class="in">`unmatched_cc(prevalence = 0.02)`</span>) unlocks the case-control-weighted marginal contrasts, which the case-control-weighting article covers.</span>
+<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a><span class="fu">## What works today</span></span>
 <span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a><span class="fu">## What works today</span></span>
+<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a>matchatr follows the *Handbook of Statistical Methods for Case-Control Studies* <span class="co">[</span><span class="ot">@borgan2018handbook</span><span class="co">]</span>. The odds-ratio engines for unmatched, matched and multi-group case-control data are:</span>
 <span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a>matchatr is built phase by phase against the *Handbook of Statistical Methods</span>
-<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a>for Case-Control Studies* <span class="co">[</span><span class="ot">@borgan2018handbook</span><span class="co">]</span>. The classical odds-ratio</span>
-<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a>engines are implemented:</span>
-<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Design <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Article <span class="pp">|</span></span>
-<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
-<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Unmatched case-control <span class="pp">|</span> <span class="in">`"logistic"`</span> <span class="pp">|</span> conditional OR (any exposure type) <span class="pp">|</span> <span class="co">[</span><span class="ot">Unmatched CC</span><span class="co">](unmatched-cc.qmd)</span> <span class="pp">|</span></span>
-<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Unmatched case-control <span class="pp">|</span> <span class="in">`"mh"`</span> <span class="pp">|</span> Mantel-Haenszel stratified OR <span class="pp">|</span> <span class="co">[</span><span class="ot">Unmatched CC</span><span class="co">](unmatched-cc.qmd)</span> <span class="pp">|</span></span>
-<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matched case-control <span class="pp">|</span> <span class="in">`"clogit"`</span> <span class="pp">|</span> conditional OR (+ effect modification) <span class="pp">|</span> <span class="co">[</span><span class="ot">Matched CC</span><span class="co">](matched-cc.qmd)</span> <span class="pp">|</span></span>
-<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matched case-control <span class="pp">|</span> <span class="in">`"mcnemar"`</span> <span class="pp">|</span> 1:1 matched-pair OR <span class="pp">|</span> <span class="co">[</span><span class="ot">Matched CC</span><span class="co">](matched-cc.qmd)</span> <span class="pp">|</span></span>
-<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Multi-group outcome <span class="pp">|</span> <span class="in">`"polytomous"`</span> <span class="pp">|</span> per-subtype OR vs reference <span class="pp">|</span> <span class="co">[</span><span class="ot">Multiple groups</span><span class="co">](multiple-groups.qmd)</span> <span class="pp">|</span></span>
+<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Design <span class="pp">|</span> Estimator <span class="pp">|</span> Estimand <span class="pp">|</span> Article <span class="pp">|</span></span>
+<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Unmatched case-control <span class="pp">|</span> <span class="in">`"logistic"`</span> <span class="pp">|</span> conditional OR (any exposure type) <span class="pp">|</span> <span class="co">[</span><span class="ot">Unmatched CC</span><span class="co">](unmatched-cc.qmd)</span> <span class="pp">|</span></span>
+<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Unmatched case-control <span class="pp">|</span> <span class="in">`"mh"`</span> <span class="pp">|</span> Mantel-Haenszel stratified OR <span class="pp">|</span> <span class="co">[</span><span class="ot">Unmatched CC</span><span class="co">](unmatched-cc.qmd)</span> <span class="pp">|</span></span>
+<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matched case-control <span class="pp">|</span> <span class="in">`"clogit"`</span> <span class="pp">|</span> conditional OR (+ effect modification) <span class="pp">|</span> <span class="co">[</span><span class="ot">Matched CC</span><span class="co">](matched-cc.qmd)</span> <span class="pp">|</span></span>
+<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matched case-control <span class="pp">|</span> <span class="in">`"mcnemar"`</span> <span class="pp">|</span> 1:1 matched-pair OR <span class="pp">|</span> <span class="co">[</span><span class="ot">Matched CC</span><span class="co">](matched-cc.qmd)</span> <span class="pp">|</span></span>
+<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Multi-group outcome <span class="pp">|</span> <span class="in">`"polytomous"`</span> <span class="pp">|</span> per-subtype OR vs reference <span class="pp">|</span> <span class="co">[</span><span class="ot">Multiple groups</span><span class="co">](multiple-groups.qmd)</span> <span class="pp">|</span></span>
+<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a>The time-to-event sampling designs (nested case-control, case-cohort, inverse-probability-weighted nested case-control) and the marginal causal contrasts (case-control-weighting g-formula / IPW / AIPW / TMLE, design-weighted causal survival) have their own articles. <span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> records which combinations are tested.</span>
+<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
 <span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>The time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC)</span>
-<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>and the marginal causal layer (case-control-weighting g-formula / IPW / AIPW /</span>
-<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a>TMLE, design-weighted causal survival) are designed but not yet implemented; see</span>
-<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a><span class="in">`FEATURE_COVERAGE_MATRIX.md`</span> for the authoritative status of every cell.</span>
-<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

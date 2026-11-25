@@ -691,8 +691,8 @@ div.csl-indent {
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A bootstrap interval must resample within case / control strata and recompute</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the q0 weights each replicate (a later chunk); only the sandwich is wired here.</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A bootstrap interval resamples within case / control strata and recomputes</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the q0 weights each replicate.</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>, <span class="at">ci_method =</span> <span class="st">"bootstrap"</span>)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;matchatr_result&gt;</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Estimator:  ccw_gformula  (engine: ccw_gformula)</span></span>
@@ -763,7 +763,7 @@ div.csl-indent {
 </section>
 <section id="where-this-sits" class="level2">
 <h2 class="anchored" data-anchor-id="where-this-sits">Where this sits</h2>
-<p>The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW, and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance correction, a design-respecting bootstrap, and matched / nested case-control support — all built on the same one weighting concept.</p>
+<p>The case-control-weighting family offers g-formula, IPW, the doubly-robust AIPW, and the targeted (TMLE) marginal contrasts for an unmatched or matched case-control study with a known or estimated prevalence, with a sandwich or a design-preserving bootstrap interval. A nested case-control design is rejected toward <code>ipw_cox</code>. All of it rests on one weighting concept.</p>
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
@@ -1485,8 +1485,8 @@ Rose, Sherri, and Mark J. van der Laan. 2014. <span>“A Double Robust Approach 
 <span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a><span class="co">#| error: true</span></span>
-<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a><span class="co"># A bootstrap interval must resample within case / control strata and recompute</span></span>
-<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="co"># the q0 weights each replicate (a later chunk); only the sandwich is wired here.</span></span>
+<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a><span class="co"># A bootstrap interval resamples within case / control strata and recomputes</span></span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="co"># the q0 weights each replicate.</span></span>
 <span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(fit, <span class="at">type =</span> <span class="st">"difference"</span>, <span class="at">ci_method =</span> <span class="st">"bootstrap"</span>)</span>
 <span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a></span>
@@ -1554,16 +1554,12 @@ Rose, Sherri, and Mark J. van der Laan. 2014. <span>“A Double Robust Approach 
 <span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where this sits</span></span>
 <span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW,</span>
-<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a>and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a</span>
-<span id="cb12-269"><a href="#cb12-269" aria-hidden="true" tabindex="-1"></a>known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance</span>
-<span id="cb12-270"><a href="#cb12-270" aria-hidden="true" tabindex="-1"></a>correction, a design-respecting bootstrap, and matched / nested case-control</span>
-<span id="cb12-271"><a href="#cb12-271" aria-hidden="true" tabindex="-1"></a>support — all built on the same one weighting concept.</span>
-<span id="cb12-272"><a href="#cb12-272" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-273"><a href="#cb12-273" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
-<span id="cb12-274"><a href="#cb12-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-275"><a href="#cb12-275" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb12-276"><a href="#cb12-276" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>The case-control-weighting family offers g-formula, IPW, the doubly-robust AIPW, and the targeted (TMLE) marginal contrasts for an unmatched or matched case-control study with a known or estimated prevalence, with a sandwich or a design-preserving bootstrap interval. A nested case-control design is rejected toward <span class="in">`ipw_cox`</span>. All of it rests on one weighting concept.</span>
+<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-269"><a href="#cb12-269" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb12-270"><a href="#cb12-270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-271"><a href="#cb12-271" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb12-272"><a href="#cb12-272" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
