@@ -1,4 +1,4 @@
-# Multiple endpoints from one reused NCC control set (PHASE_7 Chunk 4). Tests
+# Multiple endpoints from one reused NCC control set. Tests
 # the two reuse modes of the IPW weighted Cox:
 #   (A) combined-event sampling: sample_ncc() on the union "any-failure" event
 #       ascertains every endpoint's cases at once; each cause-specific endpoint
@@ -18,7 +18,7 @@
 #   - Truth-based: a competing-risks cohort with known cause-specific Cox log-HRs;
 #     each reuse mode recovers the full-cohort cause-specific HR within a 3.5-SE
 #     band.
-# No Python oracle is added: as in Chunk 1, the weighted Cox robust sandwich has
+# No Python oracle is added: the weighted Cox robust sandwich has
 # no convenient statsmodels equivalent and is validated exactly against
 # survival::coxph and the canonical multipleNCC::wpl.
 

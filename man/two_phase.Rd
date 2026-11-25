@@ -31,11 +31,11 @@ two_phase(phase1 = "stratum", phase2 = "in_phase2")
 \seealso{
 \code{\link[=matcha]{matcha()}}
 
-Other design constructors: 
-\code{\link{case_cohort}()},
-\code{\link{counter_matched}()},
-\code{\link{matched_cc}()},
-\code{\link{nested_cc}()},
-\code{\link{unmatched_cc}()}
+Other design constructors:
+\code{\link[=case_cohort]{case_cohort()}},
+\code{\link[=counter_matched]{counter_matched()}},
+\code{\link[=matched_cc]{matched_cc()}},
+\code{\link[=nested_cc]{nested_cc()}},
+\code{\link[=unmatched_cc]{unmatched_cc()}}
 }
 \concept{design constructors}

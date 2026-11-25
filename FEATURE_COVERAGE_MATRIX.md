@@ -3,20 +3,6 @@
 Single source of truth for what works, what's tested, and at what fidelity.
 **Every PR that changes a feature MUST update this file.**
 
-> **Status: classical odds-ratio engines landing.** On top of the PHASE_1
-> design objects, `matcha()` fit verb, `(design, estimator)` dispatch, and
-> input-validation / rejection paths, the unmatched case-control **logistic /
-> Mantel-Haenszel** ORs (PHASE_2) and the matched case-control **conditional
-> logistic** OR (PHASE_3 Chunk 1, `survival::clogit`) and the **polytomous**
-> subtype ORs for multi-group outcomes (PHASE_4, `nnet::multinom`) — including
-> `test_homogeneity()`, the Wald test of whether the exposure OR is constant
-> across subtypes plus the efficient pooled common OR — run end to end through
-> the shared `contrast()` / `tidy()` OR layer. The **nested case-control** risk-set
-> conditional partial likelihood (PHASE_5 Chunk 1) reuses that same `clogit`
-> engine and reports the **hazard ratio** (`type = "hr"`; OR = HR exactly under
-> risk-set sampling). The remaining estimator cells stay pending until their
-> phases land.
-
 ## Legend
 
 | Symbol | Meaning |
@@ -26,15 +12,13 @@ Single source of truth for what works, what's tested, and at what fidelity.
 | ❌ | No test |
 | ⛔ | Rejected by design (rejection path tested) |
 
-References (planned): `survival::clogit` / `survival::cch`, `multipleNCC`, Hernán &
-Robins / handbook book values, closed-form analytical truth, `causatr` / `survatr` on
-the explicitly reweighted pseudo-cohort, R `tmle` (CCW-TMLE), `delicatessen`.
+References: `survival::clogit` / `survival::cch`, `multipleNCC`, Hernán & Robins / handbook book values, closed-form analytical truth, `causatr` / `survatr` on the explicitly reweighted pseudo-cohort, R `tmle` (CCW-TMLE), `delicatessen`.
 
 Columns: Design × Estimator × Weight × Outcome × Estimand × Contrast × Variance × Status × Test.
 
 ---
 
-## Design & API layer (PHASE_1)
+## Design and API layer
 
 Plumbing, not estimation — fidelity symbols above (which grade estimate/SE/CI)
 do not apply, so this section reports structural coverage instead.
@@ -56,16 +40,11 @@ do not apply, so this section reports structural coverage instead.
 | `contrast()` verb skeleton: signature + `matchatr_result` contract; `matchatr_not_estimated` until estimation | ⛔ | `test-contrast.R` |
 | `print.matchatr_design`, `print.matchatr_fit` | ✅ snapshot | `test-print.R` |
 
-No estimator engine runs yet; no numeric oracle applies (per PHASE_1 design).
+The `two_phase()` design is the only one whose estimator is not wired: `matcha()` returns a fit with `model = NULL`, and `contrast()` raises `matchatr_not_estimated`. The numeric oracles are in the estimator sections below.
 
-## Unmatched case-control (PHASE_2)
+## Unmatched case-control
 
-**Chunks 1–3 implemented — the unmatched case-control layer is complete.**
-`matcha(estimator = "logistic")` fits `stats::glm(family = binomial)` (or a
-pluggable `model_fn`, e.g. `mgcv::gam`) and `estimator = "mh"` computes the
-Mantel-Haenszel stratified OR; `contrast(type = "or")` reports the exposure
-conditional / summary odds ratio(s) with a Wald interval, `tidy()` / `summary()`
-render the OR table, and RD / RR are rejected as unidentified without q0.
+`matcha(estimator = "logistic")` fits `stats::glm(family = binomial)` (or a pluggable `model_fn`, e.g. `mgcv::gam`) and `estimator = "mh"` computes the Mantel-Haenszel stratified OR; `contrast(type = "or")` reports the exposure conditional / summary odds ratio(s) with a Wald interval, `tidy()` / `summary()` render the OR table, and RD / RR are rejected as unidentified without q0.
 
 | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -88,24 +67,11 @@ render the OR table, and RD / RR are rejected as unidentified without q0.
 S3 surface: `tidy.matchatr_fit` (broom-style coefficient / OR table, model or
 `robust` SE), `tidy.matchatr_result`, `summary.matchatr_fit`,
 `print.matchatr_result` — all tested in `test-unconditional.R`. Smooth-of-exposure
-(spline OR-curve) is deferred (the OR is then a value-vs-value contrast).
+(spline OR-curve) is planned (GitHub issue); the OR is then a value-vs-value contrast.
 
-## Matched case-control (PHASE_3)
+## Matched case-control
 
-**Chunks 1–3 implemented — the matched case-control layer is complete.**
-`matcha(design = matched_cc(strata = ...), estimator = "clogit")` fits the
-matched case-control conditional maximum likelihood via `survival::clogit`
-(`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum),
-and `contrast(type = "or")` reports the exposure's conditional odds ratio with a
-partial-likelihood-information Wald interval. `estimator = "mcnemar"` computes the
-1:1 matched-pair OR = n10/n01 with Var(log OR) = 1/n10 + 1/n01 in closed form
-(no `clogit`), rejecting M:1 / richer matching toward `clogit`. Adding
-`effect_modifier = "m"` fits `outcome ~ exposure * m + ... + strata(set)` and
-reports the exposure's **stratum-specific** conditional OR within each modifier
-level (`beta_x` at the reference level, `beta_x + beta_{x:level}` elsewhere,
-Wald intervals from the joint partial-likelihood variance). The matching
-variables are conditioned away (no estimable coefficient); only the exposure /
-adjustment / interaction ORs are reported.
+`matcha(design = matched_cc(strata = ...), estimator = "clogit")` fits the matched case-control conditional maximum likelihood via `survival::clogit` (`outcome ~ exposure + confounders + strata(set)`, each matched set a stratum), and `contrast(type = "or")` reports the exposure's conditional odds ratio with a partial-likelihood-information Wald interval. `estimator = "mcnemar"` computes the 1:1 matched-pair OR = n10/n01 with Var(log OR) = 1/n10 + 1/n01 in closed form (no `clogit`), rejecting M:1 / richer matching toward `clogit`. Adding `effect_modifier = "m"` fits `outcome ~ exposure * m + ... + strata(set)` and reports the exposure's **stratum-specific** conditional OR within each modifier level (`beta_x` at the reference level, `beta_x + beta_{x:level}` elsewhere, Wald intervals from the joint partial-likelihood variance). The matching variables are conditioned away (no estimable coefficient); only the exposure / adjustment / interaction ORs are reported.
 
 | Matching | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -151,21 +117,9 @@ and variable-ratio matching need no special handling because the conditional
 likelihood treats any matched-set composition uniformly (truth-tested in
 `test-clogit.R`).
 
-## Multiple case / control groups (PHASE_4)
+## Multiple case and control groups
 
-**Chunks 1 & 2 implemented — the polytomous layer is complete.**
-`matcha(design = unmatched_cc(), estimator = "polytomous")` fits a
-baseline-category multinomial logistic via `nnet::multinom`
-(`outcome ~ exposure + confounders`) for an outcome with three or more groups
-(`reference =` selects the baseline group, releveled to the front). Each
-non-reference equation's exposure coefficient is that subtype's log odds ratio
-versus the reference; `contrast(type = "or")` reports one OR row per
-(subtype, exposure-coefficient) with an information-matrix Wald interval, and
-`tidy()` renders the full per-equation table with a `y.level` column. RD / RR
-are rejected as unidentified without the source-population prevalences; the
-robust-sandwich and bootstrap variances do not apply. `test_homogeneity()`
-(Chunk 2, below) tests whether the exposure OR is constant across subtypes and
-reports the efficient pooled common OR.
+`matcha(design = unmatched_cc(), estimator = "polytomous")` fits a baseline-category multinomial logistic via `nnet::multinom` (`outcome ~ exposure + confounders`) for an outcome with three or more groups (`reference =` selects the baseline group, releveled to the front). Each non-reference equation's exposure coefficient is that subtype's log odds ratio versus the reference; `contrast(type = "or")` reports one OR row per (subtype, exposure-coefficient) with an information-matrix Wald interval, and `tidy()` renders the full per-equation table with a `y.level` column. RD / RR are rejected as unidentified without the source-population prevalences; the robust-sandwich and bootstrap variances do not apply. `test_homogeneity()` (below) tests whether the exposure OR is constant across subtypes and reports the efficient pooled common OR.
 
 | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -187,33 +141,11 @@ reports the efficient pooled common OR.
 | polytomous | — | RD / RR | — | — | ⛔ `matchatr_unidentified_estimand` | `test-polytomous.R` |
 | polytomous OR | — | OR | — | sandwich / bootstrap | ⛔ `matchatr_unsupported_variance` | `test-polytomous.R` |
 
-The per-subtype OR assembly lives in `R/polytomous.R`
-(`multinom_exposure_or()`): it locates the exposure columns by term position
-(`term_assign()`, shared with the logistic / clogit engines) and reads each
-log-OR's variance by the `level:predictor` name `nnet::multinom` gives its
-`vcov()`, so the lookup never assumes a coefficient ordering. `matcha()`
-resolves the multi-group outcome through `resolve_polytomous_outcome()` (≥3
-groups, reference releveled to the baseline) and routes it via the new
-`outcome_kind` field on the dispatch; `tidy.matchatr_fit` branches to
-`tidy_multinom()` for the matrix-coefficient fit. `nnet` is a recommended
-(zero-dependency) R package, so no skip guards are needed.
+The per-subtype OR assembly lives in `R/polytomous.R` (`multinom_exposure_or()`): it locates the exposure columns by term position (`term_assign()`, shared with the logistic / clogit engines) and reads each log-OR's variance by the `level:predictor` name `nnet::multinom` gives its `vcov()`, so the lookup never assumes a coefficient ordering. `matcha()` resolves the multi-group outcome through `resolve_polytomous_outcome()` (≥3 groups, reference releveled to the baseline) and routes it via the `outcome_kind` field on the dispatch; `tidy.matchatr_fit` branches to `tidy_multinom()` for the matrix-coefficient fit. `nnet` is a recommended (zero-dependency) R package, so no skip guards are needed.
 
-### Common-OR pooling + homogeneity test (PHASE_4 Chunk 2)
+### Common-OR pooling and homogeneity test
 
-**Implemented — the polytomous layer is complete.** `test_homogeneity(fit)`
-takes an unconstrained polytomous fit and, for each exposure term, tests whether
-the exposure odds ratio is constant across the disease subtypes
-(H0: beta_1 = ... = beta_M) and reports the efficient pooled ("common") odds
-ratio that holds under homogeneity. The test is the canonical **Wald** test of
-etiologic heterogeneity (Begg & Gray 1984; `riskclustr::eh_test_subtype`):
-W = (C b)' (C V C')^-1 (C b) on M − 1 df, where `b` / `V` are the stacked subtype
-log-ORs and their multinomial-information covariance (reused from
-`multinom_exposure_or()`). The common OR is the minimum-variance (GLS /
-inverse-variance) restricted estimator, asymptotically equal to the constrained
-MLE — so no constrained refit is needed and continuous confounders are handled
-directly. A binary or continuous exposure gives one test; an unordered factor
-exposure one test per level. `print()` / `tidy()` render the per-term common OR +
-homogeneity statistic.
+`test_homogeneity(fit)` takes an unconstrained polytomous fit and, for each exposure term, tests whether the exposure odds ratio is constant across the disease subtypes (H0: beta_1 = ... = beta_M) and reports the efficient pooled ("common") odds ratio that holds under homogeneity. The test is the canonical **Wald** test of etiologic heterogeneity (Begg & Gray 1984; `riskclustr::eh_test_subtype`): W = (C b)' (C V C')^-1 (C b) on M − 1 df, where `b` / `V` are the stacked subtype log-ORs and their multinomial-information covariance (reused from `multinom_exposure_or()`). The common OR is the minimum-variance (GLS / inverse-variance) restricted estimator, asymptotically equal to the constrained MLE — so no constrained refit is needed and continuous confounders are handled directly. A binary or continuous exposure gives one test; an unordered factor exposure one test per level. `print()` / `tidy()` render the per-term common OR + homogeneity statistic.
 
 | Exposure | Estimand | Statistic | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -231,24 +163,9 @@ homogeneity statistic.
 reusing `multinom_exposure_or()`'s stacked log-ORs + cross-subtype covariance and
 the `C V C'` contrast pattern shared with `R/effect_modification.R`.
 
-## Nested case-control (PHASE_5)
+## Nested case-control
 
-**Chunk 1 implemented — the risk-set conditional partial likelihood (hazard
-ratio).** `matcha(design = nested_cc(strata = ..., time = ...), estimator =
-"clogit")` fits the same conditional partial likelihood as the matched design via
-`survival::clogit` (`outcome ~ exposure + confounders + strata(set)`, each
-sampled risk set a stratum), and `contrast()` reports the exposure's **hazard
-ratio** (`type = "hr"`) with a partial-likelihood-information Wald interval —
-OR = HR exactly under risk-set (incidence-density) sampling, with no rare-disease
-caveat (Prentice & Breslow 1978). The design's `time` column records how controls
-were sampled; the risk-set membership is read from `strata`, so the conditional
-likelihood does not enter `time` (it feeds the later inclusion-weight / weighted-
-Cox phases). Each conditional design identifies exactly one scale: requesting an
-odds ratio from a risk-set design (or a hazard ratio from a matched design) is
-`matchatr_unidentified_estimand`. **PHASE_5 Chunk 2** adds the exported
-`sample_ncc()`, which generates an analysis-ready NCC dataset from a cohort by
-risk-set (incidence-density) control sampling (with optional population-stratum
-matching and delayed entry); counter-matching is the remaining chunk.
+`matcha(design = nested_cc(strata = ..., time = ...), estimator = "clogit")` fits the same conditional partial likelihood as the matched design via `survival::clogit` (`outcome ~ exposure + confounders + strata(set)`, each sampled risk set a stratum), and `contrast()` reports the exposure's **hazard ratio** (`type = "hr"`) with a partial-likelihood-information Wald interval — OR = HR exactly under risk-set (incidence-density) sampling, with no rare-disease caveat (Prentice & Breslow 1978). The design's `time` column records how controls were sampled; the risk-set membership is read from `strata`, so the conditional likelihood does not enter `time` (it feeds the inclusion-weight and weighted-Cox analyses). Each conditional design identifies exactly one scale: requesting an odds ratio from a risk-set design (or a hazard ratio from a matched design) is `matchatr_unidentified_estimand`. The exported `sample_ncc()` generates an analysis-ready NCC dataset from a cohort by risk-set (incidence-density) control sampling (with optional population-stratum matching and delayed entry); counter-matched sampling has its own subsection below.
 
 | Sampling | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -266,29 +183,11 @@ matching and delayed entry); counter-matching is the remaining chunk.
 | risk set with no control | clogit | — | — | — | ⚠️ `matchatr_uninformative_stratum` (clogit drops it) | `test-nested_cc.R` |
 | exposure constant within risk set | clogit | — | — | — | ⛔ `matchatr_unestimable_exposure` | `test-nested_cc.R` |
 
-The NCC analysis shares the `clogit` engine (`R/clogit.R`, `fit_clogit()`) and the
-`conditional_or_result()` / `stratum_specific_or_result()` assemblies with the
-matched design; the only differences are the design→scale mapping (`"hr"` vs
-`"or"`, resolved in `default_contrast_type()` and `contrast_clogit()`) and the
-estimand label. The truth oracle is a cohort with a known Cox log-HR
-(`make_ncc_cohort()`) from which an incidence-density NCC sample is drawn
-(`sample_ncc_riskset()`); the full-cohort `survival::coxph` β is the
-design-faithful HR the subsample recovers. Deferred: `multipleNCC` IPW
-cross-checks (Phase 7).
+The NCC analysis shares the `clogit` engine (`R/clogit.R`, `fit_clogit()`) and the `conditional_or_result()` / `stratum_specific_or_result()` assemblies with the matched design; the only differences are the design→scale mapping (`"hr"` vs `"or"`, resolved in `default_contrast_type()` and `contrast_clogit()`) and the estimand label. The truth oracle is a cohort with a known Cox log-HR (`make_ncc_cohort()`) from which an incidence-density NCC sample is drawn (`sample_ncc_riskset()`); the full-cohort `survival::coxph` β is the design-faithful HR the subsample recovers. The `multipleNCC` IPW cross-checks are in the IPW section below.
 
-### Risk-set control sampling — `sample_ncc()` (PHASE_5 Chunk 2)
+### Risk-set control sampling — `sample_ncc()`
 
-**Implemented.** `sample_ncc(cohort, time, event, m, match, entry)` generates a
-nested case-control dataset from a cohort by risk-set (incidence-density)
-sampling: each event anchors a matched set holding the case and `m` controls
-drawn without replacement from the subjects at risk at that failure time. The
-output is an analysis-ready `data.table` (the cohort columns plus `set`, the
-per-set `case` indicator, and `risk_time`) that feeds straight into
-`matcha(design = nested_cc(strata = "set", time = "risk_time"))`. The sampler is
-native base-R/data.table (always available, deterministically seedable via the
-ambient RNG); `Epi::ccwc` is an external cross-check in the tests, not a runtime
-dependency. The test-only `sample_ncc_riskset()` DGP fixture now delegates to it,
-so the Chunk 1 analysis tests also exercise the exported sampler.
+`sample_ncc(cohort, time, event, m, match, entry)` generates a nested case-control dataset from a cohort by risk-set (incidence-density) sampling: each event anchors a matched set holding the case and `m` controls drawn without replacement from the subjects at risk at that failure time. The output is an analysis-ready `data.table` (the cohort columns plus `set`, the per-set `case` indicator, and `risk_time`) that feeds straight into `matcha(design = nested_cc(strata = "set", time = "risk_time"))`. The sampler is native base-R/data.table (always available, deterministically seedable via the ambient RNG); `Epi::ccwc` is an external cross-check in the tests, not a runtime dependency. The test-only `sample_ncc_riskset()` DGP fixture delegates to it, so the nested case-control analysis tests also exercise the exported sampler.
 
 | Feature | Estimand | Status | Test |
 |---|---|---|---|
@@ -308,24 +207,11 @@ so the Chunk 1 analysis tests also exercise the exported sampler.
 | output-name collision (`set`/`case`/`risk_time` present) | — | ⛔ `matchatr_bad_input` (snapshot) | `test-risk_set_sampling.R` |
 | non-data.frame cohort / non-numeric `time` | — | ⛔ `matchatr_bad_input` | `test-risk_set_sampling.R` |
 
-`sample_ncc()` lives in `R/risk_set_sampling.R` (with the `@noRd`
-`eligible_controls()` / `resolve_event_indicator()` / `check_sample_m()` /
-`reject_empty_risk_set()` helpers); the `Epi::ccwc` oracle wrapper is
-`tests/testthat/helper-ncc-oracle.R`.
+`sample_ncc()` lives in `R/risk_set_sampling.R` (with the `@noRd` `eligible_controls()` / `resolve_event_indicator()` / `check_sample_m()` / `reject_empty_risk_set()` helpers); the `Epi::ccwc` oracle wrapper is `tests/testthat/helper-ncc-oracle.R`.
 
-### Counter-matched control sampling and weighted partial likelihood (PHASE_5 Chunk 3)
+### Counter-matched control sampling and weighted partial likelihood
 
-**Implemented.** `sample_ncc_counter_matched(cohort, time, event, surrogate, m,
-match, entry)` generates a counter-matched NCC dataset: at each event time the
-case is matched to `m` controls drawn from the *opposite* surrogate stratum.
-The output appends `set`, `case`, `risk_time`, and `log_w` (the Langholz-Borgan
-1995 log-sampling-weight). `matcha(design = counter_matched(strata = "set",
-time = "risk_time", weights = "log_w"), estimator = "weighted_cox")` fits
-`survival::coxph(outcome ~ exposure + confounders + strata(set) + offset(log_w))`
-and `contrast()` reports the hazard ratio (`type = "hr"`). The weights encode
-that the case represents its entire same-stratum risk set (log_w = log(n_same + 1))
-and each control represents the opposite stratum divided by the controls drawn
-(log_w = log(n_opp / m_take)); the unweighted clogit is biased for this design.
+`sample_ncc_counter_matched(cohort, time, event, surrogate, m, match, entry)` generates a counter-matched NCC dataset: at each event time the case is matched to `m` controls drawn from the *opposite* surrogate stratum. The output appends `set`, `case`, `risk_time`, and `log_w` (the Langholz-Borgan 1995 log-sampling-weight). `matcha(design = counter_matched(strata = "set", time = "risk_time", weights = "log_w"), estimator = "weighted_cox")` fits `survival::coxph(outcome ~ exposure + confounders + strata(set) + offset(log_w))` and `contrast()` reports the hazard ratio (`type = "hr"`). The weights encode that the case represents its entire same-stratum risk set (log_w = log(n_same + 1)) and each control represents the opposite stratum divided by the controls drawn (log_w = log(n_opp / m_take)); the unweighted clogit is biased for this design.
 
 | Feature | Estimand | Status | Test |
 |---|---|---|---|
@@ -348,17 +234,9 @@ and each control represents the opposite stratum divided by the controls drawn
 (`fit_weighted_cox()` / `contrast_weighted_cox()`). The test fixture
 `sample_ncc_counter_matched_fixture()` is in `tests/testthat/helper-dgp.R`.
 
-## Case-cohort (PHASE_6)
+## Case-cohort
 
-**Chunk 1 implemented — Prentice, Self-Prentice, and Lin-Ying pseudo-likelihood
-hazard ratio.** `matcha(design = case_cohort(subcohort, time, method, id),
-estimator = "cch")` subsets to cases + subcohort members, builds the
-`Surv(time, status) ~ exposure + confounders` formula, and delegates to
-`survival::cch`. `contrast()` reports the exposure's **hazard ratio** using the
-variance `survival::cch` returns for the chosen method (Self-Prentice asymptotic;
-Lin-Ying robust). The naive information-matrix SE is never used (dependent score
-factors due to subcohort reuse across failure times). Borgan I/II (stratified
-subcohort) and absolute risk are deferred to Chunks 2–3.
+`matcha(design = case_cohort(subcohort, time, method, id), estimator = "cch")` subsets to cases + subcohort members, builds the `Surv(time, status) ~ exposure + confounders` formula, and delegates to `survival::cch` (Prentice, Self-Prentice, Lin-Ying, and Borgan I/II for a stratified subcohort). `contrast()` reports the exposure's **hazard ratio** using the variance `survival::cch` returns for the chosen method (Self-Prentice asymptotic; Lin-Ying robust; Borgan asymptotic). The naive information-matrix SE is never used (dependent score factors due to subcohort reuse across failure times). `absolute_risk()` is covered in the last rows of the table.
 
 | Method | Estimand | Variance | Status | Test |
 |---|---|---|---|---|
@@ -385,53 +263,19 @@ from the user-facing formula (matching the `cch` coefficient names exactly, whic
 use standard R contrasts) rather than using `term_assign()`, because
 `survival::cch` rewrites its internal formula in a non-standard form.
 
-## IPW for nested case-control (PHASE_7)
+## IPW for nested case-control
 
-**Phase complete (Chunks 1–5).**
-`sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and
-appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data.
-`matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits
-`coxph(weights = ipw_weight, robust = TRUE)`, and reports the hazard ratio with
-the Lin-Wei robust sandwich variance. Oracle: `multipleNCC::wpl(weight.method =
-"KM")` agrees exactly on log-HR and SE.
-**Chunk 2** adds `compute_ncc_weights(ncc, cohort, method, selection_formula, time, entry)`:
-replaces the `ipw_weight` column with GLM or GAM working-model inclusion
-probabilities fitted via logistic regression (`method = "glm"`) or a generalised
-additive model (`method = "gam"`) of the binary control-selection indicator across
-all (eligible subject, event-time) pairs. Requires the full Phase-1 cohort; omitting
-`cohort` or `time` aborts with `matchatr_missing_phase1`.
-**Chunk 3** extends `absolute_risk()` to the `ipw_cox` engine: a native
-inverse-probability-weighted Breslow cumulative baseline hazard over the deduplicated,
-Samuelsen-weighted NCC analysis sample gives `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))`
-with delta-method complementary-log-log CIs.
-**Chunk 4** reuses one control set across **multiple endpoints**. Two modes feed
-the same `ipw_cox` weighted Cox: (A) sampling on the union "any-failure" event
-ascertains every endpoint's cases at once, so each cause-specific endpoint is
-analysed directly with `matcha(outcome = "<cause>", estimator = "ipw_cox")`; (B)
-`reuse_ncc_endpoint(ncc, cohort, time, event)` augments a primary-endpoint NCC
-with the secondary endpoint's unsampled cohort cases (weight 1), keeping the
-controls' primary inclusion weights 1/π_j. Competing-endpoint cases (ascertained
-by the sampling) keep weight 1: `ncc_ipw_analysis_data()` forces weight 1 for any
-subject that is a case of the analysed endpoint **or** the failing subject of some
-sampled risk set.
-**Chunk 5** adds two non-Cox alternative models (Ch19 §19.5) on the same
-deduplicated Samuelsen-weighted sample. `estimator = "ipw_aft"` fits a weighted
-Weibull accelerated failure time model (`survival::survreg`, robust sandwich) and
-`contrast(type = "af")` reports the time ratio exp(β) (acceleration factor; Kang,
-Lu & Liu 2017). `estimator = "ipw_aalen"` fits the weighted constant
-additive-hazards model (`lin_ying_additive()`, the Lin & Ying 1994 closed form
-with a robust sandwich) and `contrast(type = "excess")` reports the excess hazard
-γ (additive rate difference; Borgan & Langholz 1997) — a linear-scale, possibly
-negative estimand, so its Wald interval is symmetric, not exponentiated. Both
-identify one scale and reject the others; `timereg::aalen` is the additive
-oracle, `survival::survreg` / `multipleNCC::KMprob` the AFT oracle.
-**AFT absolute risk** extends `absolute_risk()` to the `ipw_aft` engine: the
-fitted weighted Weibull is a parametric survival curve, so
-F̂_x(t) = 1 − exp(−exp((log t − η̂)/σ̂)) is read directly off (β̂, σ̂) with a
-delta-method complementary-log-log CI over θ = (β, log σ) using the robust
-survreg sandwich — no Breslow step. It shares the cloglog inversion and result
-assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
-`cloglog_risk_ci()` / `new_matchatr_absolute_risk()` in `R/absolute_risk.R`).
+`sample_ncc(incl_prob = TRUE)` computes Samuelsen KM inclusion probabilities and appends `ipw_weight` (1/π_j) and `.cohort_row` to the NCC data. `matcha(estimator = "ipw_cox")` deduplicates controls by `.cohort_row`, fits `coxph(weights = ipw_weight, robust = TRUE)`, and reports the hazard ratio with the Lin-Wei robust sandwich variance. Oracle: `multipleNCC::wpl(weight.method = "KM")` agrees exactly on log-HR and SE.
+
+`compute_ncc_weights(ncc, cohort, method, selection_formula, time, entry)` replaces the `ipw_weight` column with GLM or GAM working-model inclusion probabilities fitted via logistic regression (`method = "glm"`) or a generalised additive model (`method = "gam"`) of the binary control-selection indicator across all (eligible subject, event-time) pairs. It requires the full Phase-1 cohort; omitting `cohort` or `time` aborts with `matchatr_missing_phase1`.
+
+`absolute_risk()` on the `ipw_cox` engine uses a native inverse-probability-weighted Breslow cumulative baseline hazard over the deduplicated, Samuelsen-weighted NCC analysis sample, which gives `F̂_x(t) = 1 − exp(−exp(β̂ᵀ x) Λ̂₀(t))` with delta-method complementary-log-log CIs.
+
+One control set can be reused across **multiple endpoints**. Two modes feed the same `ipw_cox` weighted Cox: (A) sampling on the union "any-failure" event ascertains every endpoint's cases at once, so each cause-specific endpoint is analysed directly with `matcha(outcome = "<cause>", estimator = "ipw_cox")`; (B) `reuse_ncc_endpoint(ncc, cohort, time, event)` augments a primary-endpoint NCC with the secondary endpoint's unsampled cohort cases (weight 1), keeping the controls' primary inclusion weights 1/π_j. Competing-endpoint cases (ascertained by the sampling) keep weight 1: `ncc_ipw_analysis_data()` forces weight 1 for any subject that is a case of the analysed endpoint **or** the failing subject of some sampled risk set.
+
+Two non-Cox alternative models (Ch19 §19.5) run on the same deduplicated Samuelsen-weighted sample. `estimator = "ipw_aft"` fits a weighted Weibull accelerated failure time model (`survival::survreg`, robust sandwich) and `contrast(type = "af")` reports the time ratio exp(β) (acceleration factor; Kang, Lu & Liu 2017). `estimator = "ipw_aalen"` fits the weighted constant additive-hazards model (`lin_ying_additive()`, the Lin & Ying 1994 closed form with a robust sandwich) and `contrast(type = "excess")` reports the excess hazard γ (additive rate difference; Borgan & Langholz 1997) — a linear-scale, possibly negative estimand, so its Wald interval is symmetric, not exponentiated. Both identify one scale and reject the others; `timereg::aalen` is the additive oracle, `survival::survreg` / `multipleNCC::KMprob` the AFT oracle.
+
+**AFT absolute risk** extends `absolute_risk()` to the `ipw_aft` engine: the fitted weighted Weibull is a parametric survival curve, so F̂_x(t) = 1 − exp(−exp((log t − η̂)/σ̂)) is read directly off (β̂, σ̂) with a delta-method complementary-log-log CI over θ = (β, log σ) using the robust survreg sandwich — no Breslow step. It shares the cloglog inversion and result assembly with the Cox-type engines (`R/absolute_risk_aft.R` + `cloglog_risk_ci()` / `new_matchatr_absolute_risk()` in `R/absolute_risk.R`).
 
 | Weight | Estimator | Estimand | Variance | Status | Test |
 |---|---|---|---|---|---|
@@ -444,7 +288,7 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 | `compute_ncc_weights` without `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
 | `compute_ncc_weights`, `time` col absent from `cohort` | — | — | — | ⛔ `matchatr_missing_phase1` | `test-ipw_ncc.R` |
 | `compute_ncc_weights` without `.cohort_row` in `ncc` | — | — | — | ⛔ `matchatr_bad_input` | `test-ipw_ncc.R` |
-| IPW absolute risk F_x(t) (Chunk 3) | `ipw_cox` | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ exact vs `survival::survfit` (weighted Breslow, 1e-8) + full-cohort survfit (sampling tol) + truth DGP (exponential, CI covers truth) | `test-absolute_risk_ncc.R` |
+| IPW absolute risk F_x(t) | `ipw_cox` | F̂_x(t) | IPW Breslow + delta-method log-log CI | ✅ exact vs `survival::survfit` (weighted Breslow, 1e-8) + full-cohort survfit (sampling tol) + truth DGP (exponential, CI covers truth) | `test-absolute_risk_ncc.R` |
 | `absolute_risk()` on a non-cch/ipw_cox/ipw_aft engine (clogit, ipw_aalen) | — | — | — | ⛔ `matchatr_not_implemented` | `test-absolute_risk.R`, `test-absolute_risk_aft.R` |
 | multiple endpoints, combined-event reuse (mode A) | `ipw_cox` | HR per endpoint | Lin-Wei robust sandwich | ✅ `multipleNCC::wpl` oracle (exact, per endpoint) + truth-DGP recovery (both causes, 3.5-SE band) | `test-multi_endpoint.R` |
 | multiple endpoints, cohort-augmented reuse (mode B) | `ipw_cox` | HR (secondary) | Lin-Wei robust sandwich | ✅ independent `KMprob` + `survival::coxph` reconstruction (1e-6) + truth-DGP recovery (3.5-SE band) | `test-multi_endpoint.R` |
@@ -462,28 +306,9 @@ assembly with the Cox-type engines (`R/absolute_risk_aft.R` +
 | `excess_risk()` on a non-`ipw_aalen` engine / bad `times` | — | — | — | ⛔ `matchatr_not_implemented` / `matchatr_bad_input` | `test-excess_risk.R` |
 | `ipw_aft` / `ipw_aalen` off-scale `type` / `ci_method` / non-`incl_prob` / non-nested | — | — | — | ⛔ `matchatr_unidentified_estimand` / `matchatr_unsupported_variance` / `matchatr_missing_ipw_weights` / `matchatr_bad_estimator` | `test-aft_ncc.R`, `test-additive_ncc.R` |
 
-## Case-control-weighted causal contrasts (PHASE_9)
+## Case-control-weighted causal contrasts
 
-**Phase 9 complete (Chunks 1–4) — CCW g-formula / IPW / AIPW / TMLE.** On an
-unmatched **or matched** case-control sample carrying a known (or cohort-estimated)
-prevalence `q0` (`unmatched_cc(prevalence = q0)` / `matched_cc(strata, prevalence =
-q0)`), `matcha()` computes Rose & van der Laan case-control weights (`cc_weights()`,
-`R/weights_cc.R`) via the shared `ccw_prepare()` (`R/ccw.R`) and fits a cohort
-causal estimator on the weighted sample: `estimator = "ccw_gformula"` →
-`causat(estimator = "gcomp")`, `"ccw_ipw"` → `"ipw"`, `"ccw_aipw"` → `"aipw"`
-(all delegated to causatr through `fit_ccw()`), and `"ccw_tmle"` → matchatr's own
-targeting engine (`fit_ccw_tmle()`, `R/tmle_ccw.R`). `contrast()` reports the
-**marginal** effect — risk difference (`type = "difference"`, the default), risk
-ratio (`type = "ratio"`), or marginal odds ratio (`type = "or"`). Point estimate
-and influence-function/sandwich variance are delegated to causatr (g-comp/IPW/AIPW)
-or computed from the efficient influence function (TMLE); matchatr owns the
-weighting layer and the TMLE targeting. CCW-AIPW and CCW-TMLE are **doubly robust**
-(consistent if either the outcome or the propensity model is correct). On a
-**matched** CC sample the matching variable is a baseline covariate (it must be in
-`confounders`; the matched sets are ignored, Rose & van der Laan 2009); a **nested**
-(risk-set) CC design is rejected toward `ipw_cox`. The interval may be widened for an
-estimated q0 (`prevalence_n`, Chunk 4b) or replaced by the design-preserving
-within-stratum bootstrap (`ci_method = "bootstrap"`, Chunk 4a).
+On an unmatched **or matched** case-control sample carrying a known (or cohort-estimated) prevalence `q0` (`unmatched_cc(prevalence = q0)` / `matched_cc(strata, prevalence = q0)`), `matcha()` computes Rose & van der Laan case-control weights (`cc_weights()`, `R/weights_cc.R`) via the shared `ccw_prepare()` (`R/ccw.R`) and fits a cohort causal estimator on the weighted sample: `estimator = "ccw_gformula"` → `causat(estimator = "gcomp")`, `"ccw_ipw"` → `"ipw"`, `"ccw_aipw"` → `"aipw"` (all delegated to causatr through `fit_ccw()`), and `"ccw_tmle"` → matchatr's own targeting engine (`fit_ccw_tmle()`, `R/tmle_ccw.R`). `contrast()` reports the **marginal** effect — risk difference (`type = "difference"`, the default), risk ratio (`type = "ratio"`), or marginal odds ratio (`type = "or"`). Point estimate and influence-function/sandwich variance are delegated to causatr (g-comp/IPW/AIPW) or computed from the efficient influence function (TMLE); matchatr owns the weighting layer and the TMLE targeting. CCW-AIPW and CCW-TMLE are **doubly robust** (consistent if either the outcome or the propensity model is correct). On a **matched** CC sample the matching variable is a baseline covariate (it must be in `confounders`; the matched sets are ignored, Rose & van der Laan 2009); a **nested** (risk-set) CC design is rejected toward `ipw_cox`. The interval may be widened for an estimated q0 (`prevalence_n`) or replaced by the design-preserving within-stratum bootstrap (`ci_method = "bootstrap"`).
 
 | Design | Exposure | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|---|
@@ -500,7 +325,9 @@ within-stratum bootstrap (`ci_method = "bootstrap"`, Chunk 4a).
 | unmatched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | within-stratum bootstrap | ✅ percentile CI; bootstrap SE recovers the sandwich / EIF SE | `test-variance_ccw.R` |
 | unmatched CC + estimated q0 (`prevalence_n`) | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR | difference / ratio / or | sandwich/EIF + q̂0 term, or bootstrap (q0* redraw) | ✅ analytic ≈ bootstrap; collapses to known-q0 as N→∞; `prevalence_known` recorded | `test-variance_ccw.R` |
 | `prevalence_n` without `prevalence` / non-integer / non-positive | — | — | — | — | — | ⛔ `matchatr_bad_prevalence` | `test-variance_ccw.R` |
-| matched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RD/RR/OR (matching var as baseline covariate) | difference / ratio / or | sandwich/EIF + boot | ✅ frequency-matched truth DGP — recovers marginal RD with the matching variable adjusted | `test-ccw.R` |
+| matched CC + q0 | binary | ccw_gformula / aipw / tmle | marginal RD (matching var as baseline covariate) | difference | not tested | 🟡 point estimate only: frequency-matched truth DGP, RD within 0.02 of the truth with the matching variable adjusted; no SE, coverage or oracle check | `test-ccw.R` |
+| matched CC + q0 | binary | ccw_ipw | — | — | — | ❌ no test | — |
+| matched CC + q0 | binary | ccw_gformula / ipw / aipw / tmle | marginal RR / OR | ratio / or | — | ❌ no test | — |
 | nested CC (risk-set) | binary | ccw_gformula / ipw / aipw / tmle | — | — | — | ⛔ `matchatr_bad_estimator` → `ipw_cox` (risk-set sampling ≠ case-control) | `test-ccw.R` |
 | unmatched CC + q0 (cross-language) | binary | ccw_gformula / ipw / aipw | marginal RD/RR/mOR | difference / ratio / or | sandwich | ✅ Python `delicatessen` M-estimation oracle — gformula/aipw exact (≤1e-5 on estimate AND sandwich SE), ipw ~1e-3 | `test-python-oracle.R`, `fixtures/python/ccw_marginal.*` |
 
@@ -510,18 +337,9 @@ sandwich SE — independently of the R engine (`fixtures/python/ccw_marginal.py`
 `ccw_tmle` targets the same estimand by a finite-sample-distinct fluctuation step,
 so it is cross-checked against `tmle::tmle(obsWeights=)` rather than delicatessen.
 
-## Design-weighted causal survival (PHASE_10)
+## Design-weighted causal survival
 
-Marginal causal-survival contrasts from a sampled design, g-computed on the
-design's own weighted Cox: the inclusion weights enter the partial likelihood
-(via `cch` / `ipw_cox`), the IPW Breslow gives Λ̂₀(t), and the subject-specific
-absolute risk F(t | x, W) is Horvitz-Thompson standardized over the cohort
-covariate distribution to the treat-all / treat-none marginal risks. **Chunk 1
-(case-cohort) is complete.** matchatr does **not** delegate to `survatr` here:
-its `surv_gcomp` (pooled-logistic) marginalizes unweighted and constant
-inclusion weights misrepresent the sampled risk sets, biasing the contrast (a
-full-cohort truth oracle confirmed it) — so the standardization is built on
-matchatr's validated weighted-Cox + IPW-Breslow machinery instead.
+Marginal causal-survival contrasts from a case-cohort design, g-computed on the design's own weighted Cox. The inclusion weights enter the partial likelihood (via `cch`) and the IPW Breslow estimator gives Λ̂₀(t). matchatr then computes each subject's absolute risk F(t | x, W) under treat-all and treat-none and averages it over the cohort covariate distribution with Horvitz-Thompson weights, which gives the two marginal risks. matchatr does **not** delegate to `survatr` here: `survatr`'s `surv_gcomp` (pooled-logistic) marginalizes without weights, and constant inclusion weights misrepresent the sampled risk sets, so the contrast is biased either way (a full-cohort truth check showed the bias; the reasoning is in the roxygen of `fit_surv_gcomp()`). The standardization is built on matchatr's weighted-Cox + IPW-Breslow machinery instead.
 
 | Design | Estimator | Estimand | Contrast | Variance | Status | Test |
 |---|---|---|---|---|---|---|
@@ -535,31 +353,17 @@ matchatr's validated weighted-Cox + IPW-Breslow machinery instead.
 | surv_gcomp | — | — | or / hr / af / excess | — | ⛔ `matchatr_unidentified_estimand` | `test-causal_survival_sampled.R` |
 | surv_gcomp | — | — | — | sandwich | ⛔ `matchatr_unsupported_variance` | `test-causal_survival_sampled.R` |
 | surv_gcomp, missing / non-positive `times` | — | — | — | — | ⛔ `matchatr_bad_input` | `test-causal_survival_sampled.R` |
-| unmatched / nested CC | surv_gcomp | — | — | — | ⛔ `matchatr_bad_estimator` (nested NCC ships in Chunk 2) | `test-causal_survival_sampled.R` |
+| unmatched / nested CC | surv_gcomp | — | — | — | ⛔ `matchatr_bad_estimator` (nested case-control: planned, GitHub issue) | `test-causal_survival_sampled.R` |
 
 No Python (`delicatessen`) oracle: a design-weighted marginal survival contrast
 is not among its M-estimator templates; the full-cohort g-computation truth and
 the per-subject `absolute_risk()` agreement are the cross-checks.
 
-**Chunk 2 (nested case-control, Samuelsen-weighted `ipw_cox` g-computation + a
-design-aware bootstrap) is pending.** **Chunk 3 (a doubly-robust `surv_aipw`) is
-deferred** — it needs a DR survival estimator the etverse does not yet ship.
+Nested case-control `surv_gcomp` (Samuelsen-weighted `ipw_cox` g-computation with a design-aware bootstrap) and a doubly-robust `surv_aipw` are planned (GitHub issues).
 
-## Two-phase / calibration (PHASE_11, PHASE_12)
+## Planned work
 
-_Pending implementation._
-
-## Multiple imputation / semiparametric MLE (PHASE_13, PHASE_14)
-
-_Pending implementation._
-
-## Small-sample / power / alternative models / secondary analysis (PHASE_15–18)
-
-_Pending implementation._
-
-## Extensions: SCCS, response-selective (PHASE_19, PHASE_20)
-
-_Pending implementation._
+Features without a section above are listed in `ROADMAP.md` and tracked as [GitHub issues](https://github.com/etverse/matchatr/issues).
 
 ## Documentation (website articles)
 
@@ -579,20 +383,11 @@ Quarto, `lumen` theme).
 | `ipw-ncc.qmd` | `ipw_cox` IPW weighted Cox HR, `sample_ncc(incl_prob = TRUE)` Samuelsen KM weights, GLM/GAM working-model weights, `ipw_aft` time ratio (Weibull / exponential / lognormal / loglogistic baselines) + `ipw_aalen` excess hazard, `absolute_risk()` IPW Breslow (Cox) and parametric AFT F_x(t) + cumulative-incidence plot, `excess_risk()` time-varying cumulative excess hazard B_j(t), classical vs IPW comparison, rejection paths |
 | `ccw-marginal.qmd` | `ccw_gformula` case-control-weighted marginal RD / RR / marginal OR, why the marginal effect differs from the conditional OR (non-collapsibility), `cc_weights()` / `unmatched_cc(prevalence = q0)`, the `causatr` g-computation delegation, rejection paths |
 
-Articles document only implemented features; the pending phases above are not
-yet covered.
+Articles document only implemented features; planned work is not covered.
 
 ## Cross-language oracle coverage (Python / statsmodels)
 
-Every implemented classical estimator is additionally cross-checked against an
-independent **Python** (`statsmodels`) fit, so a bug shared between matchatr and
-its R engine cannot hide behind a same-package comparison. Each oracle reads the
-SAME committed dataset both languages share, and the Python output is a committed
-CSV fixture — tests never invoke Python, so CI needs no Python toolchain (each is
-guarded with `skip_if(!file.exists(...))`). Fixtures and the regeneration recipe
-live in `tests/testthat/fixtures/python/` (see its `README.md`); the comparisons
-are in `test-python-oracle.R`. `statsmodels` anchors the classical MLEs;
-`delicatessen` is reserved for the causal / sandwich estimands of later phases.
+Every implemented classical estimator is additionally cross-checked against an independent **Python** (`statsmodels`) fit, so a bug shared between matchatr and its R engine cannot hide behind a same-package comparison. Each oracle reads the SAME committed dataset both languages share, and the Python output is a committed CSV fixture — tests never invoke Python, so CI needs no Python toolchain (each is guarded with `skip_if(!file.exists(...))`). Fixtures and the regeneration recipe live in `tests/testthat/fixtures/python/` (see its `README.md`); the comparisons are in `test-python-oracle.R`. `statsmodels` anchors the classical MLEs; `delicatessen` anchors the causal / sandwich estimands (the case-control-weighted g-formula, IPW and AIPW contrasts above).
 
 | Estimator | matchatr | statsmodels oracle | Agreement |
 |---|---|---|---|

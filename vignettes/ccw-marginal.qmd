@@ -171,8 +171,8 @@ contrast(fit, type = "hr")
 
 ```{r}
 #| error: true
-# A bootstrap interval must resample within case / control strata and recompute
-# the q0 weights each replicate (a later chunk); only the sandwich is wired here.
+# A bootstrap interval resamples within case / control strata and recomputes
+# the q0 weights each replicate.
 contrast(fit, type = "difference", ci_method = "bootstrap")
 ```
 
@@ -240,11 +240,7 @@ to the propensity model and it is `ccw_ipw` that fails while `ccw_gformula`,
 
 ## Where this sits
 
-The case-control-weighting family now offers g-formula, IPW, the doubly-robust AIPW,
-and the targeted (TMLE) marginal contrasts for an unmatched case-control study with a
-known prevalence. Still to come (forthcoming chunks): the estimated-q₀ variance
-correction, a design-respecting bootstrap, and matched / nested case-control
-support — all built on the same one weighting concept.
+The case-control-weighting family offers g-formula, IPW, the doubly-robust AIPW, and the targeted (TMLE) marginal contrasts for an unmatched or matched case-control study with a known or estimated prevalence, with a sandwich or a design-preserving bootstrap interval. A nested case-control design is rejected toward `ipw_cox`. All of it rests on one weighting concept.
 
 ## References
 

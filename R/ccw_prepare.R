@@ -60,7 +60,7 @@ ccw_prepare <- function(fit) {
   # every engine an aligned complete-case sample and one consistent behaviour.
   # The weights are computed AFTER dropping so the weighted case fraction still
   # equals q0 over the analysed (complete-case) sample. Multiple imputation is the
-  # principled alternative for missing confounders (a later phase).
+  # principled alternative for missing confounders.
   conf_vars <- all.vars(fit$confounders)
   complete <- !is.na(y01) &
     !is.na(x01) &

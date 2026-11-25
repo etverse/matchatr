@@ -42,9 +42,9 @@ Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testtha
 
 The full suite takes about three minutes.
 
-## Planning files
+## Planned work
 
-`PHASE_*.md` hold the design of each feature, keyed to chapters of the *Handbook of Statistical Methods for Case-Control Studies* (Borgan, Breslow, Chatterjee, Gail, Scott and Wild 2018); `FEATURE_COVERAGE_MATRIX.md` records which combinations are tested.
+Planned work and known bugs are GitHub issues (`gh issue list`, `gh issue view <n>`), grouped in `ROADMAP.md`; the reason behind shipped code is in the roxygen of the function it explains. The methods follow the *Handbook of Statistical Methods for Case-Control Studies* (Borgan, Breslow, Chatterjee, Gail, Scott and Wild 2018). `FEATURE_COVERAGE_MATRIX.md` records which combinations are tested.
 
 ## Dependencies
 

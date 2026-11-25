@@ -134,9 +134,9 @@ probabilities returned when \code{incl_prob = TRUE}.)
 \seealso{
 \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=matcha]{matcha()}}, \code{\link[Epi:ccwc]{Epi::ccwc()}}
 
-Other sampling: 
-\code{\link{compute_ncc_weights}()},
-\code{\link{reuse_ncc_endpoint}()},
-\code{\link{sample_ncc_counter_matched}()}
+Other sampling:
+\code{\link[=compute_ncc_weights]{compute_ncc_weights()}},
+\code{\link[=reuse_ncc_endpoint]{reuse_ncc_endpoint()}},
+\code{\link[=sample_ncc_counter_matched]{sample_ncc_counter_matched()}}
 }
 \concept{sampling}

@@ -10,7 +10,10 @@ case_cohort(subcohort, time, method = "Prentice", id = NULL, stratum = NULL)
 \item{subcohort}{A single character string naming the 0/1 (or logical)
 column flagging subcohort membership.}
 
-\item{time}{A single character string naming the event/follow-up time column.}
+\item{time}{A single character string naming the event/follow-up time column.
+Unlike in a nested case-control design, the time scale need not be fixed
+when the sample is drawn: the subcohort is chosen at baseline without
+reference to failure times, so the scale can be chosen at analysis.}
 
 \item{method}{Character scalar naming the pseudo-likelihood method passed to
 \code{\link[survival:cch]{survival::cch()}}. One of \code{"Prentice"} (the default), \code{"SelfPrentice"},
@@ -75,11 +78,11 @@ stratified case-cohort designs. \emph{Lifetime Data Analysis} 6(1):39-58.
 \seealso{
 \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=matcha]{matcha()}}
 
-Other design constructors: 
-\code{\link{counter_matched}()},
-\code{\link{matched_cc}()},
-\code{\link{nested_cc}()},
-\code{\link{two_phase}()},
-\code{\link{unmatched_cc}()}
+Other design constructors:
+\code{\link[=counter_matched]{counter_matched()}},
+\code{\link[=matched_cc]{matched_cc()}},
+\code{\link[=nested_cc]{nested_cc()}},
+\code{\link[=two_phase]{two_phase()}},
+\code{\link[=unmatched_cc]{unmatched_cc()}}
 }
 \concept{design constructors}

@@ -6,7 +6,7 @@
 #   2. The closed form n10/n01 and 1/n10 + 1/n01 computed by hand from the
 #      discordant-pair counts -- the variance oracle that does NOT touch clogit.
 #   3. A matched-pair DGP with a known conditional log-OR (Breslow & Day 1980).
-# The OR^2-bias test pins the hard-rules invariant: the unconditional 1:1 MLE
+# The OR^2-bias test pins the invariant that the unconditional 1:1 MLE
 # (a parameter per pair) is exactly twice the conditional estimate.
 
 # --- McNemar == survival::clogit on the same 1:1 binary data ---------------
@@ -98,7 +98,7 @@ test_that("the McNemar OR recovers the matched-pair log-OR (truth-based)", {
 # --- the OR^2-bias invariant (unconditional MLE = 2x conditional) ----------
 
 test_that("the unconditional 1:1 MLE doubles the conditional log-OR (OR^2 bias)", {
-  # Hard-rules invariant: for 1:1 matching, unconditional logistic regression
+  # Invariant: for 1:1 matching, unconditional logistic regression
   # with a parameter per pair estimates 2*beta (so the OR is squared); the
   # conditional / McNemar estimate is beta. Concordant pairs are fit perfectly
   # by their pair intercept and drop out, leaving the discordant pairs, on which

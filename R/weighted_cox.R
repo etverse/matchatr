@@ -126,7 +126,7 @@ fit_weighted_cox <- function(fit) {
 #' exponentiated: `estimate +/- z * se` does not reconstruct the interval on
 #' the HR scale. `ci_method = "sandwich"` and `"bootstrap"` are rejected
 #' because the cluster-robust and resampling variance for reused-control designs
-#' belong to the inclusion-weight / IPW analyses (Phase 7), not this classical
+#' belong to the inclusion-weight / IPW analyses (`ipw_cox`), not this classical
 #' conditional analysis.
 #'
 #' @param fit A `matchatr_fit` whose `model` is a fitted `survival::coxph`.

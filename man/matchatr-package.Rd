@@ -19,8 +19,9 @@ the design's own weighted Cox model (the sibling \pkg{survatr} covers causal
 survival on full-cohort person-period data).
 }
 \details{
-The package is under active development; see the \code{PHASE_*.md} design docs and
-\code{CLAUDE.md} at the repository root for the implementation roadmap.
+The package is under active development; see \code{ROADMAP.md} at the repository
+root and the GitHub issues (\url{https://github.com/etverse/matchatr/issues})
+for planned work.
 }
 \seealso{
 Useful links:
@@ -33,6 +34,11 @@ Useful links:
 }
 \author{
 \strong{Maintainer}: Lorenzo Fabbri \email{lorenzo.fabbri92sm@gmail.com} (\href{https://orcid.org/0000-0003-3031-322X}{ORCID})
+
+Authors:
+\itemize{
+  \item Lorenzo Fabbri \email{lorenzo.fabbri92sm@gmail.com} (\href{https://orcid.org/0000-0003-3031-322X}{ORCID})
+}
 
 }
 \keyword{internal}

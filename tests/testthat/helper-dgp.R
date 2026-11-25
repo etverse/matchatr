@@ -1,13 +1,13 @@
 # Deterministic sample builders for the design / dispatch / validation tests.
-# Phase 1 ships no estimator, so these carry no estimation truth -- they exist
-# to give the design layer realistic case-control / NCC / case-cohort data to
-# validate and route. Later phases replace / extend this with a cohort DGP that
-# has known causal truth and samples designs from it.
+# The builders at the top of this file carry no estimation truth -- they give
+# the design layer realistic case-control / NCC / case-cohort data to validate
+# and route. The cohort DGPs further down have known causal truth and sample
+# designs from it.
 
 # A matchatr_fit whose engine has no wired estimator, so its `model` is NULL --
 # the fixture for testing the generic "not estimated" contract (contrast() /
 # test_homogeneity() / summary() aborting with matchatr_not_estimated). It uses
-# the two-phase `survey` engine, which stays unwired until its own phase lands;
+# the two-phase `survey` engine, which has no estimator wired yet;
 # unlike a ccw_* estimator, that keeps the fixture stable as the causal engines
 # are wired one by one. The fit's `engine` is "survey_twophase".
 make_unestimated_fit <- function() {
@@ -770,7 +770,7 @@ make_matched_cohort_ccw <- function(
 }
 
 # Truth-based DGP for the design-weighted marginal causal-survival contrasts
-# (PHASE_10). A cohort with a continuous confounder z, a binary exposure x that
+# (surv_gcomp). A cohort with a continuous confounder z, a binary exposure x that
 # depends on z (genuine confounding), and a survival time whose hazard is
 # lowered by treatment is generated; the full-cohort survatr g-computation is the
 # marginal-RD(t) truth. Because a case-cohort sample retains EVERY case, the

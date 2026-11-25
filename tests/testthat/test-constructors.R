@@ -1,5 +1,5 @@
 # The low-level fit / result constructors define the object shapes the rest of
-# the package (and later phases) build on. These tests pin the class and slot
+# the package builds on. These tests pin the class and slot
 # layout so a future refactor cannot silently drop a slot.
 
 test_that("new_matchatr_fit builds the documented slot layout", {

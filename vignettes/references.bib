@@ -1,6 +1,6 @@
 % references.bib --- single source of truth for matchatr documentation citations.
 % Cited from the Quarto vignettes via @key / [@key]; mirrored as plain-text
-% roxygen @references in R/ and as prose in the design docs (PHASE_*.md). Every
+% roxygen @references in R/. Every
 % entry carries a DOI (or, for two older works with none, the full print
 % reference) so it can be verified independently. Keys follow the scheme
 % firstauthorYYYYkeyword. DOIs were checked against Crossref.
@@ -25,7 +25,7 @@
 @article{mantel1959statistical,
   author  = {Mantel, Nathan and Haenszel, William},
   title   = {Statistical aspects of the analysis of data from retrospective studies of disease},
-  journal = {Journal of the National Cancer Institute},
+  journal = {JNCI: Journal of the National Cancer Institute},
   year    = {1959},
   volume  = {22},
   number  = {4},
@@ -60,7 +60,8 @@
   title     = {Statistical Methods in Cancer Research, Volume 1: The Analysis of Case-Control Studies},
   year      = {1980},
   publisher = {International Agency for Research on Cancer (IARC Scientific Publications No. 32)},
-  address   = {Lyon}
+  address   = {Lyon},
+  isbn      = {978-92-832-0132-8}
 }
 
 @article{pike1980bias,
@@ -112,7 +113,8 @@
   title     = {Modern Applied Statistics with S},
   edition   = {Fourth},
   year      = {2002},
-  publisher = {Springer},
+  series    = {Statistics and Computing},
+  publisher = {Springer New York},
   address   = {New York},
   doi       = {10.1007/978-0-387-21706-2}
 }
@@ -131,9 +133,9 @@
 % Risk-set sampling, nested case-control, case-cohort
 % ---------------------------------------------------------------------------
 
-@article{thomas1977addendum,
-  author  = {Thomas, Duncan C.},
-  title   = {Addendum to ``Methods of cohort analysis: appraisal by application to asbestos mining'' (Liddell, F. D. K., McDonald, J. C. and Thomas, D. C.)},
+@article{liddell1977methods,
+  author  = {Liddell, F. D. K. and McDonald, J. C. and Thomas, D. C. and Cunliffe, S. V.},
+  title   = {Methods of Cohort Analysis: Appraisal by Application to Asbestos Mining},
   journal = {Journal of the Royal Statistical Society, Series A},
   year    = {1977},
   volume  = {140},
@@ -161,7 +163,7 @@
   volume    = {2},
   year      = {1980},
   pages     = {1--25},
-  publisher = {Springer},
+  publisher = {Springer New York},
   address   = {New York},
   doi       = {10.1007/978-1-4615-7397-5_1}
 }
@@ -287,7 +289,7 @@
 }
 
 @article{samuelsen2007stratified,
-  author  = {Samuelsen, Sven Ove and {\AA}nestad, Henrik and Skrondal, Anders},
+  author  = {Samuelsen, Sven Ove and {\AA}nestad, Hallvard and Skrondal, Anders},
   title   = {Stratified case-cohort analysis of general cohort sampling designs},
   journal = {Scandinavian Journal of Statistics},
   year    = {2007},
@@ -382,7 +384,8 @@
   author    = {van der Laan, Mark J. and Rose, Sherri},
   title     = {Targeted Learning: Causal Inference for Observational and Experimental Data},
   year      = {2011},
-  publisher = {Springer},
+  series    = {Springer Series in Statistics},
+  publisher = {Springer New York},
   address   = {New York},
   doi       = {10.1007/978-1-4419-9782-1}
 }
@@ -399,7 +402,7 @@
 }
 
 % ---------------------------------------------------------------------------
-% Causal survival on sampled designs (PHASE 10, design)
+% Causal survival on sampled designs
 % ---------------------------------------------------------------------------
 
 @incollection{robins1992recovery,
@@ -409,7 +412,7 @@
   editor    = {Jewell, Nicholas P. and Dietz, Klaus and Farewell, Vernon T.},
   year      = {1992},
   pages     = {297--331},
-  publisher = {Birkh{\"a}user},
+  publisher = {Birkh{\"a}user Boston},
   address   = {Boston},
   doi       = {10.1007/978-1-4757-1229-2_14}
 }
@@ -422,7 +425,7 @@
   volume    = {116},
   year      = {2000},
   pages     = {135--177},
-  publisher = {Springer},
+  publisher = {Springer New York},
   address   = {New York},
   doi       = {10.1007/978-1-4612-1284-3_3}
 }
@@ -450,7 +453,7 @@
 }
 
 % ---------------------------------------------------------------------------
-% Multiple imputation for missing-by-design data (PHASE 13, design)
+% Multiple imputation for missing-by-design data
 % ---------------------------------------------------------------------------
 
 @article{meng1994uncongenial,
@@ -563,13 +566,13 @@
 }
 
 % ---------------------------------------------------------------------------
-% Calibration, two-phase, and semiparametric MLE (PHASES 12 & 14, design)
+% Calibration, two-phase, and semiparametric MLE
 % ---------------------------------------------------------------------------
 
 @article{louis1982finding,
   author  = {Louis, Thomas A.},
   title   = {Finding the observed information matrix when using the EM algorithm},
-  journal = {Journal of the Royal Statistical Society, Series B},
+  journal = {Journal of the Royal Statistical Society Series B: Statistical Methodology},
   year    = {1982},
   volume  = {44},
   number  = {2},
@@ -591,7 +594,7 @@
 @article{zenglin2007maximum,
   author  = {Zeng, Donglin and Lin, Danyu Y.},
   title   = {Maximum likelihood estimation in semiparametric regression models with censored data},
-  journal = {Journal of the Royal Statistical Society, Series B},
+  journal = {Journal of the Royal Statistical Society Series B: Statistical Methodology},
   year    = {2007},
   volume  = {69},
   number  = {4},
@@ -611,13 +614,13 @@
 }
 
 % ---------------------------------------------------------------------------
-% Secondary analysis of case-control studies (PHASE 18, design)
+% Secondary analysis of case-control studies
 % ---------------------------------------------------------------------------
 
 @article{macarroll2016semiparametric,
   author  = {Ma, Yanyuan and Carroll, Raymond J.},
   title   = {Semiparametric estimation in the secondary analysis of case-control studies},
-  journal = {Journal of the Royal Statistical Society, Series B},
+  journal = {Journal of the Royal Statistical Society Series B: Statistical Methodology},
   year    = {2016},
   volume  = {78},
   number  = {1},
@@ -630,11 +633,14 @@
   title   = {Control function assisted IPW estimation with a secondary outcome in case-control studies},
   journal = {Statistica Sinica},
   year    = {2017},
+  volume  = {27},
+  number  = {2},
+  pages   = {785--804},
   doi     = {10.5705/ss.202015.0116}
 }
 
 % ---------------------------------------------------------------------------
-% Alternative risk models (PHASE 17, design)
+% Alternative risk models
 % ---------------------------------------------------------------------------
 
 @article{kovalchik2013general,

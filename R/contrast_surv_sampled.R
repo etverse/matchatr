@@ -20,6 +20,15 @@
 #' weights are not refit, so there is no information-matrix interval); the
 #' conditional odds ratio / hazard ratio and the IPW NCC scales are rejected.
 #'
+#' `type = "hr"` is rejected because a g-standardized marginal hazard ratio is
+#' time-varying and non-collapsible, so it is not a single number the
+#' standardization can report; it needs a separate marginal structural Cox
+#' engine (Hernan 2010; Aalen, Cook and Roysland 2015; Martinussen, Vansteelandt
+#' and Andersen 2020). The marginal survival difference and ratio are not
+#' offered as separate types because S^1(t) - S^0(t) = -(F^1(t) - F^0(t)) is
+#' the negative of the risk difference, and the survival ratio is a
+#' transformation of the same two risks.
+#'
 #' @param fit A `matchatr_fit` whose `model` is a weighted Cox from
 #'   `fit_surv_gcomp()`.
 #' @param type Character contrast scale: `"difference"`, `"ratio"`, or `"rmst"`.

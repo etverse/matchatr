@@ -97,9 +97,8 @@ fit_ccw <- function(fit) {
 #'
 #' causatr returns the influence-function / sandwich variance on the weighted
 #' fit, so `ci_method = "model"` and `ci_method = "sandwich"` both forward to it.
-#' A bootstrap interval must resample within the case and control strata and
-#' recompute the q0 weights each replicate (a design-specific correction not yet
-#' wired), so `ci_method = "bootstrap"` is rejected here.
+#' A bootstrap interval resamples within the case and control strata and
+#' recomputes the q0 weights each replicate (`ci_method = "bootstrap"`).
 #'
 #' @param fit A `matchatr_fit` whose `model` is a `causatr_fit` fitted by
 #'   `fit_ccw()`.

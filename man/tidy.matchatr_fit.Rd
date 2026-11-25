@@ -65,8 +65,8 @@ tidy(fit, exponentiate = TRUE)
 \seealso{
 \code{\link[=matcha]{matcha()}}, \code{\link[=contrast]{contrast()}}, \code{\link[=summary.matchatr_fit]{summary.matchatr_fit()}}
 
-Other tidiers: 
-\code{\link{tidy.matchatr_homogeneity}()},
-\code{\link{tidy.matchatr_result}()}
+Other tidiers:
+\code{\link[=tidy.matchatr_homogeneity]{tidy.matchatr_homogeneity()}},
+\code{\link[=tidy.matchatr_result]{tidy.matchatr_result()}}
 }
 \concept{tidiers}

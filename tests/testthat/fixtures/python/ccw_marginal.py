@@ -1,6 +1,6 @@
 """
 Cross-language oracle for matchatr's case-control-weighted MARGINAL contrasts
-(the PHASE_9 CCW family: ccw_gformula / ccw_ipw / ccw_aipw).
+(the case-control-weighting family: ccw_gformula / ccw_ipw / ccw_aipw).
 
 matchatr maps a case-control sample to its source cohort with the Rose & van der
 Laan case-control weights and then runs a cohort causal estimator on the weighted
