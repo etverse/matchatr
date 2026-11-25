@@ -41,8 +41,8 @@ tidy(test_homogeneity(fit))
 \seealso{
 \code{\link[=test_homogeneity]{test_homogeneity()}}
 
-Other tidiers: 
-\code{\link{tidy.matchatr_fit}()},
-\code{\link{tidy.matchatr_result}()}
+Other tidiers:
+\code{\link[=tidy.matchatr_fit]{tidy.matchatr_fit()}},
+\code{\link[=tidy.matchatr_result]{tidy.matchatr_result()}}
 }
 \concept{tidiers}

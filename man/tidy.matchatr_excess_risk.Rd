@@ -22,12 +22,12 @@ term, evaluation time): columns \code{term}, \code{time}, \code{estimate}, \code
 \seealso{
 \code{\link[=excess_risk]{excess_risk()}}
 
-Other contrasts: 
-\code{\link{absolute_risk}()},
-\code{\link{contrast}()},
-\code{\link{excess_risk}()},
-\code{\link{print.matchatr_absolute_risk}()},
-\code{\link{print.matchatr_excess_risk}()},
-\code{\link{tidy.matchatr_absolute_risk}()}
+Other contrasts:
+\code{\link[=absolute_risk]{absolute_risk()}},
+\code{\link[=contrast]{contrast()}},
+\code{\link[=excess_risk]{excess_risk()}},
+\code{\link[=print.matchatr_absolute_risk]{print.matchatr_absolute_risk()}},
+\code{\link[=print.matchatr_excess_risk]{print.matchatr_excess_risk()}},
+\code{\link[=tidy.matchatr_absolute_risk]{tidy.matchatr_absolute_risk()}}
 }
 \concept{contrasts}

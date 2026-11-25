@@ -12,8 +12,9 @@
 #' the design's own weighted Cox model (the sibling \pkg{survatr} covers causal
 #' survival on full-cohort person-period data).
 #'
-#' The package is under active development; see the `PHASE_*.md` design docs and
-#' `CLAUDE.md` at the repository root for the implementation roadmap.
+#' The package is under active development; see `ROADMAP.md` at the repository
+#' root and the GitHub issues (<https://github.com/etverse/matchatr/issues>)
+#' for planned work.
 #'
 #' @keywords internal
 #' @importFrom survival clogit coxph strata Surv

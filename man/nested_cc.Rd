@@ -12,7 +12,10 @@ identify the sampled risk sets (the matched-set id).}
 
 \item{time}{A single character string naming the event/entry time column
 that defines the risk sets. Carried for the inclusion-probability weight
-and weighted-Cox estimators built on this design.}
+and weighted-Cox estimators built on this design. The time scale (for
+example age or time since study entry) must be fixed before the controls
+are selected, because it defines which subjects are in each sampled risk
+set; the conditional partial likelihood is valid only on that scale.}
 
 \item{ratio}{\code{NULL} or a single whole number >= 1. Controls sampled per
 case.}
@@ -54,11 +57,11 @@ case-control studies. \emph{Biometrika} 84(2):379-394.
 \seealso{
 \code{\link[=case_cohort]{case_cohort()}}, \code{\link[=counter_matched]{counter_matched()}}, \code{\link[=matcha]{matcha()}}
 
-Other design constructors: 
-\code{\link{case_cohort}()},
-\code{\link{counter_matched}()},
-\code{\link{matched_cc}()},
-\code{\link{two_phase}()},
-\code{\link{unmatched_cc}()}
+Other design constructors:
+\code{\link[=case_cohort]{case_cohort()}},
+\code{\link[=counter_matched]{counter_matched()}},
+\code{\link[=matched_cc]{matched_cc()}},
+\code{\link[=two_phase]{two_phase()}},
+\code{\link[=unmatched_cc]{unmatched_cc()}}
 }
 \concept{design constructors}

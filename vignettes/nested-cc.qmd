@@ -16,14 +16,7 @@ nocite: |
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-A *nested* case-control (NCC) study samples controls from inside a cohort by
-**risk-set (incidence-density) sampling** [@thomas1977addendum]: at each case's
-failure time, a few
-controls are drawn at random from the subjects still at risk. The design-faithful
-analysis is the **conditional partial likelihood** with each sampled risk set as
-a stratum — exactly the conditional logistic regression matchatr already uses for
-matched case-control data, because a matched set and a sampled risk set are the
-same stratum construction.
+A *nested* case-control (NCC) study samples controls from inside a cohort by **risk-set (incidence-density) sampling** (Thomas's addendum in @liddell1977methods): at each case's failure time, a few controls are drawn at random from the subjects still at risk. The design-faithful analysis is the **conditional partial likelihood** with each sampled risk set as a stratum, which is the conditional logistic regression matchatr already uses for matched case-control data, because a matched set and a sampled risk set are the same stratum construction.
 
 The estimand, however, is different. Under proper risk-set sampling the
 conditional estimate is the **hazard ratio**, exactly — there is no rare-disease

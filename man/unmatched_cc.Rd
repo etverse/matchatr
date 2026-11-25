@@ -67,11 +67,11 @@ Biostatistics} 4(1):Article 19.
 \seealso{
 \code{\link[=matched_cc]{matched_cc()}}, \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=case_cohort]{case_cohort()}}, \code{\link[=matcha]{matcha()}}
 
-Other design constructors: 
-\code{\link{case_cohort}()},
-\code{\link{counter_matched}()},
-\code{\link{matched_cc}()},
-\code{\link{nested_cc}()},
-\code{\link{two_phase}()}
+Other design constructors:
+\code{\link[=case_cohort]{case_cohort()}},
+\code{\link[=counter_matched]{counter_matched()}},
+\code{\link[=matched_cc]{matched_cc()}},
+\code{\link[=nested_cc]{nested_cc()}},
+\code{\link[=two_phase]{two_phase()}}
 }
 \concept{design constructors}

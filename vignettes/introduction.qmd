@@ -143,15 +143,11 @@ classed error pointing to the prevalence q0 you would need:
 contrast(fit, type = "difference")
 ```
 
-Supplying the source-population prevalence on the design
-(`unmatched_cc(prevalence = 0.02)`) unlocks the case-control-weighted marginal
-contrasts — that layer is on the roadmap below.
+Supplying the source-population prevalence on the design (`unmatched_cc(prevalence = 0.02)`) unlocks the case-control-weighted marginal contrasts, which the case-control-weighting article covers.
 
 ## What works today
 
-matchatr is built phase by phase against the *Handbook of Statistical Methods
-for Case-Control Studies* [@borgan2018handbook]. The classical odds-ratio
-engines are implemented:
+matchatr follows the *Handbook of Statistical Methods for Case-Control Studies* [@borgan2018handbook]. The odds-ratio engines for unmatched, matched and multi-group case-control data are:
 
 | Design | Estimator | Estimand | Article |
 |---|---|---|---|
@@ -161,10 +157,7 @@ engines are implemented:
 | Matched case-control | `"mcnemar"` | 1:1 matched-pair OR | [Matched CC](matched-cc.qmd) |
 | Multi-group outcome | `"polytomous"` | per-subtype OR vs reference | [Multiple groups](multiple-groups.qmd) |
 
-The time-to-event sampling designs (nested case-control, case-cohort, IPW-NCC)
-and the marginal causal layer (case-control-weighting g-formula / IPW / AIPW /
-TMLE, design-weighted causal survival) are designed but not yet implemented; see
-`FEATURE_COVERAGE_MATRIX.md` for the authoritative status of every cell.
+The time-to-event sampling designs (nested case-control, case-cohort, inverse-probability-weighted nested case-control) and the marginal causal contrasts (case-control-weighting g-formula / IPW / AIPW / TMLE, design-weighted causal survival) have their own articles. `FEATURE_COVERAGE_MATRIX.md` records which combinations are tested.
 
 ## References
 

@@ -50,11 +50,11 @@ case-control sampling method. \emph{Biometrika} 82(1):69-79.
 \seealso{
 \code{\link[=nested_cc]{nested_cc()}}, \code{\link[=sample_ncc_counter_matched]{sample_ncc_counter_matched()}}, \code{\link[=matcha]{matcha()}}
 
-Other design constructors: 
-\code{\link{case_cohort}()},
-\code{\link{matched_cc}()},
-\code{\link{nested_cc}()},
-\code{\link{two_phase}()},
-\code{\link{unmatched_cc}()}
+Other design constructors:
+\code{\link[=case_cohort]{case_cohort()}},
+\code{\link[=matched_cc]{matched_cc()}},
+\code{\link[=nested_cc]{nested_cc()}},
+\code{\link[=two_phase]{two_phase()}},
+\code{\link[=unmatched_cc]{unmatched_cc()}}
 }
 \concept{design constructors}

@@ -107,9 +107,9 @@ case-control sampling method. \emph{Biometrika} 82(1):69-79.
 \seealso{
 \code{\link[=counter_matched]{counter_matched()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=sample_ncc]{sample_ncc()}}
 
-Other sampling: 
-\code{\link{compute_ncc_weights}()},
-\code{\link{reuse_ncc_endpoint}()},
-\code{\link{sample_ncc}()}
+Other sampling:
+\code{\link[=compute_ncc_weights]{compute_ncc_weights()}},
+\code{\link[=reuse_ncc_endpoint]{reuse_ncc_endpoint()}},
+\code{\link[=sample_ncc]{sample_ncc()}}
 }
 \concept{sampling}

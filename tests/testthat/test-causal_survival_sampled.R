@@ -1,4 +1,4 @@
-# Design-weighted marginal causal survival (PHASE_10). The surv_gcomp engine
+# Design-weighted marginal causal survival. The surv_gcomp engine
 # g-computes a marginal survival contrast from a sampled cohort: it fits the
 # design's own weighted Cox (cch for case-cohort, ipw_cox for nested
 # case-control), reads the inverse-probability Breslow baseline, and Horvitz-
@@ -440,7 +440,7 @@ test_that("a non-binary exposure is rejected", {
 test_that("surv_gcomp is not available for an unmatched or nested design", {
   skip_if_not_installed("survival")
   co <- make_surv_cohort(n = 1000L, seed = 13L)
-  # nested_cc has no surv_gcomp row (its marginal survival ships in a later chunk).
+  # nested_cc has no surv_gcomp row in the dispatch table.
   expect_error(
     matcha(
       co,

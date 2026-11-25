@@ -22,12 +22,12 @@ number of covariate patterns, followed by the estimates table.
 \seealso{
 \code{\link[=absolute_risk]{absolute_risk()}}
 
-Other contrasts: 
-\code{\link{absolute_risk}()},
-\code{\link{contrast}()},
-\code{\link{excess_risk}()},
-\code{\link{print.matchatr_excess_risk}()},
-\code{\link{tidy.matchatr_absolute_risk}()},
-\code{\link{tidy.matchatr_excess_risk}()}
+Other contrasts:
+\code{\link[=absolute_risk]{absolute_risk()}},
+\code{\link[=contrast]{contrast()}},
+\code{\link[=excess_risk]{excess_risk()}},
+\code{\link[=print.matchatr_excess_risk]{print.matchatr_excess_risk()}},
+\code{\link[=tidy.matchatr_absolute_risk]{tidy.matchatr_absolute_risk()}},
+\code{\link[=tidy.matchatr_excess_risk]{tidy.matchatr_excess_risk()}}
 }
 \concept{contrasts}

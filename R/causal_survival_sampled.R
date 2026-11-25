@@ -27,6 +27,21 @@
 #' into a discrete-time hazard model, where they misrepresent the time-varying
 #' risk sets.
 #'
+#' matchatr does not delegate this contrast to survatr's
+#' `surv_fit(estimator = "gcomp", weights = )`, because that route is biased
+#' for sampled cohorts for two reasons. First, survatr marginalizes the
+#' counterfactual survival with an unweighted `mean()`, so the design weights
+#' reach the hazard fit but not the standardization. Second, a constant
+#' per-subject inclusion weight cannot express the time-varying case-cohort
+#' risk-set weighting: a case outside the subcohort is ascertained only at its
+#' failure, so its person-time before the event must not enter the risk set at
+#' weight 1. Fed into a pooled-logistic discrete-time hazard, constant weights
+#' attenuated the exposure coefficient by 20 to 30 Monte Carlo standard errors
+#' in the package's reference simulation, while the subcohort alone (a random
+#' sample of the cohort) gave an unbiased coefficient. The Cox partial
+#' likelihood handles the sampled risk sets correctly, so the g-computation is
+#' built on the weighted Cox fit instead.
+#'
 #' @param fit A `matchatr_fit` whose `engine` resolved to `"surv_gcomp"`, with a
 #'   `nested_cc()` or `case_cohort()` design, a binary `outcome`, a binary
 #'   `exposure`, and the design `time` column (plus the `ipw_weight` /

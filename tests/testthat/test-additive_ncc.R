@@ -1,4 +1,4 @@
-# IPW additive-hazards (Lin-Ying) for nested case-control (PHASE_7 final chunk).
+# IPW additive-hazards (Lin-Ying) for nested case-control.
 # matcha(estimator = "ipw_aalen") fits the weighted constant additive-hazards
 # estimator (lin_ying_additive()) on the deduplicated Samuelsen-weighted NCC
 # sample and contrast(type = "excess") reports the excess hazard gamma (additive

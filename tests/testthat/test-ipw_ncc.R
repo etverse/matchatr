@@ -1,4 +1,4 @@
-# IPW for nested case-control (PHASE_7 Chunk 1). Tests cover:
+# IPW for nested case-control. Tests cover:
 #   - sample_ncc(incl_prob = TRUE): structural checks on ipw_weight / .cohort_row
 #   - Samuelsen KM weight correctness vs multipleNCC::KMprob oracle
 #   - fit_ipw_cox() + contrast(): HR recovers full-cohort coxph (truth-based)
@@ -357,7 +357,7 @@ test_that("default contrast type for ipw_cox is hr", {
 })
 
 # ============================================================================
-# PHASE_7 Chunk 2: working-model (GLM/GAM) weights and rejection paths
+# Working-model (GLM/GAM) weights and rejection paths
 # ============================================================================
 
 # ---- structural tests for compute_ncc_weights() ----------------------------

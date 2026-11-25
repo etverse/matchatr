@@ -1,4 +1,4 @@
-# IPW accelerated failure time for nested case-control (PHASE_7 final chunk).
+# IPW accelerated failure time for nested case-control.
 # matcha(estimator = "ipw_aft") fits survival::survreg(weights = ipw_weight,
 # dist = "weibull", robust = TRUE) on the deduplicated Samuelsen-weighted NCC
 # sample and contrast(type = "af") reports the time ratio exp(beta) (acceleration

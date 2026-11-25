@@ -174,7 +174,10 @@ matched_cc <- function(
 #'   identify the sampled risk sets (the matched-set id).
 #' @param time A single character string naming the event/entry time column
 #'   that defines the risk sets. Carried for the inclusion-probability weight
-#'   and weighted-Cox estimators built on this design.
+#'   and weighted-Cox estimators built on this design. The time scale (for
+#'   example age or time since study entry) must be fixed before the controls
+#'   are selected, because it defines which subjects are in each sampled risk
+#'   set; the conditional partial likelihood is valid only on that scale.
 #' @param ratio `NULL` or a single whole number >= 1. Controls sampled per
 #'   case.
 #'
@@ -234,6 +237,9 @@ nested_cc <- function(strata, time, ratio = NULL) {
 #' @param subcohort A single character string naming the 0/1 (or logical)
 #'   column flagging subcohort membership.
 #' @param time A single character string naming the event/follow-up time column.
+#'   Unlike in a nested case-control design, the time scale need not be fixed
+#'   when the sample is drawn: the subcohort is chosen at baseline without
+#'   reference to failure times, so the scale can be chosen at analysis.
 #' @param method Character scalar naming the pseudo-likelihood method passed to
 #'   [survival::cch()]. One of `"Prentice"` (the default), `"SelfPrentice"`,
 #'   `"LinYing"`, `"I.Borgan"`, or `"II.Borgan"`. The first three are for

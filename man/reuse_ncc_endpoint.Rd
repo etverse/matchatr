@@ -46,7 +46,7 @@ endpoint as \code{outcome}.
 }
 \details{
 Nested case-control studies often record several endpoints in the same cohort.
-Classical (matched) analysis (Phase 5) ties each control to its case's failure
+Classical (matched) analysis ties each control to its case's failure
 time, so a control set sampled for one endpoint cannot serve another. The IPW
 reformulation breaks the matching: the union of cases and controls is treated
 as a biased cohort subsample weighted by inverse inclusion probability, which
@@ -118,9 +118,9 @@ case-control studies with multiple outcomes. \emph{Lifetime Data Analysis}
 \seealso{
 \code{\link[=sample_ncc]{sample_ncc()}}, \code{\link[=compute_ncc_weights]{compute_ncc_weights()}}, \code{\link[=matcha]{matcha()}}, \code{\link[=nested_cc]{nested_cc()}}
 
-Other sampling: 
-\code{\link{compute_ncc_weights}()},
-\code{\link{sample_ncc}()},
-\code{\link{sample_ncc_counter_matched}()}
+Other sampling:
+\code{\link[=compute_ncc_weights]{compute_ncc_weights()}},
+\code{\link[=sample_ncc]{sample_ncc()}},
+\code{\link[=sample_ncc_counter_matched]{sample_ncc_counter_matched()}}
 }
 \concept{sampling}

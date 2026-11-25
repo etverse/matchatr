@@ -29,8 +29,8 @@ tidy(contrast(fit, type = "or"))
 \seealso{
 \code{\link[=contrast]{contrast()}}
 
-Other tidiers: 
-\code{\link{tidy.matchatr_fit}()},
-\code{\link{tidy.matchatr_homogeneity}()}
+Other tidiers:
+\code{\link[=tidy.matchatr_fit]{tidy.matchatr_fit()}},
+\code{\link[=tidy.matchatr_homogeneity]{tidy.matchatr_homogeneity()}}
 }
 \concept{tidiers}
