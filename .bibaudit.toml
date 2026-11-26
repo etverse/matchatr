@@ -1,0 +1,8 @@
+# Differences bibaudit reports that this bibliography has adjudicated.
+# Each rule says why; see https://lorenzofabbri.github.io/bibaudit/suppressions/
+
+[[ignore]]
+key    = "begg1984calculation"
+field  = "authors"
+kind   = "mismatch"
+reason = "OUP misspells the first author 'BECG' in its own record and Crossref deposit for 10.1093/biomet/71.1.11; he is Colin B. Begg of the Dana-Farber Cancer Institute, as the bib has it. Checked on the OUP article page 2026-11-26."

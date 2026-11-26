@@ -21,3 +21,4 @@
 ^vignettes/\.quarto$
 ^vignettes/.*\.html$
 ^vignettes/.*_files$
+^\.bibaudit\.toml$
